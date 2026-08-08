@@ -43,18 +43,18 @@ Nhân viên giặt ủi trực tiếp, có thể phải:
 
 ## 4. Bản đồ deliverables
 
-| STT | Deliverable | Mục đích chính | Bằng chứng hoặc tiêu chí kiểm tra |
-|---:|---|---|---|
-| 1 | Persona | Đại diện cho một nhân viên giặt ủi mục tiêu và bối cảnh công việc. | Đủ chín phần theo rubric, có hình đại diện, bố cục rõ, có bằng chứng hoặc ghi rõ giả định. |
-| 2 | Value Proposition | Liên kết vấn đề và nhu cầu của nhân viên với giá trị đề xuất. | Mọi giá trị đề xuất đều liên kết với một vấn đề hoặc nhu cầu của persona. |
-| 3 | Scenario 1 (Hiện tại) | Thể hiện cách công việc hiện tại được thực hiện và nơi phát sinh vấn đề. | Hành động, bối cảnh, cách làm hiện tại, sự gián đoạn và khó khăn cụ thể phải dễ đọc. |
-| 4 | Scenario 2 (Cải thiện) | Thể hiện các tương tác được chọn làm thay đổi tình huống công việc. | Tương tác mới rõ ràng và trực tiếp giải quyết vấn đề trong Scenario 1. |
-| 5 | Storyboard | Kể một câu chuyện mạch lạc lấy nhân viên làm trung tâm. | Có mở đầu, khó khăn, tương tác và kết quả cùng hình minh họa, chú thích phù hợp. |
-| 6 | Prototype | Minh họa thiết kế tương tác quan trọng. | Walkthrough ổn định, đủ trạng thái chính, tương tác rõ và ngôn ngữ hình ảnh nhất quán. |
-| 7 | Wireframe | Xác định bố cục, phân cấp, điều hướng và trạng thái trước khi hoàn thiện hình ảnh. | Wireframe chi tiết, tạo bằng công cụ phù hợp và có cấu trúc tương tác sử dụng được. |
-| 8 | Software Product | Hiện thực workflow được cải thiện đã chọn dưới dạng prototype tương tác. | Phần lớn quy trình hoạt động từ đầu đến cuối, không chỉ có màn hình tĩnh. |
-| 9 | Presentation | Giải thích bằng chứng, quyết định thiết kế, tương tác và lý do. | Câu chuyện rõ, trả lời được câu hỏi “tại sao”, chuẩn bị cho mọi thành viên tham gia. |
-| 10 | Report | Ghi lại toàn bộ dự án theo format học thuật yêu cầu. | Đủ tiêu đề, nội dung, hình ảnh, định dạng nhất quán và tài liệu tham khảo khi cần. |
+| STT | Deliverable            | Mục đích chính                                                                     | Bằng chứng hoặc tiêu chí kiểm tra                                                          |
+| --: | ---------------------- | ---------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+|   1 | Persona                | Đại diện cho một nhân viên giặt ủi mục tiêu và bối cảnh công việc.                 | Đủ chín phần theo rubric, có hình đại diện, bố cục rõ, có bằng chứng hoặc ghi rõ giả định. |
+|   2 | Value Proposition      | Liên kết vấn đề và nhu cầu của nhân viên với giá trị đề xuất.                      | Mọi giá trị đề xuất đều liên kết với một vấn đề hoặc nhu cầu của persona.                  |
+|   3 | Scenario 1 (Hiện tại)  | Thể hiện cách công việc hiện tại được thực hiện và nơi phát sinh vấn đề.           | Hành động, bối cảnh, cách làm hiện tại, sự gián đoạn và khó khăn cụ thể phải dễ đọc.       |
+|   4 | Scenario 2 (Cải thiện) | Thể hiện các tương tác được chọn làm thay đổi tình huống công việc.                | Tương tác mới rõ ràng và trực tiếp giải quyết vấn đề trong Scenario 1.                     |
+|   5 | Storyboard             | Kể một câu chuyện mạch lạc lấy nhân viên làm trung tâm.                            | Có mở đầu, khó khăn, tương tác và kết quả cùng hình minh họa, chú thích phù hợp.           |
+|   6 | Prototype              | Minh họa thiết kế tương tác quan trọng.                                            | Walkthrough ổn định, đủ trạng thái chính, tương tác rõ và ngôn ngữ hình ảnh nhất quán.     |
+|   7 | Wireframe              | Xác định bố cục, phân cấp, điều hướng và trạng thái trước khi hoàn thiện hình ảnh. | Wireframe chi tiết, tạo bằng công cụ phù hợp và có cấu trúc tương tác sử dụng được.        |
+|   8 | Software Product       | Hiện thực workflow được cải thiện đã chọn dưới dạng prototype tương tác.           | Phần lớn quy trình hoạt động từ đầu đến cuối, không chỉ có màn hình tĩnh.                  |
+|   9 | Presentation           | Giải thích bằng chứng, quyết định thiết kế, tương tác và lý do.                    | Câu chuyện rõ, trả lời được câu hỏi “tại sao”, chuẩn bị cho mọi thành viên tham gia.       |
+|  10 | Report                 | Ghi lại toàn bộ dự án theo format học thuật yêu cầu.                               | Đủ tiêu đề, nội dung, hình ảnh, định dạng nhất quán và tài liệu tham khảo khi cần.         |
 
 ## 5. Các phase và milestone
 
