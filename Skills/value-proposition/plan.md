@@ -54,5 +54,5 @@ Output phải bắt đầu từ Persona, nhất quán với Persona và Scenario
 8. Kiểm tra mỗi Pain Reliever giải quyết một pain cụ thể và mỗi Gain Creator tạo ra một gain cụ thể của Persona.
 9. Đánh giá FIT bằng cách đối chiếu Customer Profile với Value Map.
 10. Ghi rõ assumptions, open questions và giới hạn nếu Persona hoặc dữ liệu user research chưa đủ.
-11. Điền kết quả theo các phần trong canvas và xuất tài liệu Markdown.
+11. Điền kết quả theo các phần trong canvas vào file Markdown `value-proposition.md` và lưu vào   `/templates`
 12. Kiểm tra output theo `skills/value-proposition/skill.md`, `rules/domain.md` và `docs/Rubric.md`.
