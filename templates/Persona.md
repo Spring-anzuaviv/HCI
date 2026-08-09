@@ -14,6 +14,10 @@
 | Digital Literacy | Mức cơ bản: dùng điện thoại và danh sách dạng bảng để xem hoặc ghi tiến độ |
 | Primary Device   | Điện thoại thông minh                                                      |
 
+## Tags
+
+`nhân viên vận hành` `nhân viên mới` `cửa hàng giặt ủi` `điều phối đơn` `theo dõi trạng thái máy` `bàn giao ca`
+
 ## Background
 
 Mai Anh làm việc tại cửa hàng giặt ủi có nhiều máy và nhiều đơn ở các công đoạn khác nhau. Trong ca, cô vừa tiếp nhận yêu cầu và giờ hẹn của khách, vừa chọn đơn để đưa vào máy, theo dõi tiếng báo hoàn tất, chuyển đồ, đóng gói và ghi lại phần việc còn dở cho ca sau. Thứ tự hiện tại chủ yếu theo nguyên tắc khách đến trước làm trước, sau đó đôn đơn gấp. Tiến độ được lưu rải rác trên phiếu, điện thoại, trạng thái thực tế của đồ và ghi chú bàn giao.
@@ -129,8 +133,8 @@ Mai Anh muốn hoàn thành đúng cam kết với khách, tránh để đồng 
 
 | Mã    | Nguồn                    | Cách sử dụng                                                                                                                                     |
 | ----- | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| PV-01 | `docs/phỏng vấn.pdf`     | Nguồn chính cho cách ưu tiên, theo dõi máy, đóng gói và bàn giao bằng điện thoại.                                                                |
-| PV-02 | `docs/phỏng vấn (1).pdf` | Loại khỏi tổng hợp vì cửa hàng chỉ có một nhân viên; chỉ cho thấy việc nhắn khách là hành vi có thể cần nghiên cứu lại trong đúng nhóm mục tiêu. |
-| PV-03 | `docs/phỏng vấn (2).pdf` | Đối chiếu cách ưu tiên, báo máy và bàn giao bằng giấy; quy mô cửa hàng chưa được xác nhận.                                                       |
+| PV-01 | `docs/phong-van-1.md` | Nguồn cho công cụ POS, cách nhận diện đơn, không gộp đồ, thông báo khách, nhân sự và cách ưu tiên đơn. |
+| PV-02 | `docs/phong-van-2.md` | Nguồn cho câu hỏi và các chủ đề khai thác về ưu tiên, trạng thái máy, bàn giao và mục tiêu hỗ trợ. |
+| PV-03 | `docs/phong-van-3.md` | Nguồn cho câu trả lời của chị Mai Anh về ưu tiên, theo dõi máy, ghi tiến độ và bàn giao. |
 
 Các dòng “Mục tiêu” và “Insight cần khai thác” trong tài liệu phỏng vấn là lời dẫn của người phỏng vấn, không phải finding.
