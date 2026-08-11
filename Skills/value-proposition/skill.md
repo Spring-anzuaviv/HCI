@@ -151,6 +151,8 @@ Products & Services không tự tạo ra giá trị. Mỗi item phải hỗ tr�
 
 Pain Relievers mô tả chính xác cách Products & Services giảm một pain cụ thể.
 
+Mỗi Pain trong canvas phải có ít nhất 2 Pain Relievers là các giải pháp design khác nhau; mỗi reliever phải giảm pain bằng một cơ chế riêng.
+
 | Customer Pain | Câu hỏi kiểm tra Pain Reliever |
 | --- | --- |
 | Khó biết việc tiếp theo | Đề xuất hiển thị hoặc giải thích thứ tự như thế nào? |
@@ -176,6 +178,8 @@ Xếp mỗi pain reliever theo cường độ pain mà nó giải quyết và gh
 ### Bước 6: Tạo Gain Creators
 
 Gain Creators mô tả cách Products & Services tạo ra một gain cụ thể.
+
+Mỗi Gain trong canvas phải có ít nhất 2 Gain Creators là các giải pháp design khác nhau; mỗi creator phải tạo ra gain bằng một cơ chế riêng.
 
 | Customer Gain | Câu hỏi kiểm tra Gain Creator |
 | --- | --- |
@@ -245,7 +249,7 @@ Trong đồ án này, FIT chỉ có nghĩa là **problem-solution fit ở mức 
 - Mọi thứ tự ưu tiên phải có lý do mà người dùng có thể xem và điều chỉnh.
 - Không mô tả prototype như hệ thống production hoặc công cụ điều khiển thiết bị thật.
 - Dùng ngôn ngữ quen thuộc với nhóm người dùng; tránh thuật ngữ kỹ thuật nếu không cần.
-- Giữ một-một giữa vấn đề, nhu cầu và giá trị đề xuất khi deliverable yêu cầu.
+- Bắt buộc có ít nhất 2 Pain Relievers cho mỗi Pain và ít nhất 2 Gain Creators cho mỗi Gain; mỗi giải pháp phải có lý do và cơ chế design riêng.
 - Nếu dữ liệu chưa đủ, giữ ô trống, ghi `chưa có bằng chứng` hoặc tạo open question thay vì bịa nội dung.
 
 ## Validation Rules

@@ -51,7 +51,7 @@ Output phải bắt đầu từ Persona, nhất quán với Persona và Scenario
 5. Xác định Customer Gains từ các lợi ích Persona mong đợi, mong muốn hoặc có thể thấy bất ngờ.
 6. Kiểm tra Customer Profile có phản ánh đúng Persona và không biến tính năng thành job, pain hoặc gain.
 7. Sau khi Customer Profile ổn định, lập Value Map gồm Products & Services, Pain Relievers và Gain Creators; không phân loại Products & Services theo loại hình.
-8. Kiểm tra mỗi Pain Reliever giải quyết một pain cụ thể và mỗi Gain Creator tạo ra một gain cụ thể của Persona.
+8. Kiểm tra mỗi Pain có ít nhất 2 Pain Relievers khác nhau và mỗi Gain có ít nhất 2 Gain Creators khác nhau; mỗi giải pháp design phải có cơ chế riêng.
 9. Đánh giá FIT bằng cách đối chiếu Customer Profile với Value Map.
 10. Ghi rõ assumptions, open questions và giới hạn nếu Persona hoặc dữ liệu user research chưa đủ.
 11. Điền kết quả theo các phần trong canvas vào file Markdown `value-proposition.md` và lưu vào   `/templates`
