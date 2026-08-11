@@ -121,7 +121,6 @@ Mỗi Gain có ít nhất 2 Gain Creators là các giải pháp design khác nha
 - Cập nhật tiến trình và cung cấp mẫu thông báo có thể xem lại trước khi gửi.
 - Bàn giao ca gồm mã đơn, trạng thái, vị trí, người phụ trách, ngoại lệ và việc tiếp theo.
 - Hồ sơ đơn tập trung giờ hẹn, yêu cầu đặc biệt và lịch sử cập nhật.
-- Phân quyền cập nhật, đổi ưu tiên, chuyển người phụ trách và cấu hình thông báo.
 
 ## Pain Relievers
 
