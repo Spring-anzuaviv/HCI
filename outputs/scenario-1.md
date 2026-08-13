@@ -2,7 +2,7 @@
 
 > **Một ca làm việc không có công cụ hỗ trợ**
 
-Mô tả tình huống thực tế của nhân viên giặt ủi khi phải điều phối nhiều đơn hàng, theo dõi máy và bàn giao ca chỉ bằng bill giấy, note điện thoại và trao đổi miệng.
+Mô tả tình huống thực tế của nhân viên giặt ủi khi phải điều phối nhiều đơn hàng, xác nhận giờ hẹn và thông báo khách — chỉ bằng bill giấy, note điện thoại và ước tính thủ công.
 
 ---
 
@@ -19,20 +19,23 @@ Mô tả tình huống thực tế của nhân viên giặt ủi khi phải đi�
 
 ## Diễn biến tình huống trong ca
 
-### Bước 1 — Tiếp nhận đơn và nhận diện thông tin `14:00`
+### Bước 1 — Khách hỏi giờ hẹn lấy đồ `14:00`
 
-Mai Anh nhận đơn giặt mới từ khách vãng lai. Cửa hàng **in bill dán lên túi đồ** để ghi tên khách, số điện thoại và giờ hẹn lấy. Mỗi đơn để riêng một túi, không gộp chung. Thông tin xem trên app POS hoặc bill giấy.
+Khách mang đồ đến tiếp nhận và hỏi: *"Khoảng mấy giờ lấy được?"* Mai Anh nhìn qua các máy đang chạy, tự ước tính trong đầu dựa trên số đơn đang chờ và cảm giác thời gian còn lại của từng máy. Không có công cụ nào tính hộ. Cô hẹn khách lúc 14:30 và ghi vào bill.
 
-**Công cụ đang dùng:** App POS · Bill giấy dán túi · Note điện thoại (GG Sheet)
+**Cơ sở ước tính:** Nhìn máy · Nhớ số đơn đang chờ · Kinh nghiệm cảm tính
+
+- ⚠️ Không biết chắc liệu 14:30 có thực sự khả thi không
+- ⚠️ Không tính đến các đơn đang xếp hàng phía trước
 
 ---
 
-### Bước 2 — Quyết định thứ tự xử lý `14:15`
+### Bước 2 — Quyết định thứ tự xử lý khi có máy trống `14:15`
 
-Đang có **6 đơn chờ**. Mai Anh nhìn bill từng túi, tự nhớ giờ hẹn trong đầu rồi bỏ đơn hẹn sớm nhất vào máy trước. Khách nhắn tin hỏi đồ xong chưa: phải dừng tay, mở điện thoại kiểm tra note, rồi mới trả lời.
+Máy giặt số 2 vừa xong. Đang có **5 đơn chờ**. Mai Anh nhìn bill từng túi, tự nhớ giờ hẹn trong đầu, rồi quyết định đơn nào bỏ vào máy tiếp theo. Một khách nhắn tin hỏi đồ xong chưa: phải dừng tay, mở điện thoại kiểm tra note, rồi mới trả lời.
 
 - ⚠️ Phải tự ghép giờ hẹn, khối lượng, loại đơn trong đầu
-- 🕐 Mất thời gian kiểm tra thủ công trên nhiều nguồn
+- ⚠️ Không biết nếu chọn sai đơn, đơn nào sẽ bị ảnh hưởng
 
 ---
 
@@ -48,62 +51,54 @@ Một khách gọi điện: cần lấy đồ sớm hơn **1 tiếng** vì có v
 
 ---
 
-### Bước 4 — Theo dõi máy và chuyển công đoạn `15:10`
+### Bước 4 — ⚠️ PHÁT HIỆN TRỄ QUÁ MUỘN `16:45 · Nhiều đơn cùng hẹn`
 
-Máy giặt bíp báo xong. Mai Anh đang bận đóng gói đơn khác ở đầu kệ. Phải dừng việc, chạy sang lấy đồ ra, bỏ vào máy sấy rồi quay lại đóng gói tiếp. Hôm nay ok vì có tiếng báo và có quản lý cùng trực. Nhưng khi bận hoặc đổi ca: dễ bỏ lỡ.
-
-**Tín hiệu:** Tiếng bíp của máy · Quan sát trực tiếp
-
-- 🕐 Nếu bận việc khác hoặc đổi ca: dễ bỏ lỡ tiếng báo, đồ bị ẩm trong máy
-
----
-
-### Bước 5 — ⚠️ PHÁT HIỆN TRỄ QUÁ MUỘN `16:45 · Nhiều đơn cùng hẹn`
-
-Mai Anh nhìn lại danh sách trên điện thoại thì nhận ra **2 đơn** hẹn lúc 17:30 nhưng vẫn còn đang giặt. Máy ước còn 25 phút, cộng sấy thêm 40 phút nữa: **chắc chắn không kịp.** Trước đó không có gì nhắc nguy cơ này để xử lý sớm.
+Mai Anh nhìn lại danh sách trên điện thoại thì nhận ra **2 đơn** hẹn lúc 17:30 nhưng vẫn còn đang giặt. Máy ước còn 25 phút, cộng sấy thêm 40 phút nữa: **chắc chắn không kịp.** Trước đó không có gì nhắc nguy cơ này để xử lý sớm. Đây cũng là hậu quả của việc hẹn giờ theo cảm tính ở bước 1 — không có cơ sở tính toán thực tế.
 
 > "Một vấn đề đáng chú ý là phát hiện nguy cơ trễ quá muộn, vì nhân viên thường chỉ nhận ra khi nhìn lại danh sách hoặc khách sắp đến lấy."
 > — Phỏng vấn [F]
 
 - ⚠️ Phát hiện trễ quá muộn, không còn đủ thời gian xử lý
-- ⚠️ Khách đến lấy sớm, không có cảnh báo để thông tin trước
+- ⚠️ Giờ hẹn đã xác nhận với khách không có căn cứ thực tế
 
 ---
 
-### Bước 6 — Thông báo khách — nhắn Zalo thủ công `17:00`
+### Bước 5 — Thông báo khách — nhắn Zalo thủ công `17:00`
 
 Những đơn đã xong, Mai Anh nhắn Zalo từng người một để báo đến lấy. Với 2 đơn sắp trễ, phải soạn tin xin lỗi và giải thích thủ công. Không có ghi nhận nào về việc khách nào đã được báo và khách nào chưa — dễ gửi thiếu, gửi trùng.
 
 **Kênh liên hệ:** Zalo cá nhân · Gọi điện trực tiếp
 
-- 🕐 Không biết khách nào đã được báo, khách nào chưa
-- 🕐 Phải soạn tin thủ công, tốn thời gian
+- ⚠️ Không biết khách nào đã được báo, khách nào chưa
+- ⚠️ Phải soạn tin thủ công, tốn thời gian, dễ quên
 
 ---
 
-### Bước 7 — ⚠️ BÀN GIAO CA — truyền miệng và giấy viết tay `17:50 · Cuối ca`
 
-Còn **3 đơn chưa xong** (trong đó có 2 đơn có nguy cơ trễ). Mai Anh viết tay tờ giấy ngắn ghi tên khách và trạng thái (đang giặt / đang sấy). Đơn nào có yêu cầu đặc biệt, vị trí đồ ở máy số mấy, đơn nào khách chưa xác nhận: giải thích miệng cho ca sau.
+### Bước 6 — Bàn giao ca – truyền miệng và giấy viết tay `17:50 · Cuối ca`
 
-> "Bản bàn giao ca nên đủ để nhân viên ca sau nhìn vào là tiếp tục làm được ngay, gồm: mã/tên đơn, trạng thái hiện tại, vị trí đồ, người phụ trách và giờ hẹn trả. Phần ngoại lệ nên ghi: đơn gấp, có nguy cơ trễ, đồ cần xử lý riêng, khách thay đổi giờ nhận..."
+Còn **3 đơn chưa xong** (trong đó có 2 đơn có nguy cơ trễ). Mai Anh viết tay tờ giấy ngắn ghi tên khách và trạng thái (đang giặt / đang sấy). Đơn nào có yêu cầu đặc biệt, vị trí đồ ở máy số mấy, đơn nào khách chưa xác nhận: giải thích miệng cho ca sau. Nếu nhân viên ca sau chưa quen hoặc quên hỏi lại, dễ bỏ sót đơn rủi ro.
+
+> "Bản bàn giao ca nên đủ để nhân viên ca sau nhìn vào là tiếp tục làm được ngay, gồm: tên đơn, trạng thái hiện tại, vị trí đồ, giờ hẹn trả. Phần ngoại lệ nên ghi: đơn gấp, có nguy cơ trễ, đồ cần xử lý riêng, khách thay đổi giờ nhận..."
 > — Phỏng vấn [F]
 
-- ⚠️ Thông tin bàn giao thiếu vị trí đồ, ngoại lệ, hành động tiếp theo
-- ⚠️ Ca sau dễ bỏ sót đơn rủi ro nếu truyền miệng không đủ
+**Chứng từ bàn giao:** Giấy viết tay · Trao đổi miệng · File Excel thô [F]
+
+- ⚠️ Thiếu ngữ cảnh: vị trí đồ, đơn rủi ro, hành động tiếp theo
+- ⚠️ Ca sau dễ bỏ sót đơn hoặc xử lý sai thứ tự nếu truyền miệng không đủ
 
 ---
 
 ## Vấn đề cốt lõi phát sinh trong ca làm việc
 
-| Mã | Vấn đề | Mô tả |
-|---|---|---|
-| P1 · Tải nhận thức cao | Tự ghép thông tin khi đôn đơn | Không có công cụ nào giúp đánh giá tác động của việc đổi thứ tự ưu tiên. Nhân viên phải tự tính toán từ nhiều yếu tố cùng lúc (giờ hẹn, khối lượng, công đoạn, máy). |
-| P2 · Thông tin phân tán | Đối chiếu nhiều nguồn rời rạc | Trạng thái đơn nằm ở POS, bill giấy, note điện thoại và quan sát trực tiếp máy. Nhân viên phải tự đối chiếu để biết tình trạng tổng thể. |
-| P2b · Deadline | Phát hiện nguy cơ trễ quá muộn | Không có cảnh báo chủ động. Nhân viên chỉ nhận ra khi nhìn lại danh sách hoặc khách sắp đến lấy, lúc đó không còn đủ thời gian xử lý. |
-| P3 · Bàn giao ca | Thiếu cấu trúc và ngữ cảnh | Giấy viết tay ngắn và truyền miệng không đủ ngữ cảnh về vị trí đồ cụ thể, ngoại lệ và hành động tiếp theo cần làm. Ca sau dễ bị mất thông tin quan trọng. |
-| P5 · Bỏ sót | Quên đơn và bỏ lỡ bước xử lý | Đặc biệt khi đổi ca hoặc đông đơn, dễ quên đồ trong máy, bỏ sót đơn chưa chuyển bước hoặc phát hiện vấn đề quá muộn. |
-| P4 · Thông báo | Không theo dõi được khách đã báo hay chưa | Nhắn Zalo thủ công, không có ghi nhận; dễ gửi thiếu, gửi trùng hoặc không biết trạng thái thông báo lần cuối. |
+| Mã | Vấn đề | Mô tả | Tính năng giải quyết |
+|---|---|---|---|
+| **P1** | Hàng đợi thủ công | Không có công cụ nào gợi ý đơn nào nên xử lý tiếp theo khi có máy trống. Nhân viên phải tự ghép giờ hẹn, khối lượng, loại dịch vụ trong đầu — dễ chọn sai thứ tự dẫn đến đơn trễ. | **Tính năng 1** — Hàng đợi công việc thông minh |
+| **P2** | Hẹn giờ theo cảm tính | Khi khách hỏi giờ lấy đồ, nhân viên chỉ ước tính dựa trên kinh nghiệm. Không tính đến hàng đợi hiện tại và thời gian xử lý thực tế — dẫn đến hẹn sai, khách thất vọng. | **Tính năng 3** — Kiểm tra tính khả thi giờ hẹn |
+| **P3** | Phát hiện trễ muộn | Không có cảnh báo chủ động. Nhân viên chỉ nhận ra khi nhìn lại danh sách hoặc khách sắp đến lấy — lúc đó không còn đủ thời gian. Liên quan trực tiếp đến P2: hẹn giờ không chính xác từ đầu. | **Tính năng 1** — Hàng đợi thông minh (cảnh báo sớm) |
+| **P4** | Thông báo thủ công | Nhắn Zalo thủ công, không có ghi nhận; dễ gửi thiếu, gửi trùng hoặc không biết trạng thái thông báo lần cuối. Khi đơn trễ phải soạn tin xin lỗi từng khách từ đầu. | **Tính năng 4** — Cập nhật tiến trình và thông báo tự động |
+| **P5** | Bàn giao ca thiếu ngữ cảnh | Giấy viết tay và truyền miệng thiếu vị trí đồ cụ thể, thứ tự ưu tiên và các đơn rủi ro. Ca sau phải tự xác định lại mà không có người hướng dẫn, dễ làm sai thứ tự xử lý hoặc bỏ sót đơn đang rủi ro. | **Tính năng 1** — Hàng đợi thông minh (hiển thị trạng thái rõ trên web, ca sau đăng nhập là tiếp tục) |
 
 ---
 
-*Dữ liệu số lượng đơn/giờ trong scenario là mô phỏng minh họa*
+*Dữ liệu số lượng đơn/giờ trong scenario là mô phỏng minh họa [A]*
