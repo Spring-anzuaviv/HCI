@@ -102,6 +102,8 @@ Nhân viên giặt ủi trực tiếp, có thể phải:
 
 **Tiêu chí kết thúc:** Mọi cải thiện đề xuất đều truy nguyên được về một nhu cầu hoặc pain point của persona, và scenario cải thiện không mở rộng phạm vi thiếu căn cứ.
 
+**Trạng thái 2026-08-14:** Scenario 2 đã được cập nhật theo `outputs/assets/scenario-1.png` và các mục `//` trong `outputs/value-proposition.md`. Nội dung tại `outputs/scenario-2.md` được tổ chức thành ba cải tiến chính: hàng đợi công việc thông minh, kiểm tra tính khả thi của giờ hẹn, và cập nhật tiến trình–thông báo khách. Bàn giao ca trước/ca sau là use case con của hàng đợi thông minh. Năm khung đầu nối 1–1 với Scenario 1; khung 6 tiếp nối đến cuối ca. Ảnh Scenario 2 chưa được tạo lại và các tương tác chưa được kiểm thử với người dùng, vì vậy Phase 2 chưa hoàn tất.
+
 ### Phase 3: Wireframe và prototype trực quan
 
 **Mục tiêu:** Khám phá và truyền đạt thiết kế tương tác trước hoặc song song với implementation.

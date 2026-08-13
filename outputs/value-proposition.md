@@ -75,37 +75,37 @@ Các mục trên chỉ là phương tiện minh họa workflow; dữ liệu tron
 
 Mỗi Pain trong canvas phải có ít nhất 2 Pain Relievers là các giải pháp design khác nhau; mỗi reliever phải giảm pain bằng một cơ chế riêng.
 
-| Mã | Giá trị đề xuất | Pain được giải quyết | Cách giảm pain |
-| --- | --- | --- | --- |
-| PR1 | Gợi ý thứ tự xử lý từ giờ hẹn, khối lượng, loại dịch vụ, công đoạn, máy, hàng chờ và yêu cầu đặc biệt; hiển thị lý do và cho phép đổi thứ tự. | P1 | Giảm việc tự ghép nhiều thông tin khi đôn đơn gấp; vẫn giữ quyền quyết định. |
-| PR2 | Cho phép xem và so sánh các phương án xử lý nếu đôn đơn gấp, gồm ảnh hưởng đến deadline của các đơn khác. | P1 | Giúp người dùng cân nhắc nhiều thứ tự thay vì chỉ nhận một thứ tự tự động. |
-| PR3 | Gom trạng thái đơn, công đoạn, giờ lấy, người phụ trách và lưu ý vào cùng một màn hình chi tiết. | P2 | Giảm đối chiếu giữa note điện thoại, bill, vị trí đồ và trao đổi rời rạc. |
-| PR4 | Có bộ lọc và lịch sử cập nhật để tìm nhanh thông tin đơn, trạng thái và thay đổi gần đây. | P2 | Giảm thời gian tìm kiếm giữa nhiều nguồn thông tin. |
-| PR5 | Tạo bản ghi bàn giao có trạng thái, công đoạn, vị trí, người phụ trách, ngoại lệ và bước tiếp theo. | P3 | Truyền đủ ngữ cảnh cho người tiếp nhận thay vì chỉ dựa vào giải thích miệng hoặc giấy ngắn. |
-| PR6 | Dùng checklist bàn giao và yêu cầu xác nhận các trường thông tin tối thiểu trước khi kết thúc ca. | P3 | Giảm nguy cơ bỏ sót vị trí, ngoại lệ hoặc hành động tiếp theo. |
-| PR7 | Cho phép chọn mẫu cập nhật dựa trên trạng thái đơn, xem lại nội dung trước khi gửi và ghi nhận đã thông báo. | P4 | Giảm thao tác soạn lại và làm rõ đơn nào đã được cập nhật khách. |
-| PR8 | Hiển thị lịch sử thông báo và trạng thái gửi để người dùng biết khách đã được cập nhật hay chưa. | P4 | Giảm nguy cơ gửi thiếu, gửi trùng hoặc không biết lần cập nhật trước. |
-| PR9 | Ước tính khoảng hoàn thành từ tải máy, hàng chờ, thời lượng từng công đoạn và thời gian dự phòng; hiển thị deadline có rủi ro. | P2b | Giúp nhận ra giờ hẹn không an toàn trước khi chốt với khách. |
-| PR10 | Hiển thị timeline các công đoạn và mô phỏng ảnh hưởng khi chèn một đơn gấp vào hàng chờ. | P2b | Giúp thấy công suất còn trống nhưng deadline vẫn có thể không khả thi. |
-| PR11 | Nhắc việc trên app/web khi phát sinh; chỉ push điện thoại cho việc cần xử lý ngay, nhắc lại sau khoảng 10–15 phút nếu chưa xử lý và không nhắc liên tục. | P5 | Giảm nguy cơ quên và giúp phát hiện trễ sớm mà không tạo quá nhiều gián đoạn. |
-| PR12 | Tạo danh sách việc cần chú ý theo deadline, trạng thái đứng quá lâu và đổi ca. | P5 | Gom các rủi ro cần xử lý vào một nơi để người dùng rà soát. |
+| Mã     | Giá trị đề xuất                                                                                                                                          | Pain được giải quyết | Cách giảm pain                                                                              |
+| ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------- | ------------------------------------------------------------------------------------------- |
+| //PR1  | Gợi ý thứ tự xử lý từ giờ hẹn, khối lượng, loại dịch vụ, công đoạn, máy, hàng chờ và yêu cầu đặc biệt; hiển thị lý do và cho phép đổi thứ tự.            | P1                   | Giảm việc tự ghép nhiều thông tin khi đôn đơn gấp; vẫn giữ quyền quyết định.                |
+| PR2    | Cho phép xem và so sánh các phương án xử lý nếu đôn đơn gấp, gồm ảnh hưởng đến deadline của các đơn khác.                                                | P1                   | Giúp người dùng cân nhắc nhiều thứ tự thay vì chỉ nhận một thứ tự tự động.                  |
+| //PR3  | Gom trạng thái đơn, công đoạn, giờ lấy, người phụ trách và lưu ý vào cùng một màn hình chi tiết.                                                         | P2                   | Giảm đối chiếu giữa note điện thoại, bill, vị trí đồ và trao đổi rời rạc.                   |
+| PR4    | Có bộ lọc và lịch sử cập nhật để tìm nhanh thông tin đơn, trạng thái và thay đổi gần đây.                                                                | P2                   | Giảm thời gian tìm kiếm giữa nhiều nguồn thông tin.                                         |
+| //PR5  | Tạo bản ghi bàn giao có trạng thái, công đoạn, vị trí, người phụ trách, ngoại lệ và bước tiếp theo.                                                      | P3                   | Truyền đủ ngữ cảnh cho người tiếp nhận thay vì chỉ dựa vào giải thích miệng hoặc giấy ngắn. |
+| PR6    | Dùng checklist bàn giao và yêu cầu xác nhận các trường thông tin tối thiểu trước khi kết thúc ca.                                                        | P3                   | Giảm nguy cơ bỏ sót vị trí, ngoại lệ hoặc hành động tiếp theo.                              |
+| //PR7  | Cho phép chọn mẫu cập nhật dựa trên trạng thái đơn, xem lại nội dung trước khi gửi và ghi nhận đã thông báo.                                             | P4                   | Giảm thao tác soạn lại và làm rõ đơn nào đã được cập nhật khách.                            |
+| PR8    | Hiển thị lịch sử thông báo và trạng thái gửi để người dùng biết khách đã được cập nhật hay chưa.                                                         | P4                   | Giảm nguy cơ gửi thiếu, gửi trùng hoặc không biết lần cập nhật trước.                       |
+| //PR9  | Ước tính khoảng hoàn thành từ tải máy, hàng chờ, thời lượng từng công đoạn và thời gian dự phòng; hiển thị deadline có rủi ro.                           | P2b                  | Giúp nhận ra giờ hẹn không an toàn trước khi chốt với khách.                                |
+| PR10   | Hiển thị timeline các công đoạn và mô phỏng ảnh hưởng khi chèn một đơn gấp vào hàng chờ.                                                                 | P2b                  | Giúp thấy công suất còn trống nhưng deadline vẫn có thể không khả thi.                      |
+| //PR11 | Nhắc việc trên app/web khi phát sinh; chỉ push điện thoại cho việc cần xử lý ngay, nhắc lại sau khoảng 10–15 phút nếu chưa xử lý và không nhắc liên tục. | P5                   | Giảm nguy cơ quên và giúp phát hiện trễ sớm mà không tạo quá nhiều gián đoạn.               |
+| PR12   | Tạo danh sách việc cần chú ý theo deadline, trạng thái đứng quá lâu và đổi ca.                                                                           | P5                   | Gom các rủi ro cần xử lý vào một nơi để người dùng rà soát.                                 |
 
 ### Gain Creators
 
 Mỗi Gain trong canvas phải có ít nhất 2 Gain Creators là các giải pháp design khác nhau; mỗi creator phải tạo ra gain bằng một cơ chế riêng.
 
-| Mã | Giá trị đề xuất | Gain được tạo | Cách người dùng nhận biết kết quả |
-| --- | --- | --- | --- |
-| GC1 | Giải thích ngắn gọn lý do xếp hạng và cho phép xác nhận hoặc kéo đổi thứ tự. | G1, G5, G7 | Người dùng thấy việc đề xuất, lý do và thứ tự mới sau khi điều chỉnh, ví dụ “còn 45 phút đến giờ hẹn, còn 2 công đoạn”. |
-| GC2 | Hiển thị nhiều phương án thứ tự cùng tác động dự kiến để người dùng so sánh trước khi chọn. | G1, G5 | Người dùng thấy các lựa chọn và hệ quả thay vì chỉ có một phương án. |
-| GC3 | Hiển thị một dòng tóm tắt “đang ở đâu, ai phụ trách, làm gì tiếp theo” trên mỗi đơn. | G2, G3 | Người dùng và người tiếp nhận đọc được trạng thái mà không phải hỏi lại ngay. |
-| GC4 | Dùng trạng thái và nhãn chữ, không chỉ dùng màu, để giúp quét nhanh danh sách. | G2 | Người dùng nhận ra đơn chờ, đang xử lý, cần tiếp tục hoặc đã hoàn tất bằng chữ và trạng thái. |
-| GC5 | Tạo bản tóm tắt cuối ca từ các đơn chưa hoàn tất. | G3 | Người bàn giao có danh sách rõ; người nhận biết việc cần tiếp tục. |
-| GC6 | Hiển thị checklist bàn giao và cho phép người nhận xác nhận đã tiếp nhận thông tin. | G3, G7 | Hai bên biết phần bàn giao đã đủ và còn nội dung nào cần bổ sung. |
-| GC7 | Cung cấp mẫu tin nhắn và nhắc việc theo trạng thái nhưng để người dùng kiểm tra và gửi. | G4, G5, G7 | Nội dung nhất quán hơn mà người dùng vẫn giữ quyền kiểm soát việc thông báo. |
-| GC8 | Hiển thị lịch sử thông báo và trạng thái gửi theo từng đơn. | G4 | Người dùng biết khách đã nhận được cập nhật nào và tránh gửi lặp. |
-| GC9 | Hiển thị khoảng hoàn thành dự kiến, mức rủi ro deadline và giờ gần nhất có thể đáp ứng trước khi chốt giờ hẹn. | G6 | Người dùng có cơ sở giải thích và điều chỉnh giờ hẹn. |
-| GC10 | Hiển thị timeline và các mốc thời gian còn lại của từng công đoạn. | G6 | Người dùng thấy deadline được hình thành từ các công đoạn nào và kiểm tra được tính hợp lý. |
+| Mã     | Giá trị đề xuất                                                                                                | Gain được tạo | Cách người dùng nhận biết kết quả                                                                                       |
+| ------ | -------------------------------------------------------------------------------------------------------------- | ------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| //GC1  | Giải thích ngắn gọn lý do xếp hạng và cho phép xác nhận hoặc kéo đổi thứ tự.                                   | G1, G5, G7    | Người dùng thấy việc đề xuất, lý do và thứ tự mới sau khi điều chỉnh, ví dụ “còn 45 phút đến giờ hẹn, còn 2 công đoạn”. |
+| GC2    | Hiển thị nhiều phương án thứ tự cùng tác động dự kiến để người dùng so sánh trước khi chọn.                    | G1, G5        | Người dùng thấy các lựa chọn và hệ quả thay vì chỉ có một phương án.                                                    |
+| //GC3  | Hiển thị một dòng tóm tắt “đang ở đâu, ai phụ trách, làm gì tiếp theo” trên mỗi đơn.                           | G2, G3        | Người dùng và người tiếp nhận đọc được trạng thái mà không phải hỏi lại ngay.                                           |
+| //GC4  | Dùng trạng thái và nhãn chữ, không chỉ dùng màu, để giúp quét nhanh danh sách.                                 | G2            | Người dùng nhận ra đơn chờ, đang xử lý, cần tiếp tục hoặc đã hoàn tất bằng chữ và trạng thái.                           |
+| //GC5  | Tạo bản tóm tắt cuối ca từ các đơn chưa hoàn tất.                                                              | G3            | Người bàn giao có danh sách rõ; người nhận biết việc cần tiếp tục.                                                      |
+| GC6    | Hiển thị checklist bàn giao và cho phép người nhận xác nhận đã tiếp nhận thông tin.                            | G3, G7        | Hai bên biết phần bàn giao đã đủ và còn nội dung nào cần bổ sung.                                                       |
+| GC7    | Cung cấp mẫu tin nhắn và nhắc việc theo trạng thái nhưng để người dùng kiểm tra và gửi.                        | G4, G5, G7    | Nội dung nhất quán hơn mà người dùng vẫn giữ quyền kiểm soát việc thông báo.                                            |
+| //GC8  | Hiển thị lịch sử thông báo và trạng thái gửi theo từng đơn.                                                    | G4            | Người dùng biết khách đã nhận được cập nhật nào và tránh gửi lặp.                                                       |
+| //GC9  | Hiển thị khoảng hoàn thành dự kiến, mức rủi ro deadline và giờ gần nhất có thể đáp ứng trước khi chốt giờ hẹn. | G6            | Người dùng có cơ sở giải thích và điều chỉnh giờ hẹn.                                                                   |
+| //GC10 | Hiển thị timeline và các mốc thời gian còn lại của từng công đoạn.                                             | G6            | Người dùng thấy deadline được hình thành từ các công đoạn nào và kiểm tra được tính hợp lý.                             |
 
 **Yêu cầu giải thích:** Hệ thống phải hiển thị lý do ưu tiên, ví dụ “còn 45 phút đến giờ hẹn, còn 2 công đoạn”, để người dùng kiểm tra và tự quyết định thay vì chỉ nhận một thứ tự tự động.
 
