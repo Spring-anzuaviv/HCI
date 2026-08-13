@@ -2,7 +2,9 @@
 
 ## Purpose
 
-Generate Scenario 1 (hệ thống hiện tại) cho đồ án HCI: mô tả tường thuật tình huống thực tế của nhân viên giặt ủi trong một ca làm việc điển hình, trước khi có hệ thống hỗ trợ, làm nổi bật các pain points đã xác định từ Persona và Value Proposition Canvas.
+Generate Scenario 1 (hệ thống hiện tại) cho đồ án HCI: mô tả tường thuật tình huống thực tế của nhân viên giặt ủi trong một ca làm việc điển hình, trước khi có hệ thống hỗ trợ, làm nổi bật **đúng 4 pain points (P1–P4) đã xác định** tương ứng với **3 tính năng nhóm sẽ thiết kế (Tính năng 1, 3, 4)**.
+
+Không lấy toàn bộ Customer Pains từ Value Proposition Canvas. Chỉ sử dụng phần pain points đã được lọc ra theo phạm vi dự án.
 
 ## Use this skill when
 
@@ -16,7 +18,7 @@ Generate Scenario 1 (hệ thống hiện tại) cho đồ án HCI: mô tả tư�
 Một hoặc nhiều trong số:
 
 - Persona hoàn chỉnh (background, goals, tasks, behaviors, pain points, motivations, wishes, quote).
-- Value Proposition Canvas (Customer Jobs, Customer Pains, Customer Gains, Pain Relievers).
+- Value Proposition Canvas — **chỉ đọc phần Customer Pains tương ứng với 3 tính năng nhóm làm** (Tính năng 1, 3, 4); bỏ qua các pains thuộc Tính năng 2 hoặc ngoài phạm vi.
 - Kết quả phỏng vấn / quan sát người dùng thực tế.
 - Bối cảnh cụ thể: địa điểm, thời điểm, tình trạng ban đầu (số đơn, máy đang chạy, v.v.).
 
@@ -33,12 +35,13 @@ Output phải nhất quán với Persona và Value Proposition Canvas, đồng t
 
 ## Workflow
 
-1. Đọc `Agents.md`, `plan.md` cấp project, `skills/scenario-1/skill.md`, `docs/Rubric.md`, Persona, Value Proposition Canvas và kết quả phỏng vấn.
-2. Xác định bối cảnh tình huống: ai (Persona), ở đâu, khi nào, tình trạng ban đầu như thế nào.
-3. Xác định chuỗi hành động trong ca làm việc điển hình, dựa trên Tasks và Behaviors của Persona, có căn cứ từ phỏng vấn.
-4. Viết đoạn văn tường thuật liền mạch: kể theo trình tự thời gian, tập trung vào hành động của người dùng, dùng ngôn ngữ tự nhiên gần với ngôn ngữ người dùng dùng trong phỏng vấn.
-5. Xác định các điểm trong tường thuật có Pain Point phát sinh — đánh dấu và kết nối với Pain Points trong Persona.
-6. Viết phần phân tích pain points dạng callout bên ngoài tường thuật (không chen vào giữa đoạn văn chính).
-7. Gắn nhãn bằng chứng [F] / [S] / [A] cho từng nội dung.
-8. Kiểm tra output theo `skills/scenario-1/skill.md` và `docs/Rubric.md`.
-9. Lưu kết quả vào `docs/scenario-1.md` và `templates/assets/scenario-1.html`.
+1. Đọc `Agents.md`, `plan.md` cấp project, `skills/scenario-1/skill.md`, `docs/Rubric.md`, Persona và kết quả phỏng vấn.
+2. **Xác nhận phạm vi pain points:** Đọc bảng **Phạm vi Pain Points của Dự án** trong `skill.md`. Chỉ đưa P1–P4 vào tường thuật — không lấy thêm pain point từ Value Proposition Canvas.
+3. Xác định bối cảnh tình huống: ai (Persona), ở đâu, khi nào, tình trạng ban đầu như thế nào.
+4. Xác định chuỗi hành động trong ca làm việc điển hình, dựa trên Tasks và Behaviors của Persona, có căn cứ từ phỏng vấn.
+5. Viết đoạn văn tường thuật liền mạch: kể theo trình tự thời gian, tập trung vào hành động của người dùng, dùng ngôn ngữ tự nhiên gần với ngôn ngữ người dùng dùng trong phỏng vấn.
+6. Xác định các điểm trong tường thuật có Pain Point phát sinh — chỉ đánh dấu các mức P1, P2, P3, P4; bỏ qua các pain points ngoài phạm vi dù xuất hiện trong phỏng vấn.
+7. Viết phần phân tích pain points dạng callout bên ngoài tường thuật (không chen vào giữa đoạn văn chính). Mỗi mục ghi rõ tính năng sẽ giải quyết.
+8. Gắn nhãn bằng chứng [F] / [S] / [A] cho từng nội dung.
+9. Kiểm tra output theo Validation Checklist trong `skills/scenario-1/skill.md` và `docs/Rubric.md`.
+10. Lưu kết quả vào `docs/scenario-1.md` và `templates/assets/scenario-1.html`.
