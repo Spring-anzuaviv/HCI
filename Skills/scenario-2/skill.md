@@ -1,6 +1,6 @@
 ---
 name: scenario-2
-description: Dùng để viết Scenario 2 (hệ thống tương lai) cho đồ án HCI — mô tả tường thuật ca làm việc sau khi có hệ thống hỗ trợ, đối chiếu trực tiếp với Scenario 1 để làm nổi bật cách các tính năng mới giải quyết 4 pain points (P1–P4).
+description: Dùng để viết Scenario 2 (hệ thống tương lai) cho đồ án HCI — mô tả tường thuật ca làm việc sau khi có hệ thống hỗ trợ, đối chiếu trực tiếp với Scenario 1 để làm nổi bật cách ba tính năng mới giải quyết P1, P2 và P4.
 ---
 
 # Skill Scenario 2 — Hệ thống tương lai
@@ -56,11 +56,18 @@ Skill này giúp Agent:
 
 1. **Khớp bối cảnh:** Sao chép chính xác bối cảnh (Persona, thời gian, địa điểm, tình trạng ban đầu) từ Scenario 1.
 2. **Đối chiếu trực tiếp:** Mỗi pain point (P1-P4) trong Scenario 1 phải có một tình huống tương ứng trong Scenario 2 thể hiện cách giải quyết.
-3. **Chỉ minh họa các tính năng trong phạm vi (1, 3, 4):**
-   - Hàng đợi công việc thông minh (giải quyết P1, P3).
-   - Kiểm tra tính khả thi giờ hẹn (giải quyết P2).
-   - Cập nhật tiến trình và thông báo (giải quyết P4).
-   - Không sáng tạo thêm tính năng như robot tự giặt, máy tự xếp đồ.
+3. **Chỉ minh họa các tính năng trong phạm vi:**
+   - **Tính năng 1 — Hàng đợi công việc thông minh** (giải quyết P1, P3):
+     - Đề xuất đơn tiếp theo có lý do rõ ràng; nhân viên được xác nhận hoặc đổi thứ tự.
+     - Hiển thị trạng thái, vị trí, người phụ trách và việc cần làm tiếp theo.
+     - Hỗ trợ xem tác động trước khi đôn đơn gấp.
+     - Xem bàn giao ca trước và tạo bàn giao ca sau trên cùng hàng đợi.
+   - **Tính năng 2 — Kiểm tra tính khả thi giờ hẹn** (giải quyết P2):
+     - Ba mức khả thi, khoảng hoàn thành, giờ gần nhất và timeline công đoạn.
+   - **Tính năng 3 — Thông báo khách khi đơn sẵn sàng** (giải quyết P4):
+     - Soạn sẵn nội dung khi đơn hoàn tất (địch tự nhân viên liên lạc Zalo thủ công).
+     - Mục đích báo khách khi đồ sẵn sàng để nhận.
+     - Gửi tự động hoặc để nhân viên duyệt; lưu lịch sử và trạng thái gửi theo từng đơn.
 4. **Không nói quá (No overclaiming):** Tránh khẳng định hệ thống giúp tăng doanh thu 300% hay giảm 100% lỗi. Chỉ mô tả nhân viên làm việc trôi chảy hơn, có thông tin rõ ràng hơn.
 
 ## Validation Checklist

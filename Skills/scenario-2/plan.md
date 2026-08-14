@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Generate Scenario 2 (hệ thống tương lai) cho đồ án HCI: mô tả tường thuật tình huống thực tế của nhân viên giặt ủi trong một ca làm việc điển hình, sau khi đã có hệ thống hỗ trợ. Scenario 2 phải đối chiếu trực tiếp với các pain points (P1-P4) từ Scenario 1 và minh họa cách các tính năng mới (Tính năng 1, 3, 4) giúp giải quyết những khó khăn đó.
+Generate Scenario 2 (hệ thống tương lai) cho đồ án HCI: mô tả tường thuật tình huống thực tế của nhân viên giặt ủi trong một ca làm việc điển hình, sau khi đã có hệ thống hỗ trợ. Scenario 2 phải đối chiếu trực tiếp với các pain points (P1, P2, P4) từ Scenario 1 và minh họa cách các tính năng mới (Tính năng 1, 2, 3) giúp giải quyết những khó khăn đó.
 
 ## Use this skill when
 
@@ -15,7 +15,7 @@ Generate Scenario 2 (hệ thống tương lai) cho đồ án HCI: mô tả tư�
 
 - `outputs/scenario-1.md` hoặc `outputs/assets/scenario-1.png`: bối cảnh, các mốc thời gian và 4 pain points (P1–P4) hiện tại.
 - `outputs/Persona.md`: Goals, Behaviors, Pain Points, Needs của Persona.
-- `outputs/value-proposition.md`: các giải pháp (Pain Relievers, Gain Creators) tương ứng với 3 tính năng nhóm làm.
+- `outputs/value-proposition.md`: các giải pháp (Pain Relievers, Gain Creators) tương ứng với 3 tính năng: (1) Hàng đợi công việc thông minh, (2) Kiểm tra tính khả thi giờ hẹn, (3) Thông báo khách khi đơn sẵn sàng.
 - Cấu trúc và bối cảnh (phải giữ nguyên như Scenario 1): nhân vật, địa điểm, thời điểm, tình trạng ban đầu.
 
 ## Output
@@ -23,7 +23,7 @@ Generate Scenario 2 (hệ thống tương lai) cho đồ án HCI: mô tả tư�
 Một Scenario 2 hoàn chỉnh, dạng Markdown, gồm:
 
 - Bối cảnh (Giữ nguyên từ Scenario 1).
-- Tường thuật liền mạch ca làm việc với sự hỗ trợ của hệ thống mới, thể hiện sự cải thiện rõ rệt so với Scenario 1.
+- Tường thuật liền mạch ca làm việc với sự hỗ trợ của hệ thống mới, thể hiện sự cải thiện rõ rệt so với Scenario 1 đối với P1, P2, P4 (không bao gồm tính năng phát hiện nguy cơ trễ tự động vì dữ liệu thời gian máy giặt là cố định).
 - Bảng phân tích sự thay đổi (Từ vấn đề P1-P4 ở Scenario 1 -> Tương tác mới -> Kết quả đạt được).
 - Đánh dấu rõ các giải pháp thiết kế được áp dụng vào tường thuật.
 
