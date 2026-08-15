@@ -51,19 +51,7 @@ Một khách gọi điện: cần lấy đồ sớm hơn **1 tiếng** vì có v
 
 ---
 
-### Bước 4 — ⚠️ PHÁT HIỆN TRỄ QUÁ MUỘN `16:45 · Nhiều đơn cùng hẹn`
-
-Mai Anh nhìn lại danh sách trên điện thoại thì nhận ra **2 đơn** hẹn lúc 17:30 nhưng vẫn còn đang giặt. Máy ước còn 25 phút, cộng sấy thêm 40 phút nữa: **chắc chắn không kịp.** Trước đó không có gì nhắc nguy cơ này để xử lý sớm. Đây cũng là hậu quả của việc hẹn giờ theo cảm tính ở bước 1 — không có cơ sở tính toán thực tế.
-
-> "Một vấn đề đáng chú ý là phát hiện nguy cơ trễ quá muộn, vì nhân viên thường chỉ nhận ra khi nhìn lại danh sách hoặc khách sắp đến lấy."
-> — Phỏng vấn [F]
-
-- ⚠️ Phát hiện trễ quá muộn, không còn đủ thời gian xử lý
-- ⚠️ Giờ hẹn đã xác nhận với khách không có căn cứ thực tế
-
----
-
-### Bước 5 — Thông báo khách — nhắn Zalo thủ công `17:00`
+### Bước 4 — Thông báo khách — nhắn Zalo thủ công `17:00`
 
 Những đơn đã xong, Mai Anh nhắn Zalo từng người một để báo đến lấy. Với 2 đơn sắp trễ, phải soạn tin xin lỗi và giải thích thủ công. Không có ghi nhận nào về việc khách nào đã được báo và khách nào chưa — dễ gửi thiếu, gửi trùng.
 
@@ -75,7 +63,7 @@ Những đơn đã xong, Mai Anh nhắn Zalo từng người một để báo đ
 ---
 
 
-### Bước 6 — Bàn giao ca – truyền miệng và giấy viết tay `17:50 · Cuối ca`
+### Bước 5 — Bàn giao ca – truyền miệng và giấy viết tay `17:50 · Cuối ca`
 
 Còn **3 đơn chưa xong** (trong đó có 2 đơn có nguy cơ trễ). Mai Anh viết tay tờ giấy ngắn ghi tên khách và trạng thái (đang giặt / đang sấy). Đơn nào có yêu cầu đặc biệt, vị trí đồ ở máy số mấy, đơn nào khách chưa xác nhận: giải thích miệng cho ca sau. Nếu nhân viên ca sau chưa quen hoặc quên hỏi lại, dễ bỏ sót đơn rủi ro.
 
@@ -94,8 +82,7 @@ Còn **3 đơn chưa xong** (trong đó có 2 đơn có nguy cơ trễ). Mai Anh
 | Mã | Vấn đề | Mô tả | Tính năng giải quyết |
 |---|---|---|---|
 | **P1** | Hàng đợi thủ công | Không có công cụ nào gợi ý đơn nào nên xử lý tiếp theo khi có máy trống. Nhân viên phải tự ghép giờ hẹn, khối lượng, loại dịch vụ trong đầu — dễ chọn sai thứ tự dẫn đến đơn trễ. | **Tính năng 1** — Hàng đợi công việc thông minh |
-| **P2** | Hẹn giờ theo cảm tính | Khi khách hỏi giờ lấy đồ, nhân viên chỉ ước tính dựa trên kinh nghiệm. Không tính đến hàng đợi hiện tại và thời gian xử lý thực tế — dẫn đến hẹn sai, khách thất vọng. | **Tính năng 3** — Kiểm tra tính khả thi giờ hẹn |
-| **P3** | Phát hiện trễ muộn | Không có cảnh báo chủ động. Nhân viên chỉ nhận ra khi nhìn lại danh sách hoặc khách sắp đến lấy — lúc đó không còn đủ thời gian. Liên quan trực tiếp đến P2: hẹn giờ không chính xác từ đầu. | **Tính năng 1** — Hàng đợi thông minh (cảnh báo sớm) |
+| **P2, P3** | Hẹn giờ theo cảm tính | Khi khách hỏi giờ lấy đồ, nhân viên chỉ ước tính dựa trên kinh nghiệm. Không tính đến hàng đợi hiện tại và thời gian xử lý thực tế — dẫn đến hẹn sai, khách thất vọng. | **Tính năng 3** — Kiểm tra tính khả thi giờ hẹn |
 | **P4** | Thông báo thủ công | Nhắn Zalo thủ công, không có ghi nhận; dễ gửi thiếu, gửi trùng hoặc không biết trạng thái thông báo lần cuối. Khi đơn trễ phải soạn tin xin lỗi từng khách từ đầu. | **Tính năng 4** — Cập nhật tiến trình và thông báo tự động |
 | **P5** | Bàn giao ca thiếu ngữ cảnh | Giấy viết tay và truyền miệng thiếu vị trí đồ cụ thể, thứ tự ưu tiên và các đơn rủi ro. Ca sau phải tự xác định lại mà không có người hướng dẫn, dễ làm sai thứ tự xử lý hoặc bỏ sót đơn đang rủi ro. | **Tính năng 1** — Hàng đợi thông minh (hiển thị trạng thái rõ trên web, ca sau đăng nhập là tiếp tục) |
 
