@@ -1,264 +1,2178 @@
-# Thông Số Minh Họa Storyboard Năm Phần
+# Drawing style
+Tạo hình minh họa theo phong cách **UX Storyboard vẽ tay đen trắng tối giản**, giống một storyboard được **phác thảo nhanh bằng bút mực đen trên giấy trắng** để mô tả một tình huống tương tác người dùng.
 
-Thông số sản xuất bằng tiếng Anh này chứa chính xác năm phần storyboard chính và hai mươi khung hình tĩnh. Mỗi khung hình phải sử dụng tỷ lệ ngang giống nhau và một dải chú thích riêng biệt, đóng băng một thời điểm và một trạng thái hệ thống, và giữ mọi người và công việc giặc ướt vật lý ở vị trí ưu tiên ngoại trừ trong các close-up giao diện người dùng dự định. Chú thích có thể chỉ phóng to nội dung có mặt vật lý trong thời điểm đó; nó không bao giờ được phép giới thiệu trạng thái trước, trạng thái sau, hoặc hành động trong tương lai.
+### Phong cách nét vẽ
 
-Sử dụng phong cách minh họa có tương phản cao, sáng rõ ràng với ánh sáng cửa hàng thực tế, trang trí kiềm chế, và văn bản giao diện người dùng sans-serif lớn. Ý nghĩa trạng thái quan trọng phải kết hợp văn bản dễ đọc với biểu tượng, viền, hình dạng, hoặc trọng lượng kiểu chữ thay vì màu sắc một mình. Không bao giờ hiển thị tên khách hàng thực, số điện thoại, địa chỉ, hoặc dữ liệu cá nhân khác, và không bao giờ miêu tả điện thoại hoặc máy tính bảng điều khiển máy giặc hoặc bất kỳ máy thực nào khác.
+* Chỉ sử dụng **nét đen trên nền trắng**.
+* Dùng các **đường nét mảnh, đơn giản, hơi không đều và không hoàn hảo**, tạo cảm giác được vẽ tay nhanh bằng bút.
+* Nét vẽ sạch nhưng không được quá trau chuốt hoặc giống vector.
+* Không tô màu và hạn chế tối đa các chi tiết không cần thiết.
 
-Khuyến nghị, kết quả khả thi, bản xem trước hàng đợi, xác nhận và bản nháp thông điệp là hành vi nguyên mẫu được mô phỏng. Xem xét con người và xác nhận rõ ràng vẫn hiển thị bất cứ khi nào đề xuất thay đổi hậu quả.
+### Nhân vật
+
+Vẽ nhân vật theo phong cách **cartoon cực kỳ tối giản**:
+
+* Đầu và cơ thể được tạo từ các hình tròn, oval và đường cong đơn giản.
+* Khuôn mặt chỉ gồm **hai chấm nhỏ làm mắt và một nét ngắn hoặc đường cong nhỏ làm miệng**.
+* Không vẽ mũi hoặc các chi tiết khuôn mặt phức tạp nếu không cần thiết.
+* Tóc chỉ được thể hiện bằng một vài đường outline đơn giản.
+* Quần áo chỉ có đường viền cơ bản, **không có họa tiết, chất liệu hoặc nhiều nếp gấp**.
+* Bàn tay và ngón tay được đơn giản hóa.
+* Không cần giải phẫu cơ thể chính xác.
+
+Biểu cảm của nhân vật chủ yếu được truyền tải thông qua **hướng mắt, tư thế cơ thể, cử chỉ tay và hình dạng đơn giản của miệng**, thay vì chi tiết khuôn mặt.
+
+### Môi trường và đồ vật
+
+Các đồ vật như **điện thoại, máy giặt, máy sấy, quầy, túi quần áo, giấy tờ, kệ đồ** chỉ được vẽ với lượng chi tiết tối thiểu đủ để người xem nhận biết chúng.
+
+Không làm môi trường quá chi tiết. Chỉ giữ lại những vật thể cần thiết để giải thích:
+
+* nhân vật đang ở đâu;
+* nhân vật đang làm gì;
+* nhân vật đang tương tác với vật gì;
+* bối cảnh nào ảnh hưởng đến hành động.
+
+Giữ **nhiều khoảng trắng** để storyboard dễ đọc và hành động chính nổi bật.
+
+Phối cảnh chỉ cần đủ để thể hiện không gian và chiều sâu, **không cần chính xác như bản vẽ kiến trúc**.
+
+### Bố cục storyboard
+
+Đặt toàn bộ cảnh bên trong một **khung chữ nhật bo góc được vẽ tay**, với đường viền hơi không đều.
+
+Ưu tiên thị giác theo thứ tự:
+
+**nhân vật chính → hành động chính → vật thể đang tương tác → bối cảnh liên quan.**
+
+Nếu có hội thoại, sử dụng **speech bubble đơn giản, outline đen, nền trắng**, với phần đuôi chỉ rõ người đang nói.
+
+Nếu có caption, đặt **một câu ngắn bên dưới khung hình** để giải thích ý nghĩa chính của frame.
+
+### Yêu cầu quan trọng
+
+Hình cuối cùng phải trông giống một **UX/HCI storyboard được sketch nhanh để trình bày user scenario**, trong đó mục tiêu quan trọng nhất là giúp người xem hiểu ngay:
+
+**Ai đang thực hiện hành động gì, trong bối cảnh nào, với vật thể nào và tại sao hành động đó quan trọng.**
+
+Không ưu tiên tính nghệ thuật hoặc độ chân thực.
+
+### Không sử dụng
+
+Không sử dụng:
+
+* màu sắc;
+* vùng tô xám;
+* shading hoặc đổ bóng;
+* gradient;
+* texture;
+* cross-hatching;
+* ánh sáng điện ảnh;
+* giải phẫu người chân thực;
+* khuôn mặt chi tiết;
+* quần áo chi tiết;
+* photorealistic;
+* 3D rendering;
+* anime hoặc manga;
+* phong cách Disney;
+* concept art;
+* comic book chi tiết;
+* polished digital illustration;
+* polished vector art.
+
+Kết quả cuối cùng phải mang cảm giác **đơn giản, nhanh, rõ ràng, hơi thô tự nhiên và được vẽ bằng tay**, giống một bản sketch storyboard dùng trong quá trình thiết kế UX.
+
 
 ## Tính Liên Tục Nhân Vật
 
 Mai Anh là một phụ nữ khoảng 20 tuổi với thân hình nhỏ bé; cô có khuôn mặt hình bầu dục, tóc đen buộc thấp, và mái tóc quét sang một bên. Đây là những đặc điểm ngoại hình duy nhất được phép cho Mai Anh. Tư thế, nhìn, và biểu cảm của cô có thể thay đổi, nhưng họa sĩ minh họa không được phép thêm bất kỳ mô tả ngoại hình nào khác.
 
-Hương, công nhân trước đây, là một phụ nữ khoảng 30 tuổi với thân hình trung bình, khuôn mặt tròn, và tóc đen dài ngang vai. Cô chỉ xuất hiện ở Storyboard 1 và phải giữ nguyên tính nhất quán về mặt hình ảnh trong khi tháo áo tạp dề và rời khỏi cửa hàng.
+Hương, nhân viên ca trước, là một phụ nữ khoảng 30 tuổi với thân hình trung bình, khuôn mặt tròn, và tóc đen dài ngang vai. Cô chỉ xuất hiện ở Storyboard 1 và phải giữ nguyên tính nhất quán về mặt hình ảnh trong khi tháo áo tạp dề và rời khỏi cửa hàng.
 
 Khách hàng tại quầy là một người đàn ông khoảng 25 tuổi với thân hình cao, mảnh khảnh, khuôn mặt dài, và tóc đen ngắn. Anh ta chỉ xuất hiện ở Storyboard 2 và vẫn là cùng một người trong suốt trao đổi đó.
 
 Khách hàng ở nhà ở Storyboard 5 là ẩn danh và chỉ nên được hiển thị với chi tiết tối thiểu cần thiết để phân biệt một người nhận thông báo điện thoại tại nhà. Người này là một quy ước minh họa, không phải bằng chứng nghiên cứu. Người gọi khẩn cấp ở Storyboard 4 không bao giờ được xác định về mặt hình ảnh và không được phép xuất hiện như một khuôn mặt, chân dung, tên, số, hoặc thân thể có thể nhận dạng được.
 
-# Storyboard 1 — Hiểu Ca Làm Việc Trước
+# Storyboard 1 — Tiếp nhận công việc đầu ca
 
-## Khung Hình 1.1 — Hương Tháo Áo Tạp Dề
+## Frame 1.1 — Nhân viên cũ hoàn thành ca
 
-Đóng băng thời điểm ngay sau khi Hương đã hoàn thành ca làm việc và bắt đầu cột áo tạp dề của mình, với vải nâng cao khỏi thân hình nhưng vẫn được giữ bằng cả hai tay. Cô đứng bên cạnh phía nhân viên của quầy tiếp nhận, nghiêng hướng về cửa ra nhân viên, và nhìn xuống chiếc áo tạp dề với sự tập trung yên tĩnh của ai đó kết thúc một cuộc khởi hành thông thường. Mai Anh chưa là đối tượng chính và không có khách hàng hiện diện.
+### Caption
 
-Bối cảnh vật lý là phía trước cửa hàng giặc ại thời điểm thay ca: quầy chiếm chiến tuyến đầu, một khu vực bàn giao trung lập và điện thoại nằm úp xuống ngồi trên bề mặt làm việc, và các túi giặc được gắn thẻ và hàng máy vẫn có thể nhìn thấy sâu hơn trong cửa hàng. Sử dụng một bức ảnh rộng trung bình ở mức mắt cung cấp ưu tiên hình ảnh rõ ràng cho Hương trong khi duy trì đủ bối cảnh nơi làm việc để thiết lập rằng công việc vật lý chưa hoàn thành vẫn còn gần.
+**1.1. Nhân viên ca trước hoàn thành công việc và tháo tạp dề trước khi rời cửa hàng.**
 
-Ánh sáng trên cao thực tế nên đều và hơi mát, với độ tương phản mạnh nhất xung quanh bàn tay Hương và hành động tháo áo tạp dề. Dấu chuyển động cong nhẹ chỉ có thể theo sau chuyển động áo tạp dề xảy ra ngay bây giờ. Không hiển thị giao diện người dùng có thể đọc được, không có mũi tên khởi hành mở rộng bên ngoài khung, không có chỉ báo bàn giao hoàn thành, không có người gọi, và không có ngụ ý rằng tất cả công việc cửa hàng đã hoàn thành.
+### Bối cảnh
 
-Chú thích chính xác là: "Hương hoàn thành ca làm việc của mình và tháo áo tạp dề trong khi công việc cửa hàng chưa hoàn thành vẫn còn." Đầu vào là kết thúc thời kỳ làm việc của Hương; chuyển tiếp mang quầy tương tự, điện thoại, túi, và bố trí máy vào Khung Hình 1.2, nơi Hương sẽ ở xa hơn về phía lối thoát và Mai Anh sẽ trở thành đối tượng chính, nhưng vị trí sau này không được phép xuất hiện ở đây.
+* Bên trong cửa hàng giặt ủi.
+* Khu vực làm việc có máy giặt, máy sấy và bàn xử lý quần áo.
+* Một số túi đồ vẫn còn đang được xử lý.
+* Không khí cuối ca, cửa hàng sạch sẽ và đang hoạt động bình thường.
 
-## Khung Hình 1.2 — Mai Anh Kiểm Tra Những Gì Còn Lại
+### Hành động của người dùng
 
-Đóng băng một thời điểm rộng trong đó Hương đang bước đi hướng tới lối thoát nhân viên trong khi Mai Anh đứng bên trong khu vực quầy kiểm tra điện thoại về công việc chưa hoàn thành. Hương ở phía sau bên trái với một chân trong một bước đi hiện tại và ánh mắt hướng tới lối thoát; Mai Anh ở phía giữa bên phải, đứng yên, cầm điện thoại dạng chân dung ở mức ngực và nhìn trực tiếp vào màn hình với sự không chắc chắn tập trung.
+* Hương đứng cạnh bàn làm việc.
+* Dùng hai tay tháo tạp dề.
+* Sau khi tháo, cầm tạp dề trên tay.
+* Chuẩn bị rời khỏi khu vực làm việc.
 
-Sử dụng một bức ảnh rộng từ phía khách hàng của quầy để bố cục bao gồm bề mặt tiếp nhận, giá túi chờ đợi, lối đi, và hàng máy. Giữ Mai Anh lớn hơn và sắc nét hơn Hương dù cả hai đều hiển thị; con đường hình ảnh nên di chuyển từ khuôn mặt Mai Anh đến điện thoại, sau đó qua các túi chưa hoàn thành và máy, và cuối cùng là Hương rời đi. Chiếc áo tạp dề hiện được Hương cầm, bảo toàn tính liên tục từ Khung Hình 1.1 mà không hiển thị trạng thái loại bỏ trước đó của nó.
+### Cảm xúc của người dùng
 
-Điện thoại chỉ có thể hiển thị lời nhắc cấp cao có thể đọc được, "Bàn giao ca làm việc trước", với "3 đơn hàng chưa hoàn thành" dưới đó và điều khiển "Xem tóm tắt" có thể nhìn thấy; các thẻ chi tiết thuộc độc quyền về Khung Hình 1.3. Ánh sáng thực tế sáng sẽ làm cho ánh mắt của Mai Anh và màn hình có thể đọc được. Dấu đi bộ ngắn có thể ngồi bên cạnh bước hiện tại của Hương, trong khi dòng mắt tinh tế có thể kết nối Mai Anh với điện thoại; không hiển thị gật đầu, không reassurance, không dữ liệu cá nhân, và không có yêu cầu rằng Hương đã rời đi.
+* Thoải mái, nhẹ nhõm.
+* Thể hiện rõ cảm giác **đã hoàn thành ca làm việc**.
 
-Chú thích chính xác là: "Khi Hương rời đi, Mai Anh kiểm tra công việc chưa hoàn thành của ca trước thay vì xây dựng lại từ bộ nhớ." Đầu vào bảo toàn khởi hành của Hương và điện thoại bàn giao được chạm từ Khung Hình 1.1; chuyển tiếp là Mai Anh mở tóm tắt có thể nhìn thấy cho close-up ở Khung Hình 1.3, nhưng không kết quả chi tiết hoặc trạng thái đã hiểu có thể được chèn ở đây.
+### Trạng thái hệ thống
 
-## Khung Hình 1.3 — Tóm Tắt Ca Trước
+* Các công việc đã hoàn thành trong ca.
+* Một số đơn vẫn còn đang được xử lý và cần được nhân viên ca sau tiếp tục.
 
-Đóng băng một close-up của điện thoại chân dung ở tay Mai Anh ngay sau khi tóm tắt bàn giao đã mở. Mai Anh đứng chắc chắn phía sau thiết bị, ánh mắt cố định trên thẻ đầu tiên và một cạnh mềm bị mờ hẹp của các mắt tập trung có thể nhìn thấy vượt quá điện thoại; cơ cắm của cô là vẫn còn và chú ý hơn là căng thẳng. Điện thoại lấp đầy hầu hết bố cục, với cạnh quầy, túi được gắn thẻ mờ, và hình dạng máy mềm thiết lập cửa hàng phía sau nó, và máy ảnh vuông góc với màn hình để ngăn chặn biến dạng phối cảnh và làm cho mọi dòng có thể đọc được.
+### Tương tác người dùng–hệ thống
 
-Giao diện người dùng hoàn chỉnh đọc "Bàn giao ca trước" và "3 đơn hàng chưa hoàn thành." Ba thẻ nhỏ gọn theo sau: "Đơn hàng A · Trạng thái: Sấy · Vị trí: Máy Sấy 1 · Được Giao Cho: Ca Trước · Ngoại Lệ: Không · Hành Động Tiếp Theo: Kiểm Tra Chất Lượng"; "Đơn hàng B · Trạng thái: Chờ Đợi · Vị trí: Giá Chờ Đợi · Được Giao Cho: Chưa Được Giao · Ngoại Lệ: Không · Hành Động Tiếp Theo: Bắt Đầu Giặc"; và "Đơn hàng C · Trạng thái: Hoàn Thành · Vị trí: Bàn Gói · Được Giao Cho: Ca Trước · Ngoại Lệ: Không · Hành Động Tiếp Theo: Kiểm Tra Cuối Cùng." Các nhãn ẩn danh này được mô phỏng và không được thay thế bằng tên hoặc chi tiết liên hệ.
+* Chưa có tương tác trực tiếp với hệ thống.
+* Frame này chủ yếu thiết lập bối cảnh **kết thúc ca và chuyển giao công việc**.
 
-Làm cho tiêu đề và số đơn hàng chưa hoàn thành lớp hình ảnh đầu tiên, năm trường đại diện trong mỗi thẻ lớp thứ hai, và nơi làm việc vật lý mờ lớp thứ ba. Sử dụng nhãn văn bản cộng với viền thẻ và biểu tượng trạng thái nhỏ để ý nghĩa không phụ thuộc vào màu sắc. Chú thích là không cần thiết vì màn hình đã gần; không hiển thị "Tất Cả Hoàn Thành", không tự động giao cho Mai Anh, không có nút điều khiển máy, và không có Hương trong close-up giao diện người dùng này.
+### Diễn tiến câu chuyện
 
-Chú thích chính xác là: "Tóm tắt có cấu trúc cho thấy trạng thái, vị trí, người được giao, ngoại lệ và hành động tiếp theo cho ba đơn hàng chưa hoàn thành." Đầu vào là lựa chọn "Xem tóm tắt" ở Khung Hình 1.2; chuyển tiếp mang chính xác ba thẻ này vào sự hiểu biết của Mai Anh ở Khung Hình 1.4, mà không thay đổi bất kỳ đơn hàng hoặc khẳng định rằng cô ấy đã hoàn thành công việc liệt kê.
+* Hương - nhân viên cũ kết thúc ca.
+* Công việc chưa hoàn thành sẽ được Mai Anh tiếp nhận.
 
-## Khung Hình 1.4 — Mai Anh Hiểu Bàn Giao
+### Giao diện
 
-Đóng băng thời điểm sau khi Mai Anh đã đọc tóm tắt: cô cầm điện thoại hạ thấp hơi bên dưới mức ngực, gật đầu một lần có thể nhìn thấy, và nhìn từ màn hình về phía các túi chờ đợi và khu vực máy. Vai của cô cong lại, miệng của cô tạo ra một biểu cảm tinh tế dễ chịu, và mắt của cô dường như sáng suốt hơn là bối rối. Hương không còn trong cửa hàng, và Mai Anh vẫn là người duy nhất trong khung hình.
+* Không cần hiển thị UI điện thoại.
+* Chỉ tập trung vào không gian cửa hàng và nhân viên.
 
-Sử dụng một bức ảnh trung bình ở mức mắt từ bên trong khu vực quầy, đặt Mai Anh ở tiền cảnh trung tâm và căn chỉnh ba khu vực nơi làm việc có liên quan phía sau cô: Máy Sấy 1, giá chờ đợi, và bàn gói. Điện thoại vẫn có thể nhìn thấy nhưng phụ; màn hình của nó có thể giữ tiêu đề "Bàn giao ca trước" và "3 đơn hàng chưa hoàn thành", trong khi chi tiết thẻ quá nhỏ để lặp lại. Công việc vật lý và sự thay đổi sự hiểu biết của Mai Anh phải thống trị bố cục.
+### Các line nhấn mạnh
 
-Ấm áp ánh sáng thực tế chỉ hơi so với Khung Hình 1.2, mà không biến cửa hàng thành quảng cáo lý tưởng hóa. Hai dấu cong nhỏ có thể chỉ ra gật đầu xảy ra ở thời điểm đóng băng này, và nhấn mạnh dòng mắt tinh tế có thể kết nối ánh mắt cô với các vị trí công việc thực. Không hiển thị cử chỉ kỷ niệm, không yêu cầu kết quả xác nhận, không có nhiệm vụ hoàn thành tự động, không có khách hàng, và không có máy được điều khiển bởi điện thoại.
+* **Mũi tên** quanh hai tay nhân viên để nhấn mạnh động tác tháo tạp dề.
+* Có thể thêm caption nhỏ bên cạnh: **“Hoàn thành ca”**.
+* Không sử dụng dấu hỏi hoặc highlight UI.
 
-Chú thích chính xác là: "Mai Anh có thể nhìn thấy hiểu được những gì còn lại và cảm thấy an tâm vui vẻ trước khi bắt đầu ca làm việc của mình." Đầu vào là tóm tắt không thay đổi từ Khung Hình 1.3; chuyển tiếp đóng cửa tập sự bàn giao và cho phép Storyboard 2 bắt đầu sau ở cùng một quầy, không có ngụ ý rằng ba đơn hàng chưa hoàn thành đã biến mất.
+### Góc máy
 
-# Storyboard 2 — Đồng Ý Về Thời Gian Nhận Hàng Khả Thi
+**Trung cảnh (medium shot)** → thấy rõ toàn bộ nhân viên từ khoảng đầu gối trở lên, động tác tháo tạp dề và khu vực làm việc phía sau.
 
-## Khung Hình 2.1 — Khách Hàng Yêu Cầu 14:30
+---
 
-Đóng băng khách hàng ở quầy tiếp nhận yêu cầu liệu việc nhận hàng lúc 14:30 có khả thi không. Anh ta đứng ở bên khách hàng, cao cả và thẳng, với một tay mở resting gần túi giặc ẩn danh và cái kia tạo ra một cử chỉ hỏi nhỏ; ánh mắt của anh ta gặp của Mai Anh. Mai Anh đứng đối diện với anh ta, lắng nghe với bàn tay rõ ràng của bất kỳ hành động xác nhận, biểu cảm chú ý và thận trọng hơn là ngay lập tức đồng ý.
+# Frame 1.2 — Mai Anh không biết làm gì tiếp theo
 
-Sử dụng một bức ảnh hai bên trung bình ở mức mắt qua quầy. Túi ẩn danh và một phiếu nhập liệu trống ngồi giữa họ, trong khi khu vực máy và giá chờ đợi vẫn có thể nhận dạng được phía sau Mai Anh. Bong bóng lời nói duy nhất từ khách hàng đọc, "Liệu việc nhận hàng lúc 14:30 có khả thi không?" và không chứa tên, số, hoặc ID đơn hàng.
+### Caption
 
-Giữ mọi người, liên lạc mắt của họ, và túi vật lý phía trước điện thoại trong hệ thống phân cấp hình ảnh. Ánh sáng thực tế trung lập nên tách cả hai khuôn mặt khỏi nền, và một dấu hỏi nhỏ có thể hỗ trợ yêu cầu mà không thay thế lời lẽ dễ đọc. Không hiển thị kết quả khả thi, không ước tính, không gợi ý 15:15, không lời hứa viết trên phiếu, và không sự đồng ý của khách hàng.
+**1.2. Nhân viên cũ rời cửa hàng, trong khi Mai Anh bắt đầu kiểm tra điện thoại để xem công việc tiếp theo.**
 
-Chú thích chính xác là: "Khách hàng hỏi liệu hiệu giặc có thể sẵn sàng để nhận hàng lúc 14:30 không." Đầu vào là điều tra đơn hàng ẩn danh mới sau khi Mai Anh đã hiểu bàn giao ca trước; chuyển tiếp bảo toàn khách hàng, túi, vị trí quầy cùng nhau và thời gian được yêu cầu trong khi Mai Anh bắt đầu kiểm tra khả thi ở Khung Hình 2.2.
+### Bối cảnh
 
-## Khung Hình 2.2 — Mai Anh Bắt Đầu Kiểm Tra Khả Thi
+* Góc nhìn từ xa trong toàn bộ cửa hàng.
+* Hương - nhân viên ca trước đang đi về phía cửa ra vào.
+* Mai Anh đứng ở khu vực bàn làm việc.
+* Máy giặt, máy sấy và các túi đồ tạo chiều sâu cho khung hình.
 
-Đóng băng Mai Anh nhập thời gian được yêu cầu và nhấn điều khiển bắt đầu kiểm tra. Cô đứng phía sau cùng một quầy, nghiêng hơi hướng về phía khách hàng nhưng nhìn xuống điện thoại chân dung; một ngón tay tiếp xúc với nút "Kiểm Tra Khả Thi" ở thời điểm chính xác này. Khách hàng chờ đợi đối diện với cô và theo dõi điện thoại với biểu cảm kiên nhẫn và trung lập, trong khi túi ẩn danh vẫn không di chuyển giữa họ.
+### Hành động của người dùng
 
-Sử dụng một bức ảnh gần nhìn qua vai khách hàng bảo toàn khuôn mặt Mai Anh, khoảnh khắc tap của cô, điện thoại, và một phần bề mặt quầy vật lý. Giao diện người dùng có thể đọc được hiển thị "Kiểm Tra Thời Gian Nhận", "Nhận Hàng Được Yêu Cầu: 14:30", "Khối Lượng Công Việc Hiện Tại Được Bao Gồm", và điều khiển được nhấn "Kiểm Tra Khả Thi". Một dòng trung lập nhỏ đọc "Không kết quả chưa", làm cho rõ ràng rằng hành động đã bắt đầu nhưng không có phán xét nào đã xuất hiện.
+* Hương - nhân viên cũ đang đi ra khỏi cửa hàng.
+* Mai Anh đứng lại tại khu vực làm việc.
+* Mai Anh lấy điện thoại ra.
+* Cô nhìn vào điện thoại để kiểm tra công việc.
+* Mai Anh chưa biết nên xử lý công việc nào trước.
 
-Cho "14:30" và "Kiểm Tra Khả Thi" trọng lượng màn hình mạnh nhất, nhưng giữ tay Mai Anh và khuôn mặt chú ý hình ảnh chính. Sử dụng viền được nhấn và gợn xô tiếp xúc chỉ thuộc về khoảnh khắc hiện tại; không sử dụng mũi tên hướng tới kết quả. Không hiển thị ước tính, không "Không Khả Thi", không 15:15, không nhận hàng xác nhận, không dữ liệu cá nhân, và không gợi ý rằng điện thoại thay đổi hoạt động máy.
+### Cảm xúc của người dùng
 
-Chú thích chính xác là: "Mai Anh nhập 14:30 và bắt đầu kiểm tra khả thi dựa trên khối lượng công việc trước khi hứa hẹn." Đầu vào là yêu cầu chưa được trả lời của khách hàng ở Khung Hình 2.1; chuyển tiếp giữ cùng yêu cầu và đơn hàng vật lý trong khi nguyên mẫu được mô phỏng tính toán hiển thị ở Khung Hình 2.3.
+* Hơi bối rối.
+* Đang suy nghĩ.
+* Có chút không chắc chắn về việc **“bây giờ làm gì tiếp?”**.
+* Không hoảng loạn; chỉ là chưa biết thứ tự công việc.
 
-## Khung Hình 2.3 — Mai Anh Giải Thích Thời Gian Sau
+### Trạng thái hệ thống
 
-Đóng băng Mai Anh trình bày kết quả khả thi hoàn thành cho khách hàng và giải thích lựa chọn thay thế. Cô cầm điện thoại quay hướng về phía anh ta bằng một tay và chỉ vào thời gian được đề xuất bằng tay kia; tư thế của cô mở rộng và giải thích, và ánh mắt của cô xen kẽ hướng về phía khuôn mặt của anh ta ở thời điểm đóng băng này. Khách hàng cúi hơi về phía màn hình, chú ý nhưng chưa gật đầu.
+* Có nhiều công việc/đơn hàng đang trong các trạng thái khác nhau.
+* Mai Anh chưa biết nên ưu tiên công việc nào.
+* Hệ thống chưa được mở ở frame đầu của cảnh.
 
-Sử dụng một bức ảnh qua vai khách hàng làm cho cả biểu cảm Mai Anh và giao diện người dùng có thể đọc được. Màn hình hoàn chỉnh đọc "Khả Thi Nhận", "Được Yêu Cầu: 14:30", "Không Khả Thi", "Ước Tính Hoàn Thành: 15:00–15:10", "Nhận Hàng Được Đề Xuất: 15:15", và "Công Việc Còn Lại: Giặc → Sấy → Hoàn Thành." Một ghi chú có thể nhìn thấy tuyên bố "Chỉ Xác Nhận Sau Khi Khách Hàng Đồng Ý", và không xác nhận phản hồi nào hiện diện.
+### Tương tác người dùng–hệ thống
 
-Làm cho "Không Khả Thi" văn bản rõ ràng được ghép với biểu tượng cảnh báo, sau đó nhấn mạnh "15:00–15:10" và "15:15" thông qua trọng lượng và nhóm thay vì màu sắc một mình. Quầy, túi ẩn danh, và phiếu nhập liệu trống vẫn có thể nhìn thấy như bối cảnh vật lý. Không hiển thị gật đầu khách hàng, không "Xác Nhận", không lời hứa 14:30, không giai đoạn còn lại ẩn, và không có ngôn ngữ điều khiển máy.
+* Mai Anh bắt đầu kiểm tra điện thoại để tìm thông tin công việc.
+* Đây là điểm bắt đầu của tương tác với hệ thống.
 
-Chú thích chính xác là: "Mai Anh giải thích rằng 14:30 không khả thi và đề xuất 15:15 sau phạm vi hoàn thành ước tính 15:00–15:10." Đầu vào là kiểm tra bắt đầu ở Khung Hình 2.2; chuyển tiếp bảo toàn kết quả hiển thị trong khi khách hàng xem xét lựa chọn thay thế trước khi đồng ý ở Khung Hình 2.4.
+### Diễn tiến câu chuyện
 
-## Khung Hình 2.4 — Cả Hai Đồng Ý Về 15:15
+* Hương - nhân viên cũ rời đi.
+* Mai Anh tiếp nhận ca.
+* Cô nhìn quanh nhưng không biết nên bắt đầu từ đâu.
+* Mai Anh mở điện thoại để tìm thông tin hỗ trợ.
 
-Đóng băng khách hàng gật đầu vào thời gian nhận hàng 15:15 được thỏa thuận trong khi Mai Anh cầm điện thoại giữa họ và gặp ánh mắt của anh ta. Bàn tay của anh ta lỏng chùng gần túi ẩn danh, và biểu cảm của anh ta thỏa mãn tinh tế dễ chịu; Mai Anh cũng có biểu cảm tinh tế dễ chịu và tư thế lỏng lẻo. Đây là khoảnh khắc đồng ý, không phải miêu tả của một trong hai người rời đi.
+### Giao diện
 
-Sử dụng một bức ảnh hai bên trung bình ở mức mắt từ một phía của quầy, với cả hai khuôn mặt và gật đầu chiếm tầng hình ảnh trung tâm. Điện thoại vẫn có thể đọc được đủ để hiển thị "Thời Gian Nhận Hàng Được Thỏa Thuận: 15:15" với biểu tượng kiểm tra, trong khi phiếu nhập liệu bên túi hiện đọc chỉ "Nhận Hàng 15:15" và không chứa thông tin xác định. Giữ khách hàng, túi, và vị trí quầy giống nhau từ Khung Hình 2.1–2.3.
+* Smartphone nằm trong tay Mai Anh.
+* Ở góc xa chỉ cần nhìn thấy **ánh sáng màn hình điện thoại**, không cần đọc rõ UI.
 
-Sử dụng ánh sáng thực tế rõ ràng và hai dấu cong kiềm chế bên cạnh đầu khách hàng để hiển thị gật đầu hiện tại. Xác nhận văn bản và biểu tượng kiểm tra phải hoạt động mà không có màu sắc; các biểu cảm dễ chịu là kết quả minh họa mong muốn duy nhất. Không hiển thị kỷ niệm quá mức, không danh tính khách hàng thực, không xác nhận 14:30, không đảm bảo hoàn thành, và không ngụ ý rằng đồng ý thay đổi máy tự động.
+### Khung thoại / suy nghĩ
 
-Chú thích chính xác là: "Khách hàng và Mai Anh tinh tế đồng ý về thời gian nhận hàng khả thi 15:15." Đầu vào là lựa chọn thay thế không xác nhận ở Khung Hình 2.3; chuyển tiếp đóng trao đổi quầy và mang thời gian được thỏa thuận vào lập kế hoạch công việc sau này của Mai Anh mà không gán đơn hàng ẩn danh này bất kỳ ID nào được sử dụng ở nơi khác.
+Hiển thị một **speech/thought bubble** phía trên Mai Anh:
 
-# Storyboard 3 — Chọn Công Việc Khi Máy Giặc 2 Khả Dụng
+> **“Bây giờ làm gì tiếp nhỉ?”**
 
-## Khung Hình 3.1 — Cảnh Báo Khả Dụng Gián Đoạn Gập Quần Áo
+Nên dùng dạng **thought bubble** thay vì lời thoại trực tiếp, vì Mai Anh đang tự suy nghĩ.
 
-Đóng băng Mai Anh tại bàn gói gập quần áo khi điện thoại của cô phát ra cảnh báo "ting ting" rằng Máy Giặc 2 khả dụng. Một tay vẫn còn trên quần áo gập một phần, tay kia tạm dừng trên bàn, và đầu của cô vừa quay về phía điện thoại nằm an toàn bên cạnh khu vực làm việc. Lông mày của cô nâng lên nhận thức; cô chú ý, chưa chọn hoặc di chuyển bất kỳ quần áo nào.
+### Các line nhấn mạnh
 
-Sử dụng một bức ảnh rộng trung bình ở mức mắt giữ nhiệm vụ gập vật lý của Mai Anh ở vị trí ưu tiên. Bàn gói lấp đầu tiên cảnh, Mai Anh chiếm trung tâm, điện thoại ngồi trong tầm với, và Máy Giặc 2 có thể nhìn thấy trong nền với trạng thái cửa của nó có thể đọc được khả dụng nhưng không được vận hành từ xa. Giá túi chờ đợi cung cấp bối cảnh mà không làm cho bất kỳ một đơn hàng nào trông được chọn.
+* **Mũi tên lớn** từ nhân viên cũ → cửa ra vào để nhấn mạnh người cũ đang rời đi.
+* **Mũi tên nhỏ** từ Mai Anh → điện thoại để nhấn mạnh cô đang kiểm tra thiết bị.
+* **Dấu hỏi lớn (?)** phía trên Mai Anh để thể hiện sự bối rối/không chắc chắn.
+* Có thể **tô sáng nhẹ vùng xung quanh Mai Anh** để phân biệt cô là nhân vật chính.
+* Thought bubble:
+  **“Bây giờ làm gì tiếp nhỉ?”**
 
-Thông báo điện thoại đọc chỉ "Máy Giặc 2 Khả Dụng" với biểu tượng máy nhỏ, trong khi hai dấu âm thanh và chú thích theo nghĩa đen "ting ting" ngồi bên cạnh thiết bị. Nguồn tín hiệu trạng thái máy này chưa được giải quyết và được mô phỏng; không miêu tả cảm biến, liên kết mạng, phát hiện tự động, đơn hàng được đề xuất, hoặc máy giặc bắt đầu chính nó.
+### Góc máy
 
-Chú thích chính xác là: "Trong khi gập quần áo, Mai Anh nghe thấy cảnh báo 'ting ting' rằng Máy Giặc 2 khả dụng." Đầu vào là công việc hoàn thành vật lý đang diễn ra và thông báo khả dụng được giả định; chuyển tiếp là Mai Anh an toàn tạm dừng việc gập và mở khuyến nghị ở Khung Hình 3.2, không có đơn hàng được chọn trong khung này.
+**Toàn cảnh cực rộng (extreme long shot / wide shot)**.
 
-## Khung Hình 3.2 — Khuyến Nghị Giải Thích Lý Do
+Mục đích của góc máy:
 
-Đóng băng một close-up của điện thoại sau khi Mai Anh đã mở khuyến nghị, với giá túi chờ đợi và Máy Giặc 2 mềm có thể nhìn thấy phía sau thiết bị. Mai Anh đứng bên cạnh giá, hỗ trợ điện thoại mà không chạm vào bất kỳ điều khiển quyết định nào, và chỉ ra một cái nhìn cố ý, đánh giá vào lời giải thích; một phần tinh tế mềm của hồ sơ bình tĩnh của cô vẫn có thể nhìn thấy. Màn hình là phía trước và chiếm hầu hết hình ảnh vì khung này được dự định dành riêng cho thông tin cần thiết trước khi lựa chọn.
+* Thấy được toàn bộ không gian cửa hàng.
+* Thấy nhân viên cũ đang rời đi ở background.
+* Thấy Mai Anh đang đứng lại và kiểm tra điện thoại.
+* Tạo cảm giác **Mai Anh vừa tiếp nhận ca và đang tự tìm hướng xử lý**.
 
-Giao diện người dùng hoàn chỉnh đọc "Đơn Hàng Được Đề Xuất Tiếp Theo", "L-118", "45 Phút Cho Đến Khi Nhận", "2 Giai Đoạn Còn Lại", "Tương Thích Với Máy Giặc 2", "Trạng Thái: Chờ Đợi", và "Tiếp Theo: Bắt Đầu Giặc." Hai điều khiển rõ ràng riêng biệt đọc "Xác Nhận Đơn Hàng" và "Chọn Cái Khác." Không assignee, trạng thái chạy, yêu cầu hoàn thành, hoặc hướng dẫn bắt đầu tự động nào xuất hiện.
+---
 
-Đặt L-118 và "45 Phút Cho Đến Khi Nhận" ở đầu hệ thống phân cấp, theo sau bởi các giai đoạn còn lại, khả năng tương thích, trạng thái và hành động tiếp theo; giữ cả hai điều khiển có thể nhìn thấy và phân biệt chúng bằng viền và văn bản hơn là màu sắc một mình. Một ghi chú thông tin nhỏ đọc "Chỉ Khuyến Nghị; Xác Minh Túi Và Máy." Không hiển thị tap, không phản hồi được chọn, không quần áo bên trong Máy Giặc 2, và không biểu tượng điều khiển máy.
+# Frame 1.3 — Xem tóm tắt công việc cuối ca
 
-Chú thích chính xác là: "Khuyến nghị giải thích tại sao L-118 vừa với Máy Giặc 2 trong khi để Mai Anh tự do xác nhận nó hoặc chọn một đơn hàng khác." Đầu vào là thông báo khả dụng ở Khung Hình 3.1; chuyển tiếp giả định Mai Anh xác minh vật lý và rõ ràng xác nhận L-118 trước khi tải moment ở Khung Hình 3.3, nhưng xác minh trung gian này không được vẽ như một trạng thái sau ở đây.
+### Caption
 
-## Khung Hình 3.3 — Mai Anh Tải L-118
+**1.3. Mai Anh mở hệ thống và xem bản tóm tắt các công việc chưa hoàn tất từ ca trước.**
 
-Đóng băng Mai Anh tải vật lý quần áo L-118 đã chọn vào Máy Giặc 2 mở. Cô đứng cân bằng bên cạnh máy, cầm quần áo được gắn thẻ bằng cả hai tay ở miệng trống, và chỉ hướng ánh mắt của cô vào thẻ L-118 có thể nhìn thấy và miệng máy. Biểu cảm của cô tự tin dễ chịu, với lông mày lỏng lẻo và tư thế ổn định, truyền đạt rằng cô không còn lo lắng về việc bỏ lỡ thời gian hứa hẹn của khách hàng.
+### Bối cảnh
 
-Sử dụng một bức ảnh bên trung bình đặt hành động tải vật lý ở trung tâm, thẻ L-118 trong vị trí tiền cảnh có thể đọc được, và nhãn Máy Giặc 2 bên cạnh cửa mở. Điện thoại nằm xa khỏi khu vực công việc ướt và là phụ; nó có thể hiển thị "L-118 · Xác Nhận Cho Máy Giặc 2" và "Tiếp Theo: Bắt Đầu Giặc Thủ Công", nhưng nó không được giữ làm điều khiển từ xa. Các túi chờ đợi khác vẫn còn trên giá phía sau cô.
+* Smartphone nằm trong tay Mai Anh.
+* Background cửa hàng được làm mờ.
+* Chỉ tập trung vào màn hình điện thoại.
 
-Sử dụng ánh sáng khu vực máy thực tế sáng, mũi tên chuyển động ngắn chỉ theo chuyển động hiện tại của quần áo vào trống mở, và văn bản rõ ràng hơn là màu trạng thái một mình. Không hiển thị Máy Giặc 2 quay hoặc chạy với cửa mở, không hiển thị bắt đầu từ xa, không loại bỏ chỉ định L-118, và không trình bày sự tự tin của Mai Anh là bằng chứng nghiên cứu xác nhận.
+### Hành động của người dùng
 
-Chú thích chính xác là: "Sau khi xác nhận khuyến nghị, Mai Anh tự tin tải L-118 vào Máy Giặc 2 mà không dựa vào bộ nhớ một mình." Đầu vào là khuyến nghị từ Khung Hình 3.2 cộng với xác minh vật lý rõ ràng ngoài khung và xác nhận; chuyển tiếp kết thúc khi tải vẫn đang được đặt, để bất kỳ thiết lập máy thực và bắt đầu là hành động con người riêng biệt bên ngoài khung này.
+* Mai Anh mở ứng dụng quản lý công việc.
+* Cô nhìn vào màn hình.
+* Không cần thể hiện thao tác phức tạp.
 
-# Storyboard 4 — Xem Xét Thay Đổi Hàng Đợi Nhận Trước
+### Cảm xúc của người dùng
 
-## Khung Hình 4.1 — Yêu Cầu Nhận Trước Đến
+* Tập trung.
+* Đang tiếp nhận thông tin.
+* Từ trạng thái chưa biết phải làm gì chuyển sang **bắt đầu hiểu tình hình**.
 
-Đóng băng Mai Anh xử lý cuộc gọi điện thoại khách hàng ở thời điểm cô hiểu rằng một đơn hàng ẩn danh được yêu cầu sớm hơn. Cô đứng an toàn bên cạnh quầy hơn là đi bộ hoặc mang quần áo, cầm điện thoại vào một tai, và giữ tay tự do nằm trên bề mặt làm việc. Ánh mắt của cô quay về phía máy tính bảng/POS cửa hàng, và biểu cảm của cô cho thấy tập trung cảnh báo mà không hoảng loạn.
+### Trạng thái hệ thống
 
-Sử dụng một bức ảnh trung bình ở mức mắt với Mai Anh trung tâm, máy tính bảng/POS có thể nhìn thấy nhưng chưa chạm vào quầy, và khu vực máy vật lý phía sau cô. Người gọi khẩn cấp chỉ phải tồn tại qua ký hiệu cuộc gọi hoạt động và bong bóng lời nói đọc "Nhận Hàng Được Yêu Cầu Sớm Hơn." Không khuôn mặt, chân dung, tên, số, avatar giọng nói, hoặc thân thể khách hàng có thể nhận dạng được có thể xuất hiện.
+Hệ thống hiển thị **tóm tắt cuối ca**, giúp Mai Anh biết:
 
-Cho tư thế lắng nghe của Mai Anh và văn bản yêu cầu chính xác ưu tiên hơn là máy tính bảng không hoạt động. Một dòng âm thanh nhỏ có thể kết nối bong bóng lời nói với điện thoại, nhưng không có mũi tên có thể nhảy đến máy tính bảng hoặc hàng đợi. Không hiển thị yêu cầu về nhiều đơn hàng được hứa hẹn, không có số tiền cụ thể sớm hơn, không có ID đơn hàng chưa, không có thay đổi hàng đợi, và không có khớp khách hàng gọi-tới-đơn hàng tự động.
+* Có bao nhiêu đơn chưa hoàn tất.
+* Đơn nào đang ở trạng thái nào.
+* Đơn đang ở công đoạn/vị trí nào.
+* Việc cần làm tiếp theo.
 
-Chú thích chính xác là: "Trong cuộc gọi, Mai Anh hiểu rằng việc nhận hàng được yêu cầu sớm hơn cho một đơn hàng ẩn danh." Đầu vào là gián đoạn trong công việc cửa hàng; chuyển tiếp là Mai Anh thủ công xác định đơn hàng có liên quan trong khi tiếp tục lắng nghe ở Khung Hình 4.2, với hàng đợi vẫn không thay đổi.
+### Tương tác người dùng–hệ thống
 
-## Khung Hình 4.2 — Mai Anh Mở L-121
+* **Input:** Mai Anh mở màn hình công việc.
+* **Process:** hệ thống tổng hợp thông tin từ ca trước.
+* **Output:** hiển thị bản tóm tắt công việc để Mai Anh tiếp nhận.
 
-Đóng băng Mai Anh mở đơn hàng L-121 trên máy tính bảng/POS cửa hàng trong khi vẫn lắng nghe người gọi. Cô cầm điện thoại vào một tai bằng một tay và sử dụng một ngón tay của tay kia để chọn hàng L-121 trên máy tính bảng. Cơ thể của cô vẫn còn đứng yên phía sau quầy, mắt của cô tập trung vào hàng đơn hàng, và biểu cảm của cô chú ý và cố ý.
+### Diễn tiến câu chuyện
 
-Sử dụng một bức ảnh gần ba phần tư qua vai trung bình bao gồm hồ sơ của cô, cả hai tay, điện thoại, máy tính bảng, và đủ quầy và nền cửa hàng giặc để bảo toàn bối cảnh. Máy tính bảng hiển thị "Hàng Đợi Đơn Hàng", kết quả tìm kiếm "L-121", "Trạng Thái: Chờ Đợi", "Nhận Hàng Được Yêu Cầu Sớm Hơn", và hàng "Mở Đơn Hàng" có thể nhìn thấy dưới ngón tay hiện tại của cô. Các hàng khác sử dụng nhãn ẩn danh và không chứa chi tiết cá nhân.
+* Frame trước: Mai Anh **“Bây giờ làm gì tiếp nhỉ?”**
+* Frame này: hệ thống cung cấp context để trả lời câu hỏi đó.
+* Mai Anh bắt đầu biết những công việc nào đang tồn đọng và cần xử lý.
 
-Nhấn mạnh phối hợp hai thiết bị vật lý mà không làm cho nó trông dễ dàng: cuộc gọi hoạt động vẫn có thể nhìn thấy trên điện thoại trong khi hàng L-121 có viền tiêu điểm rõ ràng trên máy tính bảng. Không hiển thị "Di Chuyển Lên Trong Hàng Đợi" được chọn, không phán xét khả thi, không bản xem trước đơn hàng bị ảnh hưởng, không lý do đã lưu, không danh tính người gọi, và không áp dụng chuyển động hàng đợi.
+### Giao diện
 
-Chú thích chính xác là: "Vẫn lắng nghe, Mai Anh thủ công mở đơn hàng ẩn danh L-121 trên máy tính bảng cửa hàng." Đầu vào là yêu cầu nhận trước từ Khung Hình 4.1; chuyển tiếp mở tùy chọn hàng đợi L-121 cho Khung Hình 4.3 trong khi bảo toàn hàng đợi và cuộc gọi hoạt động ban đầu.
+```text id="j9u7s2"
+┌─────────────────────────────┐
+│       TÓM TẮT CUỐI CA       │
+│                             │
+│  3 đơn chưa hoàn tất        │
+│                             │
+│  #A102                      │
+│  Đang sấy · Máy sấy 03     │
+│  Hẹn: 18:00                 │
+│  → Tiếp theo: Đóng gói      │
+│                             │
+│  #A105                      │
+│  Chờ sấy · Khu xử lý        │
+│  Hẹn: 18:30                 │
+│  → Tiếp theo: Đưa vào sấy   │
+│                             │
+│  #A108                      │
+│  Đang giặt · Máy giặt 01    │
+│  Hẹn: 18:20                 │
+│  → Tiếp theo: Chuyển sang   │
+│     sấy                     │
+└─────────────────────────────┘
+```
 
-## Khung Hình 4.3 — Cô Xem Trước Tác Động Hàng Đợi
+### Các line nhấn mạnh
 
-Đóng băng một chế độ xem gần của máy tính bảng khi Mai Anh kéo L-121 đến tùy chọn "Di Chuyển Lên Trong Hàng Đợi" và giao diện xem trước các đơn hàng bị ảnh hưởng. Đầu ngón tay của cô vẫn tiếp xúc với thẻ L-121, làm cho đây là khoảnh khắc kéo/chọn hiện tại hơn là kết quả áp dụng. Cạnh điện thoại ở tai của cô và một phần vai của cô vẫn có thể nhìn thấy để kết nối giao diện người dùng với cuộc gọi đang diễn ra.
+* **Khung highlight** quanh dòng:
+  **“3 đơn chưa hoàn tất”**.
+* Highlight từng trạng thái:
 
-Giao diện người dùng máy tính bảng hoàn chỉnh đọc "L-121 · Tùy Chọn Hàng Đợi", "Di Chuyển Lên Trong Hàng Đợi", và "Chỉ Xem Trước · Chưa Xác Nhận." Dưới "Các Đơn Hàng Bị Ảnh Hưởng", hai hàng ẩn danh đọc "Đơn Hàng A · vị trí di chuyển xuống 1" và "Đơn Hàng B · không thay đổi thời gian ước tính", theo sau bởi "Xem Xét Khả Thi Tiếp Theo." Hàng đợi ban đầu vẫn có thể nhìn thấy như một cột cố định mờ bên cạnh bản xem trước, không có dữ liệu khách hàng thực.
+  * **Đang sấy**
+  * **Chờ sấy**
+  * **Đang giặt**
+* **Mũi tên nhỏ** từ các trạng thái → phần **“Tiếp theo”**.
+* Có thể thêm chú thích bên ngoài màn hình:
 
-Sử dụng thành phần qua vai gần với thẻ được kéo, nhãn xem trước, và các hàng bị ảnh hưởng ở ưu tiên hình ảnh giảm dần. Một dòng kéo ngắn có thể kết nối vị trí hiện tại của L-121 với khe xem trước, nhưng nó phải dừng dưới ngón tay của cô và có thể không ngụ ý hoàn thành. Không hiển thị kết quả "Khả Thi" chưa, không trường lý do, không xác nhận, không "Hàng Đợi Đã Cập Nhật", và không máy thay đổi trạng thái.
+> **“Biết ngay cần làm gì tiếp theo”**
 
-Chú thích chính xác là: "Mai Anh xem trước cách di chuyển L-121 lên sẽ ảnh hưởng đến các đơn hàng ẩn danh trước khi quyết định." Đầu vào là đơn hàng L-121 được mở từ Khung Hình 4.2; chuyển tiếp lấy xem trước chưa xác nhận này vào xem xét khả thi và lý do ở Khung Hình 4.4 mà không thay đổi hàng đợi thực.
+### Góc máy
 
-## Khung Hình 4.4 — Khả Thi, Lý Do Đã Nhập, Xác Nhận Cần Thiết
+**Cận cảnh (close-up)**.
 
-Đóng băng máy tính bảng sau khi Mai Anh đã chọn chuyển động được đề xuất và nhập lý do của nó, nhưng trước khi cô nhấn xác nhận. Cô vẫn tiếp tục cuộc gọi, với tay tự do nổi rõ ràng ở trên và xa khỏi nút cuối cùng. Ánh mắt của cô được cố định vào nhãn khả thi và văn bản lý do, và tư thế nghiêm túc của cô liên lạc rằng cô đang kiểm tra quyết định hơn là giả định nó đã áp dụng.
+* Smartphone chiếm phần lớn frame.
+* Thấy một phần tay Mai Anh.
+* UI phải là yếu tố nổi bật nhất.
+* Không để background gây phân tán.
 
-Giao diện người dùng hoàn chỉnh đọc "Thay Đổi Ưu Tiên Cho L-121", "Tùy Chọn Được Chọn: Di Chuyển Lên Trong Hàng Đợi", "Khả Thi" với hình dạng viền kiểm tra và văn bản có thể đọc được, "Các Đơn Hàng Bị Ảnh Hưởng: Đơn Hàng A · di chuyển xuống 1; Đơn Hàng B · không thay đổi thời gian ước tính", và "Lý Do: Khách Hàng Yêu Cầu Nhận Sớm Hơn." Khu vực hành động dưới cùng đọc "Xác Nhận Thay Đổi Hàng Đợi" và "Hủy", với bình "Chờ Xác Nhận · Hàng Đợi Chưa Thay Đổi."
+---
 
-Làm cho "Khả Thi" nổi bật thông qua văn bản, biểu tượng, và viền, không phải xanh một mình; cho lý do đã nhập và bình trạng thái chưa thay đổi tính dễ đọc bằng nhau. Nút phải xuất hiện kích hoạt nhưng chưa chạm, và không liên hệ gợn xô hoặc dấu thành công có thể xuất hiện. Không hiển thị "Hàng Đợi Đã Cập Nhật", không lý do đã lưu, không sắp xếp máy tự động, không danh tính người gọi, và không ngụ ý rằng khả thi đảm bảo kết quả.
+# Frame 1.4 — Mai Anh hiểu công việc
 
-Chú thích chính xác là: "Chuyển động được chọn được gắn nhãn khả thi và lý do được nhập, nhưng hàng đợi vẫn chờ đợi xác nhận rõ ràng của Mai Anh." Đầu vào là xem trước Khung Hình 4.3; chuyển tiếp cho phép xác nhận rõ ràng giữa khung này và Khung Hình 4.5, trong khi trạng thái đóng băng này vẫn chưa được xác nhận.
+### Caption
 
-## Khung Hình 4.5 — Cập Nhật Hàng Đợi Được Xác Nhận
+**1.4. Sau khi xem tóm tắt, Mai Anh hiểu rõ công việc cần làm và vui vẻ bắt đầu ca.**
 
-Đóng băng thời điểm sau khi Mai Anh đã rõ ràng xác nhận thay đổi hàng đợi và người gọi cảm ơn cô. Cô vẫn cầm điện thoại vào một tai, nhìn phản hồi đã lưu của máy tính bảng, và cho thấy biểu cảm thỏa mãn tinh tế dễ chịu; tay tự do của cô đã di chuyển ra khỏi màn hình, vì vậy không hành động thứ hai được ngụ ý. Người gọi vẫn ẩn danh và được đại diện chỉ bởi bong bóng lời nói đọc "Cảm ơn."
+### Bối cảnh
 
-Sử dụng một bức ảnh trung bình ở mức mắt từ góc quầy, cân bằng khuôn mặt và tư thế lắng nghe của Mai Anh với máy tính bảng có thể đọc được. Màn hình hiển thị "Hàng Đợi Đã Cập Nhật · Lý Do Đã Lưu", một hàng đợi ẩn danh đã cập nhật với "L-121" di chuyển lên, "Lý Do: Khách Hàng Yêu Cầu Nhận Sớm Hơn", và các hàng bị ảnh hưởng giống nhau được gắn nhãn "Đơn Hàng A · di chuyển xuống 1" và "Đơn Hàng B · không thay đổi thời gian ước tính."
+* Mai Anh đứng trong khu vực làm việc.
+* Các máy giặt/máy sấy phía sau.
+* Điện thoại vẫn nằm trên tay.
 
-Ghép văn bản xác nhận với biểu tượng kiểm tra và viền mạnh để thành công không phụ thuộc vào màu sắc, trong khi giữ cửa hàng vật lý và Mai Anh hình ảnh hiện tại. Không máy nào nên phản ứng rõ ràng, và không có mũi tên nên kết nối máy tính bảng với máy giặc. Không hiển thị khuôn mặt hoặc danh tính người gọi, không yêu cầu rằng việc nhận được đảm bảo, không đơn hàng bị ảnh hưởng ẩn, và không lời nhắc xác nhận tiếp theo.
+### Hành động của người dùng
 
-Chú thích chính xác là: "Sau khi Mai Anh xác nhận, người gọi cảm ơn cô và máy tính bảng ghi lại cập nhật hàng đợi và lý do của nó." Đầu vào là trạng thái khả thi nhưng chưa xác nhận ở Khung Hình 4.4; chuyển tiếp đóng cuộc gọi với vị trí hàng đợi đã cập nhật của L-121 và lý do đã lưu, mà không khẳng định kiểm soát hoạt động máy.
+* Mai Anh nhìn điện thoại.
+* Gật đầu nhẹ.
+* Hạ điện thoại xuống.
+* Nhìn về phía khu vực máy giặt/máy sấy.
+* Chuẩn bị bắt đầu công việc.
 
-# Storyboard 5 — Gửi Tin Nhắn Hoàn Thành
+### Cảm xúc của người dùng
 
-## Khung Hình 5.1 — L-130 Hoàn Thành
+* **Hiểu vấn đề.**
+* Yên tâm.
+* Tự tin.
+* Vui vẻ, mỉm cười nhẹ.
+* Thể hiện sự chuyển đổi từ:
+  **“Không biết làm gì” → “Đã biết phải làm gì.”**
 
-Đóng băng Mai Anh đứng bên cạnh túi giặc hoàn thành L-130 trong khi cầm điện thoại của cô. Túi được niêm phong, rõ ràng được gắn thẻ nằm trên bàn gói ở bên cô; cô nhìn từ thẻ vật lý L-130 đến điện thoại với biểu cảm sẵn sàng giao tiếp cẩn thận. Không có khách hàng hiện diện trong cửa hàng và không có hành động gửi nào đã bắt đầu.
+### Trạng thái hệ thống
 
-Sử dụng một bức ảnh trung bình ở mức mắt giữ Mai Anh và túi vật lý hoàn thành lớn hơn thiết bị. Bàn gói hình thành tiền cảnh, Mai Anh và L-130 chiếm trung tâm, và quầy và khu vực máy lùi lại phía sau họ. Điện thoại có thể hiển thị "L-130 · Hoàn Thành" và "Xem Lại Tin Nhắn Hoàn Thành", nhưng thông điệp chính nó được dành riêng cho Khung Hình 5.2.
+* Thông tin cuối ca đã được hiển thị.
+* Mai Anh đã nắm được các công việc chưa hoàn tất.
+* Không cần thêm thao tác phức tạp.
 
-Sử dụng ánh sáng thực tế sạch trên thẻ và điện thoại, với dòng so sánh mỏng giữa các nhãn L-130 phù hợp nếu cần. Hoàn thành phải được đại diện bởi văn bản có thể đọc được và biểu tượng túi niêm phong hơn là màu sắc một mình. Không hiển thị tên khách hàng hoặc chi tiết liên hệ, không trạng thái được gửi, không thông báo tại nhà, và không xung đột với L-118 hoặc L-121.
+### Tương tác người dùng–hệ thống
 
-Chú thích chính xác là: "Bên cạnh túi hoàn thành L-130, Mai Anh chuẩn bị xem lại cập nhật khách hàng." Đầu vào là đơn hàng ẩn danh hoàn thành vật lý; chuyển tiếp bảo toàn L-130 và mở thông điệp hoàn thành được viết sẵn của nó ở Khung Hình 5.2, không có gì được gửi chưa.
+**Hệ thống cung cấp thông tin → Mai Anh hiểu → Mai Anh quyết định công việc tiếp theo.**
 
-## Khung Hình 5.2 — Mai Anh Nhấn Gửi
+### Diễn tiến câu chuyện
 
-Đóng băng chế độ xem điện thoại gần ở thời điểm chính xác Mai Anh nhấn "Gửi" sau khi xem lại thông điệp được viết sẵn. Cô đứng ổn định bên cạnh bàn gói, chỉ hướng một cái nhìn cẩn thận về thông điệp, và cho thấy tập trung yên tĩnh trong cạnh hồ sơ mềm hẹp của cô. Ngón tay của cô tiếp xúc với nút và tạo ra trạng thái nhấn hiện tại, trong khi cạnh túi hoàn thành L-130 và thẻ vẫn có thể nhìn thấy phía sau điện thoại để hiển thị rằng thông điệp tương ứng với công việc hoàn thành thực.
+* Nhân viên cũ rời đi.
+* Mai Anh không biết nên làm gì tiếp.
+* Cô mở hệ thống.
+* Hệ thống cung cấp tóm tắt cuối ca.
+* Mai Anh hiểu tình hình và sẵn sàng tiếp tục công việc.
 
-Giao diện người dùng hoàn chỉnh đọc "Tin Nhắn Hoàn Thành", "Đơn Hàng L-130", và "Đơn Hàng Giặc của Bạn Sẵn Sàng Để Nhận. Vui Lòng Nhận Nó Tại Quầy Cửa Hàng." Dưới thông điệp là "Sửa" và điều khiển "Gửi" hiện được nhấn. Một dòng trạng thái trên các điều khiển đọc "Sẵn Sàng Để Gửi", không phải "Đã Gửi", và không có chỉ báo giao hàng hoặc nhận biên lai hiện diện.
+### Giao diện
 
-Sử dụng một close-up vuông góc với thông điệp là lớp hình ảnh đầu tiên, L-130 là thứ hai, và tiếp xúc ngón tay hiện tại là thứ ba. Viền được nhấn và gợn xô liên hệ nhỏ chỉ có thể chú thích hành động này. Không hiển thị xác nhận "Đã Gửi", dấu thời gian, dấu kiểm tra gợi ý giao hàng, danh tính khách hàng, biên lai đã đọc, hoặc gửi tin nhắn tự động trước khi tap của Mai Anh.
+* Smartphone vẫn hiển thị màn hình **“Tóm tắt cuối ca”**.
+* Không cần zoom vào UI.
+* UI chỉ đóng vai trò xác nhận rằng Mai Anh vừa nhận được thông tin.
 
-Chú thích chính xác là: "Mai Anh xem lại thông điệp hoàn thành được viết sẵn và tự nhấn Gửi." Đầu vào là hành động xem lại được mở ở Khung Hình 5.1; chuyển tiếp cho phép thông báo chung đến khách hàng ẩn danh ở Khung Hình 5.3, nhưng không xác nhận gửi thành công-trạng thái có thể xuất hiện trong khung này.
+### Các line nhấn mạnh
 
-## Khung Hình 5.3 — Khách Hàng Ẩn Danh Nhận Thông Báo
+* **Mũi tên** trên đầu Mai Anh → biểu thị gật đầu.
+* **✓ lớn** bên cạnh Mai Anh để thể hiện đã nắm được công việc.
+* **Mũi tên lớn** từ Mai Anh → khu vực máy giặt/máy sấy để thể hiện cô chuẩn bị bắt đầu công việc.
+* Thought bubble ở frame trước **“Bây giờ làm gì tiếp nhỉ?”** không còn xuất hiện.
+* Có thể thêm một caption nhỏ:
 
-Đóng băng khách hàng ẩn danh ở nhà vào thời điểm một thông báo chung xuất hiện trên điện thoại của họ. Giữ người được miêu tả tối thiểu, ngồi trong bối cảnh nội thất đơn giản, cầm điện thoại và hướng ánh mắt của họ về phía màn hình mới được thắp sáng. Tư thế của họ cho thấy sự chú ý tinh tế dễ chịu mà không tiết lộ tuổi tác, giới tính, đặc điểm ngoại hình, danh tính hoặc bất kỳ yêu cầu rằng người này đại diện cho bằng chứng nghiên cứu.
+> **“Mai Anh đã biết việc cần làm tiếp theo.”**
 
-Sử dụng một bức ảnh qua vai trung bình hiển thị đủ bối cảnh nhà để phân biệt nó với cửa hàng trong khi giữ người ẩn danh. Bình thông báo điện thoại đọc chỉ "Cập Nhật Đơn Hàng Giặc" và "Tin Nhắn Mới Nhận", không có thông điệp đầy đủ, ID đơn hàng, tên khách hàng, thương hiệu cửa hàng, số điện thoại, hoặc địa chỉ.
+### Góc máy
 
-Sử dụng ánh sáng nội thất mềm với điện thoại như một điểm tương phản được kiểm soát. Một dấu rung đơn có thể chỉ ra thông báo đến ngay bây giờ; không hiển thị tap, nội dung mở rộng, trả lời, biên lai đã đọc, hoặc trạng thái thời gian khác. Bình chung không được yêu cầu rằng khách hàng đã mở hoặc đọc thông điệp.
+**Trung cảnh (medium shot)**.
 
-Chú thích chính xác là: "Tại nhà, khách hàng ẩn danh nhận thông báo cập nhật đơn hàng giặc chung." Đầu vào là hành động Gửi ở Khung Hình 5.2; chuyển tiếp là khách hàng mở thông báo hiện tại cho chế độ xem màn hình gần ở Khung Hình 5.4, mà không thêm bất kỳ danh tính cá nhân nào.
+* Thấy rõ khuôn mặt và biểu cảm của Mai Anh.
+* Thấy điện thoại trong tay.
+* Thấy khu vực máy giặt/máy sấy mà cô chuẩn bị đi tới.
 
-## Khung Hình 5.4 — Khách Hàng Thấy Tin Nhắn Hoàn Thành
+---
 
-Đóng băng một close-up của điện thoại khách hàng ẩn danh sau khi thông báo đã được mở. Khách hàng vẫn còn ngồi và yên tĩnh phía sau thiết bị, cầm nó bằng một tay, hướng một cái nhìn chú ý vào thông điệp, và chỉ cho thấy biểu cảm dễ chịu được miêu tả tối thiểu mà không có đặc điểm nhận dạng được. Thiết bị lấp đầy bố cục chống lại nền nhà mờ mềm, và máy ảnh vẫn vuông góc với hiển thị để thông điệp hoàn chỉnh và thời gian nhận là rõ ràng.
+**Điểm nhấn của storyboard này:** không phải chỉ cho thấy Mai Anh “xem điện thoại”, mà phải nhìn thấy rõ sự chuyển đổi tâm lý **“không biết làm gì → hệ thống cung cấp context → hiểu và biết việc tiếp theo”**.
 
-Màn hình hoàn chỉnh đọc "Cập Nhật Đơn Hàng Giặc", "Đơn Hàng Giặc của Bạn Sẵn Sàng Để Nhận. Vui Lòng Nhận Nó Tại Quầy Cửa Hàng." và "Nhận Vừa Xong." Không có tên khách hàng, số điện thoại, địa chỉ, ID đơn hàng, lịch sử trả lời, danh tính người gửi vượt quá bối cảnh chung, hoặc nhãn trạng thái đã đọc xuất hiện.
+---
 
-Làm cho thông điệp đầy đủ là khối chi phối và "Nhận Vừa Xong" dòng thứ hai rõ ràng, sử dụng văn bản tương phản cao, viền thẻ thông điệp, và biểu tượng nhận nhỏ để thời gian không được liên lạc bởi màu sắc một mình. Không hiển thị "Đã Đọc", dấu kiểm tra kép, hành động trả lời đang diễn ra, hoàn thành việc nhận, nội dung quảng cáo, hoặc yêu cầu rằng biên lai chứng minh hiểu biết.
+# Storyboard 2 — Kiểm tra tính khả thi của giờ hẹn
 
-Chú thích chính xác là: "Điện thoại khách hàng cho thấy thông điệp đầy đủ sẵn sàng để nhận, nhận vừa xong." Đầu vào là thông báo chung ở Khung Hình 5.3; đây là trạng thái tĩnh cuối cùng, xác nhận chỉ biên lai trên thiết bị khách hàng và không phải biên lai đã đọc, phản hồi khách hàng, hoặc nhận hàng hoàn thành.
+## Frame 2.1 — Khách hỏi giờ nhận
 
-## Ma Trận Tính Liên Tục Cuối Cùng
+### Caption
 
-| Phạm Vi | Khung Hình | Tính Liên Tục Bắt Buộc |
-| --- | --- | --- |
-| Mai Anh | 1.2–5.2 | Sử dụng chính xác và chỉ mô tả ngoại hình được phép. Các biểu cảm của cô di chuyển từ tập trung không chắc chắn đến hiểu biết, giải thích thận trọng, tự tin, xem xét cẩn thận, và sự thỏa mãn tinh tế dễ chịu. |
-| Hương | 1.1–1.2 | Tháo áo tạp dề, sau đó cầm nó trong khi rời đi; cô không bao giờ xuất hiện lại. |
-| Bàn giao ca trước | 1.2–1.4 | Luôn chứa ba đơn hàng chưa hoàn thành; màn hình chi tiết sử dụng Trạng Thái, Vị Trí, Được Giao Cho, Ngoại Lệ, và Hành Động Tiếp Theo. Không công việc nào được hoàn thành tự động. |
-| Khách hàng tại quầy | 2.1–2.4 | Khách hàng và túi ẩn danh cùng nhau tồn tại. Anh ta yêu cầu 14:30, thấy 15:00–15:10 và 15:15 được đề xuất, sau đó đồng ý với 15:15. |
-| L-118 và Máy Giặc 2 | 3.1–3.3 | Máy Giặc 2 được công bố khả dụng, L-118 được đề xuất với lời giải thích cần thiết, và Mai Anh sau đó tải đơn hàng đã xác minh và xác nhận vật lý. Nguyên mẫu không bao giờ điều khiển máy giặc. |
-| L-121 | 4.2–4.5 | Đơn hàng được mở, xem trước, được gắn nhãn khả thi với lý do trong khi chờ xác nhận, và chỉ được cập nhật ở Khung Hình 4.5. |
-| Các đơn hàng bị ảnh hưởng | 4.3–4.5 | Chúng vẫn ẩn danh như Đơn Hàng A và Đơn Hàng B; các tác động xem trước của họ vẫn tiếp tục vào xác nhận mà không cần chi tiết khách hàng được phát minh. |
-| Người gọi khẩn cấp | 4.1–4.5 | Không bao giờ được xác định về mặt hình ảnh. Chỉ yêu cầu "Nhận Hàng Được Yêu Cầu Sớm Hơn" và sau "Cảm Ơn" được hiển thị. |
-| L-130 | 5.1–5.4 | Đơn hàng riêng biệt này hoàn thành vật lý trước tin nhắn; Khung Hình 5.2 cho thấy hành động Gửi mà không có phản hồi được gửi, và thiết bị khách hàng một mình cho thấy biên lai. |
-| Tính Kỷ Luật Trạng Thái Tĩnh | 1.1–5.4 | Mọi khung đóng băng một khoảnh khắc. Chú thích nội dung hiện tại chỉ có thể phóng to nhưng không bao giờ miêu tả thời gian khác hoặc kết hợp trước và sau. |
+**2.1. Lúc 14:00, khách đến cửa hàng và hỏi Mai Anh liệu có thể nhận đồ lúc 14:30 hay không.**
 
-## Giả Định Và Dữ Liệu Được Mô Phỏng
+### Bối cảnh
 
-Tất cả các ngoại hình nhân vật và khách hàng ở nhà ẩn danh là quy ước minh họa, không phải phát hiện nghiên cứu. Biểu cảm hạnh phúc, tự tin, an tâm, và thỏa mãn tinh tế dễ chịu là kết quả minh họa mong muốn được yêu cầu cho storyboard; chúng chưa được xác nhận thông qua nghiên cứu người dùng.
+* Bên trong cửa hàng giặt ủi.
+* **Đồng hồ treo tường chỉ 14:00**.
+* Khách vừa bước vào và đứng trước quầy.
+* Mai Anh đứng phía sau quầy tiếp nhận.
+* Phía sau có máy giặt, máy sấy và các túi đồ.
 
-Các thẻ bàn giao, ID ẩn danh, trạng thái đơn hàng, vị trí hàng đợi, tính toán khả thi, khuyến nghị, bản xem trước đơn hàng bị ảnh hưởng, lý do được lưu, và trạng thái thông điệp khách hàng được mô phỏng dữ liệu nguyên mẫu. Yêu cầu 14:30, ước tính 15:00–15:10, đề xuất 15:15, L-118, L-121, và L-130 là các giá trị minh họa chứ không phải bằng chứng hoạt động.
+### Hành động của người dùng
 
-Thông báo khả dụng Máy Giặc 2 được mô phỏng và giả định. Nguồn của trạng thái máy không được giải quyết, và không có khung nào khẳng định tích hợp cảm biến, phát hiện tự động đáng tin cậy, hoặc kiểm soát máy giặc thực. Mai Anh phải kiểm tra máy vật lý và thực hiện tất cả hành động tải, thiết lập, và bắt đầu chính nó.
+* Khách nói:
 
-Cho phép thay đổi hàng đợi, ngưỡng khả thi, kênh gửi thông báo, xử lý lỗi giao hàng, và tính phù hợp của yếu tố hình dạng điện thoại và máy tính bảng vẫn chưa được xác nhận. Nguyên mẫu yêu cầu xác nhận con người rõ ràng cho các thay đổi hàng đợi hậu quả và không ngụ ý sẵn sàng sản xuất.
+  > **“Tôi muốn giặt, lấy lúc 14:30 có được không? Tôi đang cần gấp.”**
+* Mai Anh lắng nghe yêu cầu.
+* Mai Anh chuẩn bị nhập thông tin khách vào điện thoại.
 
-## Danh Sách Kiểm Tra Xác Nhận
+### Cảm xúc của người dùng
 
-- [x] Chính xác năm tiêu đề Storyboard chính và chính xác hai mươi tiêu đề khung hình được đánh số hiện tại.
-- [x] Storyboard 1 có bốn khung hình, Storyboard 2 có bốn, Storyboard 3 có ba, Storyboard 4 có năm, và Storyboard 5 có bốn.
-- [x] Mọi khung hình là một khoảnh khắc tĩnh có thể vẽ được duy nhất với bối cảnh vật lý, tư thế, nhìn, cảm xúc, máy ảnh, bố cục, đạo cụ, ánh sáng, giới hạn chú thích, chú thích chính xác, loại trừ, và tính liên tục chuyển tiếp.
-- [x] Tất cả sao chép giao diện người dùng bắt buộc, ID, thời gian, trạng thái từ ngữ, văn bản lý do, và ranh giới xác nhận là rõ ràng và nhất quán.
-- [x] Không danh tính khách hàng thực hoặc dữ liệu liên hệ xuất hiện, và người gọi khẩn cấp không bao giờ được xác định về mặt hình ảnh.
-- [x] Các ý nghĩa quan trọng sử dụng văn bản có thể đọc được cộng với tín hiệu không phải màu sắc.
-- [x] Điện thoại và máy tính bảng hỗ trợ quyết định con người nhưng không bao giờ điều khiển máy thực.
-- [x] Dữ liệu được mô phỏng, nguồn trạng thái máy chưa được giải quyết, hành vi chưa được xác nhận, và cảm xúc minh họa dự kiến được rõ ràng xác định.
-- [ ] Tác phẩm nghệ thuật cuối cùng vẫn phải được hiển thị và kiểm tra ở kích thước trình bày để kiểm tra độ dễ đọc văn bản, tương phản, tính liên tục hình ảnh, và độ rõ ràng thời điểm duy nhất.
+* Khách: quan tâm, muốn biết chính xác thời gian có thể nhận đồ.
+* Mai Anh: tập trung, lịch sự và chủ động kiểm tra.
+
+### Trạng thái hệ thống
+
+* Chưa kiểm tra tính khả thi.
+* Chưa có kết quả cho giờ 14:30.
+
+### Tương tác người dùng–hệ thống
+
+* **Khách → Mai Anh:** đưa ra yêu cầu.
+* Mai Anh chuẩn bị chuyển yêu cầu thành thông tin trên hệ thống.
+
+### Diễn tiến câu chuyện
+
+* Khách đưa ra giờ mong muốn.
+* Mai Anh tiếp nhận yêu cầu và chuẩn bị nhập thông tin để kiểm tra.
+
+### Giao diện
+
+* Chỉ nhìn thấy smartphone trong tay Mai Anh.
+* **Không cần đọc rõ UI** ở frame này vì UI sẽ được tập trung ở frame tiếp theo.
+
+### Các line nhấn mạnh
+
+* **Highlight đồng hồ 14:00**.
+* **Dấu hỏi (?)** nhỏ phía trên khách để nhấn mạnh câu hỏi về khả năng đáp ứng.
+* **Mũi tên từ khách → Mai Anh** thể hiện yêu cầu.
+* **Mũi tên nhỏ từ Mai Anh → điện thoại** để báo hiệu chuẩn bị nhập thông tin.
+
+### Góc máy
+
+**Toàn cảnh (long shot)**.
+
+* Phải thấy được:
+
+  * Mai Anh.
+  * Khách.
+  * Quầy.
+  * Đồng hồ 14:00.
+  * Một phần không gian cửa hàng.
+
+---
+
+# Frame 2.2 — Mai Anh nhập thông tin khách
+
+### Caption
+
+**2.2. Mai Anh nhập thông tin đơn và giờ khách mong muốn vào điện thoại để chuẩn bị kiểm tra.**
+
+### Bối cảnh
+
+* Vẫn tại quầy tiếp nhận.
+* Background cửa hàng được làm mờ.
+* **Điện thoại và tay Mai Anh là trọng tâm của khung hình.**
+
+### Hành động của người dùng
+
+* Mai Anh cầm smartphone bằng một tay.
+* Tay còn lại thao tác trên màn hình.
+* Nhập thông tin:
+
+  * Khách hàng.
+  * Dịch vụ: **Giặt**.
+  * Giờ mong muốn: **14:30**.
+* Ngón tay đang nhập hoặc chọn `14:30`.
+
+### Cảm xúc của người dùng
+
+* Tập trung.
+* Cẩn thận.
+* Đang chuẩn bị dữ liệu để hệ thống kiểm tra.
+
+### Trạng thái hệ thống
+
+* Form tạo đơn đang được nhập.
+* Thông tin giờ mong muốn đã được điền là **14:30**.
+* Chưa thực hiện kiểm tra khả thi.
+
+### Tương tác người dùng–hệ thống
+
+**Mai Anh → Smartphone:** nhập thông tin khách và yêu cầu.
+**Hệ thống:** tiếp nhận dữ liệu nhưng chưa đưa ra kết quả.
+
+### Diễn tiến câu chuyện
+
+* Đây là frame tách riêng để cho thấy rõ **Mai Anh thực sự nhập thông tin vào hệ thống**.
+* Sau khi nhập xong, cô sẽ chuyển sang bước kiểm tra.
+
+### Giao diện
+
+```text
+┌──────────────────────────┐
+│       ĐƠN HÀNG MỚI       │
+│                          │
+│ Khách: Nguyễn Minh      │
+│                          │
+│ Dịch vụ                  │
+│ [ Giặt                ▼] │
+│                          │
+│ Giờ khách muốn nhận      │
+│ ┌──────────────────────┐ │
+│ │       14:30          │ │
+│ └──────────────────────┘ │
+│                          │
+│      [ KIỂM TRA ]        │
+└──────────────────────────┘
+```
+
+**Lưu ý:** Nút **KIỂM TRA** chưa được nhấn ở frame này. Nó chỉ xuất hiện để báo hiệu bước tiếp theo.
+
+### Các line nhấn mạnh
+
+* **Khung highlight lớn** quanh ô `14:30`.
+* **Mũi tên nhỏ** từ ngón tay → `14:30`.
+* Highlight nhẹ quanh các trường đang được nhập.
+* Có thể đặt chú thích bên ngoài:
+
+> **“Nhập yêu cầu của khách”**
+
+* Không dùng mũi tên lớn vì đây là frame tập trung vào thao tác nhập dữ liệu.
+
+### Góc máy
+
+**Cận cảnh (close-up)**.
+
+* Smartphone chiếm khoảng **70–80% khung hình**.
+* Chỉ thấy một phần tay Mai Anh.
+* UI phải **rõ, lớn, dễ đọc**.
+* Không cần thấy toàn bộ khuôn mặt Mai Anh.
+* Đây là frame **UI-focused**, dùng để AI gen chính xác thao tác nhập.
+
+---
+
+# Frame 2.3 — Mai Anh nói khách đợi
+
+### Caption
+
+**2.3. Mai Anh báo khách đợi một lát trước khi kiểm tra tính khả thi.**
+
+### Bối cảnh
+
+* Quay lại góc tại quầy.
+* Khách vẫn đang đứng đối diện Mai Anh.
+
+### Hành động của người dùng
+
+* Mai Anh ngẩng lên khỏi điện thoại.
+* Nhìn khách.
+* Nói:
+
+  > **“Đợi tôi một lát nhé.”**
+* Sau đó quay lại nhìn điện thoại.
+
+### Cảm xúc của người dùng
+
+* Mai Anh: lịch sự, bình tĩnh.
+* Khách: kiên nhẫn, đồng ý chờ.
+
+### Trạng thái hệ thống
+
+* Thông tin đơn đã được nhập.
+* Giờ mong muốn: **14:30**.
+* Chưa có kết quả kiểm tra.
+
+### Tương tác người dùng–hệ thống
+
+* Mai Anh tạm dừng thao tác để giao tiếp với khách.
+* Sau đó chuẩn bị thực hiện bước kiểm tra.
+
+### Diễn tiến câu chuyện
+
+**Nhập thông tin → báo khách chờ → bắt đầu kiểm tra.**
+
+### Các line nhấn mạnh
+
+* Bubble lời thoại:
+
+> **“Đợi tôi một lát nhé.”**
+
+* **Mũi tên cong** từ Mai Anh → điện thoại để thể hiện cô quay lại thao tác.
+* Khách có thể có **✓ nhỏ** để thể hiện đã hiểu.
+
+### Góc máy
+
+**Trung cảnh (medium shot)**.
+
+---
+# Frame 2.4 — Mai Anh kiểm tra giờ và nhấn xác nhận
+
+### Caption
+
+**2.4. Mai Anh nhập giờ khách mong muốn là 14:30 và nhấn “XÁC NHẬN” để hệ thống kiểm tra tính khả thi.**
+
+### Bối cảnh
+
+* Vẫn tại quầy tiếp nhận.
+* Smartphone là đối tượng chính.
+* Background cửa hàng được làm mờ để tập trung vào UI.
+
+### Hành động của người dùng
+
+* Mai Anh nhìn vào điện thoại.
+* Kiểm tra lại thông tin:
+
+  * Dịch vụ: **Giặt**
+  * Giờ khách muốn nhận: **14:30**
+* Dùng ngón tay nhấn nút **“XÁC NHẬN”**.
+* Sau khi nhấn, chờ hệ thống trả kết quả.
+
+### Cảm xúc của người dùng
+
+* Tập trung.
+* Cẩn thận kiểm tra trước khi xác nhận.
+* Bình tĩnh, không căng thẳng.
+
+### Trạng thái hệ thống
+
+Trước khi nhấn:
+
+```text
+┌────────────────────────────┐
+│      KIỂM TRA GIỜ HẸN      │
+│                            │
+│ Khách: Nguyễn Minh         │
+│ Dịch vụ: Giặt              │
+│                            │
+│ Giờ muốn nhận              │
+│ ┌────────────────────────┐ │
+│ │        14:30           │ │
+│ └────────────────────────┘ │
+│                            │
+│       [ XÁC NHẬN ]         │
+└────────────────────────────┘
+```
+
+Sau khi nhấn:
+
+```text
+        ĐANG KIỂM TRA...
+             ◌
+```
+
+### Tương tác người dùng–hệ thống
+
+**Mai Anh nhập yêu cầu → nhấn XÁC NHẬN → hệ thống kiểm tra tải công việc, thời gian xử lý và khả năng hoàn thành → trả kết quả.**
+
+### Diễn tiến câu chuyện
+
+* Yêu cầu của khách đã được nhập.
+* Mai Anh chính thức yêu cầu hệ thống kiểm tra.
+* Kết quả sẽ quyết định liệu **14:30 có thể đáp ứng hay không**.
+
+### Giao diện
+
+* Nút **XÁC NHẬN** phải lớn, rõ ràng.
+* `14:30` được hiển thị nổi bật.
+* Sau thao tác, xuất hiện trạng thái **“ĐANG KIỂM TRA...”**.
+* Không hiển thị kết quả khả thi/không khả thi trong frame này để giữ diễn tiến sang frame tiếp theo.
+
+### Các line nhấn mạnh
+
+* **Highlight màu nổi bật** quanh `14:30`.
+* **Mũi tên từ ngón tay → nút XÁC NHẬN**.
+* Sau khi nhấn, dùng **vòng tròn loading** để thể hiện hệ thống đang xử lý.
+* Có thể thêm chú thích:
+  **“Kiểm tra tính khả thi”**
+
+### Góc máy
+
+**Cận cảnh (close-up)**.
+
+* Smartphone chiếm khoảng **70–80% frame**.
+* Chỉ thấy tay Mai Anh.
+* UI phải rõ và đọc được.
+* Ngón tay đang chạm chính xác vào **XÁC NHẬN**.
+
+---
+
+# Frame 2.5 — Hệ thống trả kết quả
+
+### Caption
+
+**2.5. Hệ thống xác định 14:30 không khả thi và đề xuất 15:15 là thời gian gần nhất có thể đáp ứng.**
+
+### Bối cảnh
+
+* Smartphone vẫn là trung tâm.
+* Background cửa hàng mờ.
+* Có thể thấy một phần tay Mai Anh đang giữ điện thoại.
+
+### Hành động của người dùng
+
+* Mai Anh nhìn vào kết quả.
+* Cô đọc thông tin và nhận ra 14:30 không thể đáp ứng.
+* Sau đó chuẩn bị quay lại nói với khách.
+
+### Cảm xúc của người dùng
+
+* Hơi tiếc vì không đáp ứng được giờ khách mong muốn.
+* Nhưng vẫn yên tâm vì hệ thống đã đưa ra **một giờ thay thế cụ thể**.
+* Không hoảng loạn.
+
+### Trạng thái hệ thống
+
+```text
+┌────────────────────────────┐
+│       KẾT QUẢ KIỂM TRA     │
+│                            │
+│  Giờ yêu cầu               │
+│       14:30                │
+│                            │
+│   ✕ KHÔNG KHẢ THI          │
+│                            │
+│  Thời gian gần nhất        │
+│  có thể đáp ứng            │
+│                            │
+│       15:15                │
+│                            │
+│  Có thể nhận đồ lúc 15:15  │
+└────────────────────────────┘
+```
+
+### Tương tác người dùng–hệ thống
+
+**Hệ thống xử lý → trả kết quả “Không khả thi” → đề xuất 15:15 → Mai Anh đọc kết quả.**
+
+### Diễn tiến câu chuyện
+
+* Khách muốn **14:30**.
+* Hệ thống xác định **14:30 không khả thi**.
+* Hệ thống đưa ra **15:15** như phương án thay thế.
+* Mai Anh sẽ dùng thông tin này để trao đổi lại với khách.
+
+### Giao diện
+
+* `KHÔNG KHẢ THI` là thông tin chính.
+* `15:15` phải được làm nổi bật hơn các thông tin còn lại.
+* Có thể hiển thị timeline đơn giản:
+
+```text
+14:00          14:30                 15:15
+Hiện tại       ✕ Không khả thi       ✓ Có thể
+```
+
+### Các line nhấn mạnh
+
+* **Khung highlight lớn** quanh `✕ KHÔNG KHẢ THI`.
+* **Highlight nổi bật** quanh `15:15`.
+* **Mũi tên từ 14:30 → 15:15** để thể hiện giờ được đề xuất thay thế.
+* Có thể thêm chú thích:
+  **“Giờ gần nhất có thể đáp ứng”**.
+
+### Góc máy
+
+**Cận cảnh (close-up)**.
+
+* UI chiếm gần toàn bộ frame.
+* Không cần thấy khuôn mặt Mai Anh, thấy tay và điện thoại
+* Mục tiêu là để người xem **đọc ngay được kết quả hệ thống**.
+
+---
+
+# Frame 2.6 — Mai Anh thông báo khách
+
+### Caption
+
+**2.6. Mai Anh thông báo 14:30 không khả thi và đề xuất khách nhận đồ lúc 15:15.**
+
+### Bối cảnh
+
+* Quầy tiếp nhận.
+* Khách vẫn đứng chờ ở phía đối diện.
+* Mai Anh quay lại giao tiếp với khách.
+
+### Hành động của người dùng
+
+* Mai Anh nhìn khách.
+* Giải thích kết quả:
+
+  > **“14:30 không khả thi ạ, 15:15 thì được.”**
+* Có thể đưa điện thoại về phía khách để khách xem kết quả.
+* Tay Mai Anh chỉ nhẹ vào **15:15** trên màn hình.
+
+### Cảm xúc của người dùng
+
+* Mai Anh: lịch sự, tự tin, bình tĩnh.
+* Khách: chú ý lắng nghe, đang cân nhắc giờ mới.
+
+### Trạng thái hệ thống
+
+* Kết quả kiểm tra vẫn hiển thị:
+
+  * **14:30 — Không khả thi**
+  * **15:15 — Có thể đáp ứng**
+
+### Tương tác người dùng–hệ thống
+
+**Hệ thống → Mai Anh:** cung cấp kết quả.
+**Mai Anh → Khách:** giải thích kết quả và đề xuất giờ mới.
+
+### Diễn tiến câu chuyện
+
+* Mai Anh không chỉ từ chối yêu cầu 14:30.
+* Cô đưa ra ngay **phương án thay thế 15:15** dựa trên kết quả hệ thống.
+* Khách có đủ thông tin để quyết định.
+
+### Giao diện
+
+Trên điện thoại vẫn thấy:
+
+```text
+✕ 14:30 — KHÔNG KHẢ THI
+
+✓ 15:15 — CÓ THỂ ĐÁP ỨNG
+```
+
+### Các line nhấn mạnh
+
+* **Mũi tên lớn từ điện thoại → khách** để thể hiện Mai Anh đang cho khách xem kết quả.
+* **Highlight quanh `15:15`**.
+* Bubble lời thoại của Mai Anh:
+
+> **“14:30 không khả thi ạ, 15:15 thì được.”**
+
+* Có thể thêm **mũi tên nhỏ từ ngón tay → 15:15**.
+
+### Góc máy
+
+**Góc qua vai (over-the-shoulder shot)**.
+
+* Camera đứng phía sau vai Mai Anh.
+* Nhìn thấy khách ở phía trước.
+* Smartphone nằm giữa hai người và vẫn đọc được `15:15`.
+* Đây là góc tốt để thể hiện **hệ thống → Mai Anh → khách** trong cùng một frame.
+
+---
+
+# Frame 2.7 — Khách đồng ý
+
+### Caption
+
+**2.7. Khách đồng ý với giờ 15:15 và cả hai vui vẻ kết thúc trao đổi.**
+
+### Bối cảnh
+
+* Vẫn tại quầy.
+* Không gian cửa hàng sáng sủa, thân thiện.
+* Đồng hồ **14:00** vẫn có thể xuất hiện ở background để duy trì continuity.
+
+### Hành động của người dùng
+
+* Khách gật đầu.
+* Mai Anh gật đầu và mỉm cười.
+* Mai Anh xác nhận lại:
+
+  > **“Dạ, 15:15 nhé.”**
+* Cả hai kết thúc cuộc trao đổi.
+
+### Cảm xúc của người dùng
+
+* **Khách:** hài lòng vì đã có thời gian nhận rõ ràng.
+* **Mai Anh:** nhẹ nhõm, vui vẻ và tự tin.
+* Không khí cuối frame tích cực.
+
+### Trạng thái hệ thống
+
+* Giờ nhận được thống nhất:
+  **15:15**.
+* Đơn được ghi nhận với giờ hẹn mới.
+
+### Tương tác người dùng–hệ thống
+
+**Khách đồng ý → Mai Anh xác nhận → hệ thống ghi nhận giờ hẹn 15:15.**
+
+### Diễn tiến câu chuyện
+
+* **14:00:** khách đến.
+* **14:30:** khách mong muốn nhận đồ nhưng không khả thi.
+* Hệ thống kiểm tra và đề xuất **15:15**.
+* Mai Anh giải thích.
+* Khách đồng ý.
+* Hai bên thống nhất được giờ nhận phù hợp.
+
+### Giao diện
+
+* Không cần cận UI.
+* Smartphone có thể hiển thị nhỏ:
+
+```text
+✓ ĐÃ THỐNG NHẤT
+
+Giờ nhận: 15:15
+```
+
+### Các line nhấn mạnh
+
+* **✓ lớn** ở giữa Mai Anh và khách để thể hiện đã thống nhất.
+* **Mũi tên hai chiều** giữa Mai Anh ↔ khách.
+* Có thể thêm label:
+
+> **“Đã thống nhất: 15:15”**
+
+* Không còn dấu hỏi.
+* Có thể dùng **vòng tròn nhẹ** quanh hai người để nhấn mạnh khoảnh khắc kết thúc thành công.
+
+### Góc máy
+
+**Trung cảnh (medium shot)**.
+
+* Thấy toàn bộ phần thân trên của Mai Anh và khách.
+* Thấy rõ biểu cảm **gật đầu + mỉm cười** của cả hai.
+* Background vẫn cho thấy đây là cửa hàng giặt ủi.
+
+---
+
+## Flow hoàn chỉnh Storyboard 2
+
+```text
+2.1  Khách hỏi
+     ↓
+     “14:30 có khả thi không?”
+     
+2.2  CẬN CẢNH
+     Mai Anh nhập thông tin
+     Dịch vụ: Giặt
+     Giờ muốn nhận: 14:30
+     
+2.3  Mai Anh nhìn khách
+     “Đợi tôi một lát nhé.”
+     
+2.4  CẬN CẢNH UI
+     14:30
+     ↓
+     [XÁC NHẬN]
+     ↓
+     ĐANG KIỂM TRA...
+     
+2.5  CẬN CẢNH UI
+     ✕ 14:30 — KHÔNG KHẢ THI
+     ✓ 15:15 — CÓ THỂ
+     
+2.6  Mai Anh → khách
+     “14:30 không khả thi ạ,
+      15:15 thì được.”
+     
+2.7  Khách gật đầu
+     Mai Anh mỉm cười
+     ✓ Đã thống nhất: 15:15
+```
+---
+Đúng. Nếu **UI điện thoại có thông tin quan trọng**, nên tách thành **một frame cận cảnh riêng**, thay vì cố nhét UI vào frame đang quay Mai Anh. Như vậy AI gen storyboard sẽ dễ hiểu và UI cũng đọc được rõ.
+
+Tôi chỉnh lại Storyboard 3 theo hướng **action frame → UI close-up frame → action frame**. Đồng thời đổi mã đơn thành **L-123**.
+
+# Storyboard 3 — Xử lý máy giặt số 2 và đề xuất đơn L-123
+
+---
+
+## Frame 3.1 — Mai Anh nhận thông báo máy giặt số 2
+
+### Caption
+
+**3.1. Mai Anh đang gấp quần áo thì điện thoại phát thông báo máy giặt số 2 đã hoàn thành và cần lấy đồ ra.**
+
+### Bối cảnh
+
+* Cửa hàng giặt ủi đang hoạt động.
+* Mai Anh đứng tại bàn gấp quần áo.
+* Có quần áo đã giặt xong trên bàn.
+* Khu vực máy giặt nằm phía sau.
+* Máy giặt **số 2** nhìn thấy được trong background.
+* Điện thoại đặt gần Mai Anh.
+
+### Hành động của người dùng
+
+* Mai Anh đang gấp quần áo.
+* Điện thoại phát **“Ting ting!”**.
+* Mai Anh dừng lại và quay sang nhìn điện thoại.
+
+### Cảm xúc
+
+* Chú ý.
+* Hơi bất ngờ nhưng bình tĩnh.
+* Sẵn sàng chuyển sang công việc mới.
+
+### Trạng thái hệ thống
+
+* Máy giặt số 2 đã hoàn thành.
+* Hệ thống phát notification cho Mai Anh.
+
+### Tương tác
+
+**Hệ thống → Mai Anh:** thông báo công việc mới.
+
+### Các line nhấn mạnh
+
+* Hiệu ứng **“Ting ting”** quanh điện thoại.
+* Mũi tên từ điện thoại → Mai Anh.
+* Highlight số **2** trên máy giặt.
+
+### Góc máy
+
+**Trung cảnh (medium shot)**.
+
+---
+
+# Frame 3.2 — UI thông báo máy giặt số 2
+
+### Caption
+
+**3.2. Cận cảnh điện thoại hiển thị thông báo công việc cần thực hiện.**
+
+### Bối cảnh
+
+* Không cần thấy toàn bộ cửa hàng.
+* Smartphone nằm chính giữa frame.
+* Tay Mai Anh đang cầm điện thoại.
+
+### Giao diện
+
+```text
+┌──────────────────────────────┐
+│ 🔔  CÔNG VIỆC MỚI            │
+│                              │
+│ Máy giặt số 2 đã hoàn thành  │
+│                              │
+│ Hãy lấy quần áo ra khỏi máy. │
+│                              │
+│       [ XEM CHI TIẾT ]       │
+└──────────────────────────────┘
+```
+
+### Các line nhấn mạnh
+
+* Highlight toàn bộ notification.
+* Vòng tròn quanh **“Máy giặt số 2”**.
+* Mũi tên nhỏ hướng vào **“XEM CHI TIẾT”**.
+
+### Góc máy
+
+**Cận cảnh (close-up)** — điện thoại chiếm khoảng **70–80% frame**.
+
+---
+
+# Frame 3.3 — Mai Anh xác nhận lấy đồ
+
+### Caption
+
+**3.3. Mai Anh mở công việc và nhấn xác nhận để bắt đầu lấy quần áo khỏi máy giặt số 2.**
+
+### Bối cảnh
+
+* Mai Anh đứng cạnh máy giặt.
+* Điện thoại trên tay.
+
+### Hành động
+
+* Mở công việc.
+* Đọc thông tin.
+* Nhấn **XÁC NHẬN**.
+
+### Cảm xúc
+
+* Tập trung.
+* Chủ động.
+
+### Trạng thái hệ thống
+
+* Công việc được giao cho Mai Anh.
+
+### Các line nhấn mạnh
+
+* Mũi tên ngón tay → **XÁC NHẬN**.
+* Highlight nút xác nhận.
+
+### Góc máy
+
+**Trung cảnh (medium shot)** hoặc **góc qua vai (over-the-shoulder)**.
+
+---
+
+# Frame 3.4 — UI đếm 3 phút
+
+### Caption
+
+**3.4. Sau khi xác nhận, hệ thống cho Mai Anh 3 phút để lấy quần áo ra khỏi máy.**
+
+### Giao diện
+
+```text
+┌────────────────────────────┐
+│        ĐÃ XÁC NHẬN ✓       │
+│                            │
+│       MÁY GIẶT SỐ 2        │
+│                            │
+│   Lấy quần áo ra khỏi máy  │
+│                            │
+│          03:00             │
+│       ⏱ Đang đếm giờ       │
+└────────────────────────────┘
+```
+
+### Các line nhấn mạnh
+
+* Highlight rất rõ **03:00**.
+* Icon đồng hồ.
+* Mũi tên từ UI → máy giặt số 2.
+
+### Góc máy
+
+**Cận cảnh (close-up)**.
+
+---
+
+# Frame 3.5 — Mai Anh lấy quần áo ra
+
+### Caption
+
+**3.5. Mai Anh nhanh chóng lấy quần áo ra khỏi máy giặt số 2.**
+
+### Bối cảnh
+
+* Máy giặt số 2.
+* Cửa máy mở.
+* Giỏ đồ ở bên cạnh.
+
+### Hành động
+
+* Mở cửa máy.
+* Lấy quần áo ra.
+* Cho vào giỏ.
+
+### Cảm xúc
+
+* Tập trung.
+* Khẩn trương vừa phải.
+* Không hoảng loạn.
+
+### Các line nhấn mạnh
+
+* Mũi tên lớn Mai Anh → máy giặt.
+* Mũi tên chuyển động quần áo → giỏ.
+* Highlight số **2**.
+
+### Góc máy
+
+**Toàn cảnh (long shot)**.
+
+---
+
+# Frame 3.6 — Máy giặt số 2 vừa trống
+
+### Caption
+
+**3.6. Ngay sau khi Mai Anh lấy đồ ra, máy giặt số 2 trở thành máy trống và hệ thống phát thông báo mới.**
+
+### Bối cảnh
+
+* Mai Anh đứng cạnh máy giặt số 2.
+* Cửa máy mở/trống.
+* Điện thoại phát **“Ting ting!”**.
+
+### Hành động
+
+* Mai Anh quay sang điện thoại.
+* Cầm điện thoại lên để kiểm tra.
+
+### Cảm xúc
+
+* Chú ý.
+* Tò mò nhẹ về công việc tiếp theo.
+
+### Trạng thái hệ thống
+
+* Máy giặt số 2: **ĐANG TRỐNG**.
+* Có **5 đơn chờ**.
+
+### Các line nhấn mạnh
+
+* Highlight máy giặt số 2.
+* Hiệu ứng **ting ting**.
+* Mũi tên từ máy giặt → điện thoại.
+* Có thể dùng **vòng tròn** quanh Mai Anh để thể hiện cô nhận ra có thông báo mới.
+
+### Góc máy
+
+**Toàn cảnh (long shot)** hoặc **trung cảnh (medium shot)**.
+
+---
+
+# Frame 3.7 — UI hàng đợi đề xuất đơn L-123
+
+### Caption
+
+**3.7. Hệ thống phân tích 5 đơn đang chờ và đề xuất đơn L-123 là công việc tiếp theo phù hợp cho máy giặt số 2.**
+
+### Giao diện
+
+```text
+┌──────────────────────────────────┐
+│ ← HÀNG ĐỢI CÔNG VIỆC            │
+│                                  │
+│ MÁY GIẶT SỐ 2                    │
+│ ● ĐANG TRỐNG                     │
+│                                  │
+│ 5 ĐƠN ĐANG CHỜ                   │
+│                                  │
+│ ┌──────────────────────────────┐ │
+│ │ ⭐ ĐỀ XUẤT TIẾP THEO         │ │
+│ │                              │ │
+│ │ ĐƠN L-123                    │ │
+│ │ [CHỜ GIẶT]                   │ │
+│ │                              │ │
+│ │ Còn 45 phút đến giờ hẹn     │ │
+│ │ Còn 2 công đoạn             │ │
+│ │                              │ │
+│ │ Chờ giặt · Khu tiếp nhận   │ │
+│ │ Mai Anh                     │ │
+│ │                              │ │
+│ │ Tiếp theo:                  │ │
+│ │ Đưa vào máy số 2            │ │
+│ │                              │ │
+│ │ Vì sao được đề xuất?        │ │
+│ │ ✓ Giờ hẹn phù hợp           │ │
+│ │ ✓ Đúng loại máy             │ │
+│ │ ✓ Đang chờ giặt             │ │
+│ │                              │ │
+│ │ [ XÁC NHẬN ]                │ │
+│ │ [ CHỌN ĐƠN KHÁC ]           │ │
+│ └──────────────────────────────┘ │
+│                                  │
+│ HÀNG ĐỢI                         │
+│                                  │
+│ ☰ L-123   [CHỜ GIẶT]            │
+│ ☰ A-245   [CHỜ GIẶT]            │
+│ ☰ K-102   [CHỜ GIẶT]            │
+│ ☰ M-331   [CHỜ GIẶT]            │
+│ ☰ P-087   [CHỜ GIẶT]            │
+│                                  │
+│ ↕ Kéo để thay đổi thứ tự         │
+└──────────────────────────────────┘
+```
+
+### Logic đề xuất
+
+Hệ thống xem xét:
+
+* **Thời điểm nhận đơn**
+* **Giờ khách hẹn lấy**
+* **Mức độ khẩn cấp**
+* **Trạng thái đơn**
+* **Loại máy phù hợp**
+
+Không cần hiển thị toàn bộ thuật toán; chỉ hiển thị những lý do liên quan trực tiếp:
+
+> **Còn 45 phút đến giờ hẹn · Còn 2 công đoạn**
+
+và:
+
+> **Đúng loại máy · Đang chờ giặt**
+
+### Các line nhấn mạnh
+
+* Highlight lớn quanh **ĐƠN L-123**.
+* Highlight **“Còn 45 phút đến giờ hẹn”**.
+* Highlight **“Còn 2 công đoạn”**.
+* Highlight **“Tiếp theo: Đưa vào máy số 2”**.
+* Highlight cả hai nút **XÁC NHẬN / CHỌN ĐƠN KHÁC**.
+* Mũi tên từ **Máy giặt số 2 — ĐANG TRỐNG → Đơn L-123**.
+* Icon **☰ / ↕** để thể hiện có thể kéo thay đổi thứ tự.
+* Tất cả trạng thái đều có **nhãn chữ**, không chỉ thể hiện bằng màu.
+
+### Góc máy
+
+**Cận cảnh cực gần (close-up)**.
+
+* Điện thoại chiếm **80–90% frame**.
+* UI phải là chủ thể chính.
+* Không để Mai Anh hoặc background chiếm quá nhiều diện tích.
+* Đây là frame chuyên để AI gen **UI rõ ràng**.
+
+---
+
+# Frame 3.8 — Mai Anh kiểm tra túi đồ L-123
+
+### Caption
+
+**3.8. Mai Anh đối chiếu thông tin đơn L-123 trên điện thoại với đúng túi đồ thực tế trước khi xác nhận.**
+
+### Bối cảnh
+
+* Mai Anh đứng cạnh máy giặt số 2.
+* Một tay cầm điện thoại.
+* Một tay cầm túi đồ có nhãn **L-123**.
+
+### Hành động
+
+* Nhìn thông tin đơn.
+* Kiểm tra nhãn túi.
+* Đối chiếu **L-123 ↔ L-123**.
+* Chuẩn bị nhấn xác nhận.
+
+### Cảm xúc
+
+* Cẩn thận.
+* Tập trung.
+* Yên tâm khi thông tin khớp.
+
+### Các line nhấn mạnh
+
+* Mũi tên hai chiều:
+  **Điện thoại ↔ Túi đồ L-123**.
+* Highlight mã **L-123** trên túi.
+* Highlight mã **L-123** trên điện thoại.
+
+### Góc máy
+
+**Góc qua vai (over-the-shoulder)**.
+
+---
+
+# Frame 3.9 — UI xác nhận đơn L-123
+
+### Caption
+
+**3.9. Mai Anh xác nhận đúng đơn L-123 và máy giặt số 2.**
+
+### Giao diện
+
+```text
+┌────────────────────────────┐
+│      XÁC NHẬN ĐƠN L-123    │
+│                            │
+│ Đơn: L-123                 │
+│                            │
+│ Trạng thái: CHỜ GIẶT       │
+│ Khu vực: KHU TIẾP NHẬN    │
+│ Người xử lý: MAI ANH      │
+│                            │
+│ Máy phù hợp:               │
+│ MÁY GIẶT SỐ 2              │
+│                            │
+│ Tiếp theo:                 │
+│ Đưa đồ vào máy số 2        │
+│                            │
+│      [ XÁC NHẬN ]          │
+│                            │
+│      Chọn đơn khác         │
+└────────────────────────────┘
+```
+
+### Hành động
+
+* Ngón tay Mai Anh nhấn **XÁC NHẬN**.
+
+### Các line nhấn mạnh
+
+* Mũi tên ngón tay → XÁC NHẬN.
+* Highlight `L-123`.
+* Highlight `MÁY GIẶT SỐ 2`.
+* Vòng tròn quanh nút xác nhận.
+
+### Góc máy
+
+**Cận cảnh cực gần (close-up)**.
+
+---
+
+# Frame 3.10 — UI báo 3 phút để cho đồ vào
+
+### Caption
+
+**3.10. Sau khi xác nhận đơn L-123, hệ thống cho Mai Anh 3 phút để đưa đồ vào máy giặt số 2.**
+
+### Giao diện
+
+```text
+┌────────────────────────────┐
+│        ĐÃ XÁC NHẬN ✓       │
+│                            │
+│          L-123             │
+│                            │
+│       MÁY GIẶT SỐ 2        │
+│                            │
+│    Cho quần áo vào máy     │
+│                            │
+│          03:00             │
+│       ⏱ Đang đếm giờ       │
+└────────────────────────────┘
+```
+
+### Các line nhấn mạnh
+
+* Highlight **03:00**.
+* Highlight **L-123**.
+* Highlight **MÁY GIẶT SỐ 2**.
+* Mũi tên từ điện thoại → máy giặt.
+
+### Góc máy
+
+**Cận cảnh cực gần (close-up)**.
+
+---
+
+# Frame 3.11 — Mai Anh cho đồ vào máy
+
+### Caption
+
+**3.11. Mai Anh đưa đúng túi đồ L-123 vào máy giặt số 2, vui vẻ và yên tâm vì công việc được sắp xếp đúng thời điểm.**
+
+### Bối cảnh
+
+* Máy giặt số 2 đang mở.
+* Mai Anh cầm túi đồ **L-123**.
+* Khu vực cửa hàng vẫn hoạt động bình thường.
+
+### Hành động
+
+* Mở máy.
+* Đưa đồ L-123 vào máy.
+* Đóng cửa máy.
+* Nhìn máy/điện thoại và mỉm cười.
+
+### Cảm xúc
+
+* **Vui vẻ.**
+* Yên tâm.
+* Không lo trễ giờ khách.
+
+### Trạng thái hệ thống
+
+* Đơn **L-123: ĐANG GIẶT**.
+* Máy giặt số 2: **ĐANG SỬ DỤNG**.
+* Người xử lý: **Mai Anh**.
+* Còn **4 đơn chờ**.
+
+### Các line nhấn mạnh
+
+* Mũi tên lớn:
+  **Túi L-123 → Máy giặt số 2**.
+* Highlight mã **L-123**.
+* Highlight số **2** trên máy.
+* Dấu **✓**.
+* Mũi tên chuyển trạng thái:
+
+**CHỜ GIẶT → ĐANG GIẶT**
+
+### Góc máy
+
+**Toàn cảnh (long shot)**.
+
+Có. Với Storyboard 4, mình khuyên tăng lên **7 frame** để các thao tác trên POS không bị dồn, đặc biệt tách riêng **nhập giờ → nhấn kiểm tra → kết quả → chọn đôn → nhập lý do → xác nhận**. Như vậy AI gen từng ảnh sẽ dễ chính xác hơn.
+
+# Storyboard 4 — Đôn đơn lấy sớm
+
+## Frame 4.1 — Nhận cuộc gọi
+
+### Caption
+
+**4.1 Mai Anh đang xếp đồ thì nhận được cuộc gọi từ khách muốn lấy đơn sớm hơn 1 giờ và bắt đầu kiểm tra đơn trên tablet POS.**
+
+* **Bối cảnh**
+
+  * Cửa hàng giặt ủi vào buổi chiều.
+  * Mai Anh đang đứng tại bàn xếp quần áo.
+  * Tablet POS đặt trên bàn.
+  * Một số túi đồ và quần áo đã hoàn tất xung quanh.
+
+* **Hành động**
+
+  * Điện thoại reo.
+  * Mai Anh nhận cuộc gọi.
+  * Một tay nghe điện thoại, tay còn lại mở tablet.
+
+* **Cảm xúc**
+
+  * Hơi bất ngờ nhưng bình tĩnh.
+  * Tập trung lắng nghe khách.
+
+* **Lời thoại**
+
+  * Khách: **“Em có thể lấy đồ sớm hơn 1 giờ được không? Em có việc đột xuất.”**
+  * Mai Anh: **“Dạ, để em kiểm tra lại lịch xử lý đơn giúp chị nhé.”**
+
+* **Line nhấn mạnh**
+
+  * Hiệu ứng **TING!** quanh điện thoại.
+  * Bong bóng thoại: **“Lấy sớm hơn 1 giờ”**
+  * Mũi tên từ Mai Anh → tablet.
+
+* **Góc máy**
+
+  * **Góc rộng (wide shot)**.
+  * Thấy toàn bộ Mai Anh, bàn xếp đồ, tablet và điện thoại.
+
+---
+
+# Frame 4.2 — Mở đúng đơn
+
+### Caption
+
+**4.2 Mai Anh vừa nghe điện thoại vừa mở đúng đơn L-123 trên tablet POS để kiểm tra yêu cầu lấy sớm.**
+
+* **Bối cảnh**
+
+  * Mai Anh đứng tại quầy.
+  * Điện thoại vẫn áp bên tai.
+  * Tablet trước mặt.
+
+* **Hành động**
+
+  * Mai Anh tìm đơn **L-123**.
+  * Nhấn vào đơn để mở chi tiết.
+
+* **Trạng thái hệ thống**
+
+  * Đơn L-123 đang ở trạng thái **Đang xử lý**.
+  * Giờ lấy hiện tại: **15:30**.
+
+* **Giao diện**
+
+```text
+┌───────────────────────────────┐
+│          DANH SÁCH ĐƠN        │
+│                               │
+│ A-245     Đang xử lý          │
+│ K-102     Chờ giặt            │
+│                               │
+│ L-123     Đang xử lý   →      │
+│                               │
+│ M-331     Chờ giặt            │
+└───────────────────────────────┘
+```
+
+* **Line nhấn mạnh**
+
+  * Highlight **L-123**.
+  * Mũi tên tay Mai Anh → L-123.
+
+* **Góc máy**
+
+  * **Over-the-shoulder**.
+  * Tablet chiếm phần lớn frame nhưng vẫn thấy Mai Anh và điện thoại.
+
+---
+
+# Frame 4.3 — Nhập giờ muốn lấy
+
+### Caption
+
+**4.3 Cận cảnh tablet: Mai Anh nhập giờ lấy mới 14:30 theo yêu cầu của khách thay cho giờ hẹn ban đầu 15:30.**
+
+* **Hành động**
+
+  * Mai Anh chọn chức năng **Đôn giờ lấy**.
+  * Nhập **14:30**.
+
+* **Giao diện**
+
+```text
+┌────────────────────────────────┐
+│            ĐƠN L-123           │
+│                                │
+│ Giờ lấy hiện tại               │
+│             15:30              │
+│                                │
+│ Giờ khách muốn lấy             │
+│             [14:30]            │
+│                                │
+│ Yêu cầu: Lấy sớm hơn 1 giờ     │
+│                                │
+│       [ KIỂM TRA ]             │
+└────────────────────────────────┘
+```
+
+* **Line nhấn mạnh**
+
+  * Highlight **15:30 → 14:30**.
+  * Mũi tên → ô **14:30**.
+  * Có thể thêm icon đồng hồ.
+
+* **Góc máy**
+
+  * **Close-up**.
+  * Chỉ tập trung vào tablet và bàn tay Mai Anh.
+
+---
+
+# Frame 4.4 — Nhấn kiểm tra
+
+### Caption
+
+**4.4 Mai Anh kiểm tra lại giờ 14:30 rồi nhấn nút “KIỂM TRA” để hệ thống tính toán khả năng đôn đơn.**
+
+* **Hành động**
+
+  * Mai Anh nhìn lại **14:30**.
+  * Nhấn **KIỂM TRA**.
+
+* **Giao diện**
+
+```text
+┌────────────────────────────────┐
+│            ĐƠN L-123           │
+│                                │
+│ Giờ lấy hiện tại: 15:30        │
+│ Giờ muốn lấy:       14:30      │
+│                                │
+│ Yêu cầu lấy sớm hơn 1 giờ      │
+│                                │
+│       [ KIỂM TRA ]             │
+└────────────────────────────────┘
+```
+
+* **Line nhấn mạnh**
+
+  * Mũi tên lớn từ ngón tay → **KIỂM TRA**.
+  * Highlight nút khi được nhấn.
+  * Có thể thêm hiệu ứng loading bắt đầu xuất hiện.
+
+* **Góc máy**
+
+  * **Close-up cực gần**.
+  * Tập trung tuyệt đối vào nút **KIỂM TRA**.
+
+---
+
+# Frame 4.5 — Hệ thống kiểm tra và báo khả thi
+
+### Caption
+
+**4.5 Cận cảnh màn hình tablet: hệ thống hoàn tất kiểm tra và xác định có thể đôn đơn L-123 lên 14:30 mà không ảnh hưởng đến giờ hẹn của các đơn khác.**
+
+* **Trạng thái hệ thống**
+
+  * Kiểm tra lịch máy.
+  * Kiểm tra thời gian xử lý.
+  * Kiểm tra các đơn đang chờ.
+  * Kiểm tra deadline của các đơn khác.
+  * Kết quả: **KHẢ THI**.
+
+### Giao diện
+
+```text
+┌────────────────────────────────────┐
+│        ✓ CÓ THỂ ĐÔN ĐƠN            │
+│                                    │
+│ Đơn L-123                          │
+│ Giờ lấy mới: 14:30                │
+│                                    │
+│ ✓ Không ảnh hưởng đơn khác         │
+│ ✓ Không có đơn nào bị trễ          │
+│                                    │
+│ A-245   ✓ Đúng giờ 15:00          │
+│ K-102   ✓ Đúng giờ 15:15          │
+│ M-331   ✓ Đúng giờ 15:30          │
+│ P-087   ✓ Đúng giờ 16:00          │
+│                                    │
+│       [ ĐÔN ĐƠN ]                  │
+└────────────────────────────────────┘
+```
+
+* **Line nhấn mạnh**
+
+  * Highlight lớn:
+    **✓ CÓ THỂ ĐÔN ĐƠN**
+  * Highlight:
+    **✓ Không ảnh hưởng đơn khác**
+  * Các đơn khác đều có **✓ Đúng giờ**.
+
+* **Góc máy**
+
+  * **Close-up**.
+  * Tablet chiếm gần toàn bộ frame.
+  * Đây là frame UI quan trọng nhất.
+
+---
+
+# Frame 4.6 — Chọn đôn đơn
+
+### Caption
+
+**4.6 Mai Anh xác nhận phương án khả thi và nhấn “ĐÔN ĐƠN” để đưa L-123 lên trước trong hàng đợi.**
+
+* **Hành động**
+
+  * Mai Anh đọc kết quả.
+  * Nhìn thấy không có đơn nào bị ảnh hưởng.
+  * Nhấn **ĐÔN ĐƠN**.
+
+* **Giao diện**
+
+```text
+┌────────────────────────────────────┐
+│          PHƯƠNG ÁN KHẢ THI         │
+│                                    │
+│ L-123                              │
+│ 15:30  →  14:30                   │
+│                                    │
+│ ✓ Không ảnh hưởng đơn khác         │
+│ ✓ Không có đơn nào bị trễ          │
+│                                    │
+│ [ GIỮ NGUYÊN ]                     │
+│                                    │
+│        [ ĐÔN ĐƠN ]                 │
+└────────────────────────────────────┘
+```
+
+* **Line nhấn mạnh**
+
+  * Mũi tên lớn:
+    **15:30 → 14:30**
+  * Mũi tên tay → **ĐÔN ĐƠN**.
+  * Highlight nút **ĐÔN ĐƠN**.
+
+* **Góc máy**
+
+  * **Over-the-shoulder hoặc close-up**.
+  * Nếu muốn thể hiện rõ thao tác tay → **over-the-shoulder**.
+
+---
+
+# Frame 4.7 — Nhập lý do và xác nhận
+
+### Caption
+
+**4.7 Mai Anh nhập lý do “Khách có việc đột xuất, yêu cầu lấy sớm hơn 1 giờ” rồi nhấn “XÁC NHẬN ĐÔN ĐƠN”.**
+
+* **Bối cảnh**
+
+  * Tablet trên quầy.
+  * Mai Anh đang thao tác.
+  * Điện thoại vẫn ở gần tay.
+
+* **Hành động**
+
+  1. Nhập lý do.
+  2. Kiểm tra lại thông tin.
+  3. Nhấn **XÁC NHẬN ĐÔN ĐƠN**.
+
+### Giao diện
+
+```text
+┌────────────────────────────────────┐
+│       XÁC NHẬN ĐÔN ĐƠN             │
+│                                    │
+│ Đơn: L-123                         │
+│ Giờ lấy mới: 14:30                │
+│                                    │
+│ ✓ KHẢ THI                          │
+│ ✓ Không ảnh hưởng đơn khác         │
+│ ✓ Không có đơn nào bị trễ          │
+│                                    │
+│ Lý do đôn đơn:                     │
+│ ┌────────────────────────────────┐ │
+│ │ Khách có việc đột xuất,        │ │
+│ │ yêu cầu lấy sớm hơn 1 giờ.     │ │
+│ └────────────────────────────────┘ │
+│                                    │
+│ [ HỦY ]    [ XÁC NHẬN ĐÔN ĐƠN ]  │
+└────────────────────────────────────┘
+```
+
+* **Line nhấn mạnh**
+
+  * Highlight ô nhập lý do.
+  * Mũi tên → **XÁC NHẬN ĐÔN ĐƠN**.
+  * Sau khi nhấn xuất hiện:
+
+> **✓ ĐÃ CẬP NHẬT HÀNG ĐỢI**
+
+* **Góc máy**
+
+  * **Close-up**.
+
+---
+
+# Frame 4.8 — Báo kết quả cho khách
+
+### Caption
+
+**4.8 Mai Anh vui vẻ thông báo với khách rằng đơn L-123 đã được sắp xếp lấy sớm hơn 1 giờ mà không ảnh hưởng đến các đơn khác.**
+
+* **Bối cảnh**
+
+  * Mai Anh đứng tại quầy.
+  * Tablet POS ở phía sau hoặc trên bàn.
+  * Điện thoại trên tay.
+
+* **Hành động**
+
+  * Mai Anh nói kết quả cho khách.
+  * Khách cảm ơn.
+  * Mai Anh mỉm cười và tiếp tục công việc.
+
+* **Lời thoại**
+
+**Mai Anh:**
+
+> “Dạ được ạ, bên em đã sắp xếp để chị lấy sớm hơn 1 giờ rồi ạ.”
+
+**Khách:**
+
+> “Cảm ơn em nhé!”
+
+* **Cảm xúc**
+
+  * Mai Anh: **vui vẻ, nhẹ nhõm, tự tin**.
+  * Khách: **hài lòng, yên tâm**.
+
+* **Line nhấn mạnh**
+
+  * Bong bóng thoại:
+    **“Đã sắp xếp lấy sớm hơn 1 giờ ✓”**
+  * Có thể thêm:
+    **“Không ảnh hưởng các đơn khác.”**
+
+* **Góc máy**
+
+  * **Góc rộng (wide shot)**.
+  * Thấy Mai Anh, quầy, tablet và điện thoại.
+  * Tập trung vào biểu cảm vui vẻ, không cần zoom UI.
+
+---
+
+## Flow hoàn chỉnh
+
+**4.1 — WIDE**
+📞 Khách gọi xin lấy sớm → Mai Anh mở POS.
+
+↓
+
+**4.2 — OTS**
+Mở **đơn L-123**.
+
+↓
+
+**4.3 — CLOSE-UP**
+Nhập **giờ muốn lấy: 14:30**.
+
+↓
+
+**4.4 — CLOSE-UP**
+Nhấn **KIỂM TRA**.
+
+↓
+
+**4.5 — CLOSE-UP**
+Hệ thống → **KHẢ THI** → **không ảnh hưởng đơn khác**.
+
+↓
+
+**4.6 — OTS/CLOSE-UP**
+Mai Anh nhấn **ĐÔN ĐƠN**.
+
+↓
+
+**4.7 — CLOSE-UP**
+Nhập **lý do** → **XÁC NHẬN ĐÔN ĐƠN**.
+
+↓
+
+**4.8 — WIDE**
+Mai Anh báo khách → **khách cảm ơn, Mai Anh vui vẻ**.
+
+**8 frame này hợp lý hơn 5 frame ban đầu**, vì mỗi thao tác quan trọng trên POS chỉ có **một hành động chính**, tránh việc AI phải dựng cùng lúc “nhập giờ + kiểm tra + chọn đôn + nhập lý do” trong một hình.
+# Storyboard 5 — Thông báo cho khách khi đơn hoàn tất
+
+**Tổng thể:** 4 frame, tập trung vào luồng **đơn hoàn tất → hệ thống soạn sẵn thông báo → Mai Anh kiểm tra và gửi → khách nhận thông báo**.
+Các frame 5.2 và 5.4 là **cận cảnh UI**, còn 5.1 và 5.3 dùng góc rộng để thể hiện câu chuyện.
+
+---
+
+## Frame 5.1 — Đơn hoàn tất
+
+### Caption
+
+**5.1 Mai Anh cầm túi đồ đã hoàn tất và điện thoại, chuẩn bị thông báo cho khách đến nhận.**
+
+### Bối cảnh
+
+* Bên trong cửa hàng giặt ủi.
+* Mai Anh đứng tại khu vực nhận/trả đồ.
+* Một túi đồ đã hoàn tất được đặt trên bàn hoặc Mai Anh đang cầm trên tay.
+* Điện thoại nằm trong tay còn lại.
+* Túi đồ có nhãn đơn rõ ràng, ví dụ **L-123**.
+
+### Hành động của người dùng
+
+* Mai Anh kiểm tra túi đồ lần cuối.
+* Cầm điện thoại.
+* Chuẩn bị gửi thông báo cho khách.
+
+### Cảm xúc
+
+* Vui vẻ.
+* Hài lòng vì đơn đã hoàn tất.
+* Chủ động thông báo cho khách.
+
+### Trạng thái hệ thống
+
+* Đơn **L-123** chuyển sang trạng thái:
+
+> **SẴN SÀNG ĐỂ NHẬN**
+
+* Hệ thống đã chuẩn bị nội dung thông báo cho khách.
+
+### Tương tác người dùng – hệ thống
+
+* **Hệ thống:** phát hiện đơn hoàn tất → chuyển trạng thái.
+* **Mai Anh:** nhận biết đơn đã sẵn sàng và chuẩn bị gửi thông báo.
+
+### Line nhấn mạnh
+
+* Highlight nhãn **L-123** trên túi.
+* Mũi tên:
+
+**ĐƠN HOÀN TẤT → SẴN SÀNG ĐỂ NHẬN**
+
+* Có thể thêm biểu tượng **✓** trên túi đồ.
+
+### Góc máy
+
+**Góc rộng / Toàn cảnh (wide shot)**.
+
+* Thấy Mai Anh từ đầu đến chân.
+* Thấy túi đồ.
+* Thấy điện thoại.
+* Thấy khu vực trả đồ.
+* Không cần tập trung vào UI điện thoại.
+
+---
+
+# Frame 5.2 — Kiểm tra và gửi thông báo
+
+### Caption
+
+**5.2 Cận cảnh điện thoại: hệ thống tự động soạn sẵn thông báo cho khách, Mai Anh kiểm tra nội dung rồi nhấn “GỬI”.**
+
+### Bối cảnh
+
+* Điện thoại chiếm phần lớn frame.
+* Tay Mai Anh đang cầm điện thoại.
+* Background cửa hàng được làm mờ.
+
+### Hành động của người dùng
+
+* Mai Anh mở thông báo của đơn L-123.
+* Kiểm tra nội dung hệ thống tự động soạn.
+* Có thể chỉnh sửa nếu cần.
+* Nhấn **GỬI THÔNG BÁO**.
+
+### Cảm xúc
+
+* Tập trung.
+* Hài lòng vì không phải tự viết tin nhắn từ đầu.
+
+### Trạng thái hệ thống
+
+* Đơn: **SẴN SÀNG ĐỂ NHẬN**.
+* Hệ thống tự động điền:
+
+  * Tên khách.
+  * Mã đơn.
+  * Trạng thái đơn.
+  * Thời gian có thể đến lấy.
+
+### Giao diện
+
+```text
+┌──────────────────────────────────┐
+│ ← THÔNG BÁO KHÁCH                │
+│                                  │
+│ Đơn L-123                        │
+│ ✓ SẴN SÀNG ĐỂ NHẬN               │
+│                                  │
+│ Nội dung thông báo               │
+│ ┌──────────────────────────────┐ │
+│ │ Chào chị Lan,                │ │
+│ │                              │ │
+│ │ Đơn L-123 của chị đã hoàn   │ │
+│ │ tất và sẵn sàng để nhận.    │ │
+│ │                              │ │
+│ │ Chị có thể đến lấy từ       │ │
+│ │ 15:00 hôm nay.              │ │
+│ │                              │ │
+│ │ Cảm ơn chị!                 │ │
+│ └──────────────────────────────┘ │
+│                                  │
+│ [ CHỈNH SỬA ]                    │
+│                                  │
+│       [ GỬI THÔNG BÁO ]         │
+└──────────────────────────────────┘
+```
+
+### Các line nhấn mạnh
+
+* Highlight phần **“SẴN SÀNG ĐỂ NHẬN”**.
+* Highlight tên khách **“chị Lan”**.
+* Highlight thời gian **“15:00 hôm nay”**.
+* Mũi tên ngón tay → **GỬI THÔNG BÁO**.
+* Có thể thêm hiệu ứng **✓** sau khi gửi.
+
+### Góc máy
+
+**Cận cảnh cực gần (close-up)**.
+
+* Điện thoại chiếm khoảng 80–90% frame.
+* UI phải rõ và đọc được.
+
+---
+
+# Frame 5.3 — Khách nhận được thông báo
+
+### Caption
+
+**5.3 Ở nhà, khách nhận được thông báo trên điện thoại và chú ý kiểm tra tin nhắn từ cửa hàng.**
+
+### Bối cảnh
+
+* Nhà của khách.
+* Khách đang ngồi hoặc đang làm việc tại nhà.
+* Điện thoại đặt trên bàn hoặc khách đang cầm trên tay.
+* Không gian khác hoàn toàn với cửa hàng để thể hiện chuyển cảnh.
+
+### Hành động của khách
+
+* Điện thoại phát **“Ting!”**.
+* Khách quay sang nhìn điện thoại.
+* Cầm điện thoại lên để kiểm tra.
+
+### Cảm xúc
+
+* Bất ngờ nhẹ khi nhận thông báo.
+* Sau đó vui vẻ/yên tâm vì biết đồ đã hoàn tất.
+
+### Trạng thái hệ thống
+
+* Thông báo đã được gửi thành công từ hệ thống cửa hàng.
+* Khách nhận được notification.
+
+### Line nhấn mạnh
+
+* Hiệu ứng **“TING!”** quanh điện thoại.
+* Mũi tên từ notification → ánh mắt khách.
+* Có thể thêm biểu tượng thông báo **🔔 1**.
+
+### Góc máy
+
+**Góc rộng / Toàn cảnh (wide shot)**.
+
+* Thấy khách và không gian nhà.
+* Điện thoại vẫn phải nhìn thấy rõ nhưng **không cần đọc UI**.
+* Frame này chủ yếu thể hiện **khách đã nhận được thông báo**.
+
+---
+
+# Frame 5.4 — Khách xem nội dung thông báo
+
+### Caption
+
+**5.4 Cận cảnh điện thoại của khách: tin nhắn xác nhận đơn đã hoàn tất và cho biết thời gian có thể đến nhận.**
+
+### Bối cảnh
+
+* Điện thoại khách chiếm phần lớn frame.
+* Tay khách đang cầm điện thoại.
+* Background căn nhà được làm mờ.
+
+### Hành động
+
+* Khách mở notification.
+* Đọc thông báo.
+* Biết chính xác đơn đã hoàn tất và thời gian có thể đến lấy.
+
+### Cảm xúc
+
+* Yên tâm.
+* Hài lòng.
+* Biết rõ bước tiếp theo.
+
+### Giao diện
+
+```text
+┌──────────────────────────────────┐
+│        THÔNG BÁO CỬA HÀNG        │
+│                                  │
+│ ✓ ĐƠN L-123 ĐÃ HOÀN TẤT          │
+│                                  │
+│ Chào chị Lan,                    │
+│                                  │
+│ Đơn L-123 của chị đã hoàn tất   │
+│ và sẵn sàng để nhận.             │
+│                                  │
+│ Có thể đến lấy từ:              │
+│                                  │
+│       15:00 HÔM NAY              │
+│                                  │
+│ Cảm ơn chị!                      │
+└──────────────────────────────────┘
+```
+
+### Các line nhấn mạnh
+
+* Highlight **ĐƠN L-123 ĐÃ HOÀN TẤT**.
+* Highlight **SẴN SÀNG ĐỂ NHẬN**.
+* Highlight lớn **15:00 HÔM NAY**.
+* Có dấu **✓** thể hiện thông tin đã sẵn sàng.
+
+### Góc máy
+
+**Cận cảnh cực gần (close-up)**.
+
+* Điện thoại chiếm 80–90% frame.
+* Nội dung tin nhắn phải rõ ràng, dễ đọc.
+
+---
+
+# Flow của Storyboard 5
+
+**Frame 5.1 — Góc rộng**
+Mai Anh + túi **L-123** → đơn đã hoàn tất.
+
+↓
+
+**Frame 5.2 — CLOSE-UP UI**
+Hệ thống soạn sẵn tin nhắn → Mai Anh kiểm tra → **GỬI**.
+
+↓
+
+**Frame 5.3 — Góc rộng**
+Khách ở nhà → điện thoại **Ting!** → nhận thông báo.
+
+↓
+
+**Frame 5.4 — CLOSE-UP UI**
+Khách mở điện thoại → thấy:
+
+> **✓ Đơn L-123 đã hoàn tất**
+> **Sẵn sàng để nhận**
+> **Có thể đến lấy từ 15:00 hôm nay**
+
+Như vậy storyboard thể hiện rõ giá trị của tính năng: **Mai Anh không phải tự soạn thông báo từ đầu**, hệ thống tự lấy **tên khách + mã đơn + trạng thái + giờ có thể nhận**, Mai Anh chỉ cần **kiểm tra → chỉnh nếu cần → gửi**.
