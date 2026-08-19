@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "skills": {
+    "wireframer": {
+      "source": "agilek/wireframer-skill",
+      "sourceType": "github",
+      "skillPath": "SKILL.md",
+      "computedHash": "8f842c70d567ce4236290afbe81cff345367d75322a36e1a6c8681932612117b"
+    }
+  }
+}
