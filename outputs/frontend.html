@@ -893,19 +893,7 @@ select.finput{-webkit-appearance:none;appearance:none;padding-right:32px;padding
           <span style="font-size:10.5px;font-weight:600;color:var(--tl);background:#f1f5f9;padding:5px 10px;border-radius:7px">Đang xử lý</span>
         </div>
 
-        <div class="sdiv" style="margin-top:14px;color:var(--rd)">Đơn trễ – cần báo ngay</div>
-        <div class="nc" style="border-left:3px solid var(--rd)">
-          <div class="nca" style="background:var(--rd)">LN</div>
-          <div class="ni2">
-            <div class="nname">Lê Văn Nam</div>
-            <div class="nmeta">Chờ máy · Hẹn 18:00 · Dự kiến xong 18:45 · Nguy cơ trễ</div>
-            <div style="margin-top:5px;font-size:10.5px;color:var(--ts);background:#fee2e2;padding:6px 10px;border-radius:7px;display:flex;align-items:flex-start;gap:5px">
-              <svg class="icon icon-sm" style="color:var(--rd);flex-shrink:0;margin-top:1px"><use href="#i-message"/></svg>
-              "Bạn ơi, đồ của bạn bị chậm hơn dự kiến do máy đang bận. Dự kiến xong khoảng 18:45. Rất xin lỗi bạn!"
-            </div>
-          </div>
-          <button class="br" onclick="showT('Đã gửi Zalo xin lỗi cho Lê Văn Nam','grn')"><svg class="icon icon-sm"><use href="#i-send"/></svg>Gửi xin lỗi</button>
-        </div>
+
       </div>
     </div><!-- /notify -->
 
@@ -964,23 +952,7 @@ select.finput{-webkit-appearance:none;appearance:none;padding-right:32px;padding
         </div>
       </div>
 
-      <div class="card">
-        <div class="ch"><div class="ctitle">Top Nhân Viên (Tháng này)</div></div>
-        <div class="olist">
-          <div class="orow">
-            <div class="opri p3">1</div>
-            <div class="stav" style="margin-left:10px">MA</div>
-            <div class="oname" style="margin-left:10px">Mai Anh</div>
-            <div class="otime" style="font-weight:700;color:var(--pu)">342 đơn</div>
-          </div>
-          <div class="orow">
-            <div class="opri p2">2</div>
-            <div class="stav" style="margin-left:10px">L</div>
-            <div class="oname" style="margin-left:10px">Linh</div>
-            <div class="otime" style="font-weight:700;color:var(--tx)">210 đơn</div>
-          </div>
-        </div>
-      </div>
+
     </div><!-- /stats -->
 
   </div><!-- /pwrap -->
@@ -1712,6 +1684,33 @@ function openOM(name, deadline, atRisk, svcParam, isWaiting){
 function startOrder(name) {
   const m = document.getElementById('om-mach');
   const sel = m.options[m.selectedIndex].text;
+  
+  document.querySelectorAll('.orow').forEach(row => {
+    let nameEl = row.querySelector('.oname');
+    if(nameEl && nameEl.innerText.trim() === name) {
+      if(row.classList.contains('risk')) {
+        row.classList.remove('risk');
+        let rkBadge = row.querySelector('.chip.rk');
+        if(rkBadge) rkBadge.remove();
+        
+        let etaStrong = row.querySelector('.calc-eta strong');
+        if(etaStrong) {
+          let newTime = etaStrong.innerText.trim();
+          let otime = row.querySelector('.otime');
+          if(otime) {
+            otime.innerText = otime.innerText.replace(/Hẹn \d{2}:\d{2}/, 'Hẹn ' + newTime);
+          }
+          
+          let oldOnclick = row.getAttribute('onclick');
+          if(oldOnclick) {
+            let newOnclick = oldOnclick.replace(/'\d{2}:\d{2}'/, "'" + newTime + "'").replace(/true/, 'false');
+            row.setAttribute('onclick', newOnclick);
+          }
+        }
+      }
+    }
+  });
+
   closeM('om');
   showT(`Đã xếp ${name} vào ${sel}`,'grn');
 }
