@@ -469,12 +469,17 @@ select.finput{-webkit-appearance:none;appearance:none;padding-right:32px;padding
         <div id="register-panel" style="display:none; animation: fadein 0.3s ease-out">
           <h2 style="font-size:18px; font-weight:700; color:#6c56b7; text-align:center; margin-bottom:20px">Đăng ký tài khoản</h2>
           
-          <div style="margin-bottom:20px">
+          <div style="margin-bottom:12px">
+            <label style="display:block; font-size:11px; font-weight:600; color:#877ab4; margin-bottom:4px">Tên cửa hàng</label>
+            <input class="mat-input" type="text" placeholder="Nhập tên tiệm giặt ủi của bạn">
+          </div>
+          
+          <div style="margin-bottom:12px">
             <label style="display:block; font-size:11px; font-weight:600; color:#877ab4; margin-bottom:4px">Email</label>
             <input class="mat-input" type="email" placeholder="Nhập địa chỉ email của bạn">
           </div>
           
-          <div style="margin-bottom:25px">
+          <div style="margin-bottom:20px">
             <label style="display:block; font-size:11px; font-weight:600; color:#877ab4; margin-bottom:4px">Mật khẩu</label>
             <div style="position:relative">
               <input class="mat-input" type="password" placeholder="********" style="padding-right:30px">
@@ -541,8 +546,8 @@ select.finput{-webkit-appearance:none;appearance:none;padding-right:32px;padding
     </button>
   </nav>
   <div class="su">
-    <div class="su-av" style="margin-bottom:6px">NY</div>
-    <div class="su-name" style="font-size:11.5px;color:rgba(255,255,255,.9);text-align:center;line-height:1.25">Như Ý<br>Laundry</div>
+    <div class="su-av" id="sidebar-avatar" style="margin-bottom:6px">NÝ</div>
+    <div class="su-name" id="sidebar-shop-name" style="font-size:11.5px;color:rgba(255,255,255,.9);text-align:center;line-height:1.25">Như Ý<br>Laundry</div>
   </div>
 </aside>
 
@@ -560,11 +565,11 @@ select.finput{-webkit-appearance:none;appearance:none;padding-right:32px;padding
       </button>
       <div class="ibtn" onclick="go('n', document.querySelectorAll('.ni')[3])">
         <svg class="icon icon-sm"><use href="#i-send"/></svg>
-        <span class="bdg">2</span>
+        <span class="bdg">1</span>
       </div>
       <div class="tbuser">
-        <div class="tbav">NY</div>
-        <span class="tbname">Như Ý</span>
+        <div class="tbav" id="header-avatar">NÝ</div>
+        <span class="tbname" id="header-shop-name">Như Ý</span>
       </div>
     </div>
   </header>
@@ -1192,20 +1197,51 @@ select.finput{-webkit-appearance:none;appearance:none;padding-right:32px;padding
     </div>
   </div>
 </div>
+<div class="mov" id="pwd-modal" onclick="closeM('pwd-modal')" style="z-index:110">
+  <div class="modal" onclick="event.stopPropagation()" style="width:320px">
+    <div class="mhd">
+      <div class="mtitle">Đổi mật khẩu</div>
+      <button class="mxbtn" onclick="closeM('pwd-modal')"><svg class="icon icon-sm"><use href="#i-x"/></svg></button>
+    </div>
+    <div style="margin-bottom:12px">
+      <label style="display:block; font-size:11px; font-weight:600; color:#64748b; margin-bottom:4px">Mật khẩu cũ</label>
+      <input type="password" placeholder="Nhập mật khẩu hiện tại" style="width:100%; border:1px solid #e2e8f0; border-radius:6px; height:32px; padding:0 10px; font-size:12px; font-family:inherit">
+    </div>
+    <div style="margin-bottom:20px">
+      <label style="display:block; font-size:11px; font-weight:600; color:#64748b; margin-bottom:4px">Mật khẩu mới</label>
+      <input type="password" placeholder="Nhập mật khẩu mới" style="width:100%; border:1px solid #e2e8f0; border-radius:6px; height:32px; padding:0 10px; font-size:12px; font-family:inherit">
+    </div>
+    <div style="display:flex;gap:9px;justify-content:flex-end">
+      <button class="bs" onclick="closeM('pwd-modal')">Hủy</button>
+      <button class="bp" onclick="closeM('pwd-modal'); showT('Đổi mật khẩu thành công','grn')"><svg class="icon icon-sm"><use href="#i-check"/></svg>Cập nhật</button>
+    </div>
+  </div>
+</div>
 <div class="mov" id="sm" onclick="closeM('sm')">
   <div class="modal" onclick="event.stopPropagation()">
     <div class="mhd">
-      <div class="mtitle">Cài đặt hệ thống</div>
+      <div class="mtitle">Cài đặt</div>
       <button class="mxbtn" onclick="closeM('sm')"><svg class="icon icon-sm"><use href="#i-x"/></svg></button>
+    </div>
+    <div style="margin-bottom:12px; margin-top:10px">
+      <label style="display:block; font-size:11px; font-weight:600; color:#64748b; margin-bottom:4px">Tên cửa hàng</label>
+      <input id="setting-shop-name" type="text" value="Như Ý" style="width:100%; border:1px solid #e2e8f0; border-radius:6px; height:32px; padding:0 10px; font-size:12px; font-family:inherit">
     </div>
     <div class="sdiv" style="display:flex;justify-content:space-between;align-items:center">
       Thời gian phân ca
       <button class="bs" style="padding:4px 8px;font-size:10px" onclick="addShiftCfg()"><svg class="icon icon-sm"><use href="#i-plus"/></svg>Thêm ca</button>
     </div>
     <div id="cfg-shifts-container" style="margin-bottom:18px;display:flex;flex-direction:column;gap:7px"></div>
-    <div style="display:flex;gap:9px;justify-content:flex-end">
-      <button class="bs" onclick="closeM('sm')">Hủy</button>
-      <button class="bp" onclick="saveSettings()"><svg class="icon icon-sm"><use href="#i-check"/></svg>Lưu cài đặt</button>
+    <div style="margin-bottom:18px">
+      <label style="display:block; font-size:11px; font-weight:600; color:#64748b; margin-bottom:4px">Bảo mật</label>
+      <button class="bs" onclick="openM('pwd-modal')" style="width:100%; justify-content:center">Đổi mật khẩu</button>
+    </div>
+    <div style="display:flex;gap:9px;justify-content:space-between">
+      <button class="bs" style="color:#ef4444; border-color:#ef4444" onclick="document.getElementById('app-shell').style.display='none'; document.getElementById('login-shell').style.display='flex'; closeM('sm');">Đăng xuất</button>
+      <div style="display:flex; gap:9px">
+         <button class="bs" onclick="closeM('sm')">Hủy</button>
+         <button class="bp" onclick="saveSettings()"><svg class="icon icon-sm"><use href="#i-check"/></svg>Lưu cài đặt</button>
+      </div>
     </div>
   </div>
 </div>
@@ -1562,6 +1598,24 @@ function saveSettings() {
   sNames.forEach((input, idx) => {
     cfg.shifts.push({ id: idx + 1, name: input.value, start: sStarts[idx].value, end: sEnds[idx].value });
   });
+
+  const shopName = document.getElementById('setting-shop-name').value || 'WashTrack';
+  const parts = shopName.split(' ').filter(w => w.trim().length > 0);
+  let initials = 'WT';
+  if (parts.length >= 2) initials = (parts[0][0] + parts[1][0]).toUpperCase();
+  else if (parts.length === 1) initials = parts[0].substring(0, 2).toUpperCase();
+  
+  const headerShopName = document.getElementById('header-shop-name');
+  if(headerShopName) headerShopName.innerText = shopName;
+  
+  const headerAvatar = document.getElementById('header-avatar');
+  if(headerAvatar) headerAvatar.innerText = initials;
+  
+  const sidebarShopName = document.getElementById('sidebar-shop-name');
+  if(sidebarShopName) sidebarShopName.innerHTML = shopName + '<br>Laundry';
+  
+  const sidebarAvatar = document.getElementById('sidebar-avatar');
+  if(sidebarAvatar) sidebarAvatar.innerText = initials;
 
   closeM('sm');
   showT('Đã lưu cấu hình cài đặt','grn');
