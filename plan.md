@@ -135,6 +135,8 @@ Nhân viên giặt ủi trực tiếp, có thể phải:
 
 **Tiêu chí kết thúc:** **Software Product** minh họa workflow tương tác đáng kể, phản hồi sau các hành động quan trọng và nhất quán với prototype và scenario.
 
+**Trạng thái 2026-08-25:** Đã khởi tạo backend prototype cơ bản tại `src/backend` với Express, cấu hình môi trường, Prisma PostgreSQL và các endpoint `/api/health`, `/api/health/db`. Chưa có model nghiệp vụ, migration hoặc API workflow; endpoint database trả `503` khi database từ `DATABASE_URL` chưa truy cập được.
+
 ### Phase 5: Presentation và report
 
 **Mục tiêu:** Chuẩn bị bài nộp đầy đủ và có thể bảo vệ.
