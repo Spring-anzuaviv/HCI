@@ -373,7 +373,143 @@ select.finput{-webkit-appearance:none;appearance:none;padding-right:32px;padding
   </symbol>
 </svg>
 
-<div class="shell">
+<!-- LOGIN PAGE -->
+<div id="login-shell" style="width:100vw; height:100vh; background:linear-gradient(135deg, #4b1a8d 0%, #20104f 100%); display:flex; align-items:center; justify-content:center; z-index:9999; position:relative; font-family: 'Inter', sans-serif;">
+  <style>
+    @keyframes spin { 100% { transform:rotate(360deg); } }
+    @keyframes fadein { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+    
+    .mat-input { 
+      width:100%; height:30px; background:transparent; border:none; border-bottom:2px solid #d4c5f9; 
+      padding:0; font-size:14px; font-weight:500; color:#1e293b; outline:none; transition: all 0.2s;
+    }
+    .mat-input:focus { border-bottom-color: #a369eb; }
+    
+    .pill-btn {
+      width:140px; height:40px; border-radius:20px; background:linear-gradient(90deg, #a369eb 0%, #c47af8 100%);
+      color:#fff; border:none; font-size:14px; font-weight:600; cursor:pointer;
+      box-shadow: 0 4px 15px rgba(163,105,235,0.4); margin: 0 auto; display:block;
+      transition: all 0.2s;
+    }
+    .pill-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(163,105,235,0.5); }
+    
+    .link-text { color:#94a3b8; font-size:11px; font-weight:600; text-decoration:none; transition:all 0.2s; cursor:pointer;}
+    .link-text:hover { color:#a369eb; }
+    
+    .google-btn { 
+       display:flex; align-items:center; justify-content:center; gap:8px; 
+       background:#fff; border:1px solid #e2e8f0; border-radius:8px; 
+       height:38px; width:100%; max-width:180px; margin: 0 auto;
+       color:#475569; font-size:12px; font-weight:600; cursor:pointer; transition:all 0.2s;
+    }
+    .google-btn:hover { background:#f8fafc; border-color:#cbd5e1; }
+  </style>
+
+  <!-- Login Container -->
+  <div style="width:780px; height:480px; background:#fff; border-radius:24px; box-shadow:0 30px 60px rgba(0,0,0,0.3); display:flex; overflow:hidden">
+    
+    <!-- Cột trái (Graphic) -->
+    <div style="flex:1; background:linear-gradient(135deg, #a855f7 0%, #7d3ced 100%); position:relative; padding:30px; color:#fff; display:flex; flex-direction:column; justify-content:center; align-items:center; overflow:hidden">
+      <!-- Vòng tròn trang trí to -->
+      <div style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); width:260px; height:260px; border-radius:50%; background:rgba(255,255,255,0.1)"></div>
+      
+      <!-- Character / App Title -->
+      <div style="position:relative; z-index:1; text-align:center; transform:translateY(-15px)">
+        <!-- Icon máy giặt nền vàng -->
+        <div style="width:100px; height:100px; background:var(--ye); border-radius:24px; display:flex; align-items:center; justify-content:center; box-shadow: 0 10px 25px rgba(251,191,36,.5); margin: 0 auto 20px;">
+          <svg style="width:64px; height:64px; color:#4b1a8d"><use href="#i-washer"/></svg>
+        </div>
+
+        <h1 style="font-size:34px; font-weight:900; line-height:1.2; margin-bottom:10px; letter-spacing:0.5px; text-shadow:0 2px 10px rgba(0,0,0,0.1)">WashTrack</h1>
+        <h2 style="font-size:18px; font-weight:800; line-height:1.4; margin-bottom:15px; opacity:1; text-shadow:0 1px 5px rgba(0,0,0,0.1)">Hệ thống quản lý giặt ủi thông minh</h2>
+        <p style="font-size:15px; font-weight:500; color:#e9d5ff; line-height:1.5; max-width:280px; margin:0 auto">Đơn giản hóa quy trình vận hành, nâng cao hiệu suất tiệm của bạn mỗi ngày!</p>
+      </div>
+    </div>
+    
+    <!-- Cột phải (Form) -->
+    <div style="flex:1.1; display:flex; flex-direction:column; position:relative; background:#fff">
+      
+      <!-- Tab Tím ở trên -->
+      <div style="position:absolute; top:0; left:0; background:#9f54ef; color:#fff; padding:10px 20px; border-bottom-right-radius:18px; font-weight:600; font-size:12px; box-shadow: 2px 2px 10px rgba(0,0,0,0.05)">
+        Chào mừng trở lại
+      </div>
+      
+      <!-- Box chứa form ở giữa -->
+      <div style="flex:1; padding:60px 45px 15px; display:flex; flex-direction:column; justify-content:center">
+        
+        <!-- Login Panel -->
+        <div id="login-panel" style="display:block; animation: fadein 0.3s ease-out">
+          <h2 style="font-size:18px; font-weight:700; color:#6c56b7; text-align:center; margin-bottom:30px">Đăng nhập tài khoản</h2>
+          
+          <div style="margin-bottom:20px">
+            <label style="display:block; font-size:11px; font-weight:600; color:#877ab4; margin-bottom:4px">Email</label>
+            <input class="mat-input" type="email" value="admin@washtrack.com">
+          </div>
+          
+          <div style="margin-bottom:35px">
+            <label style="display:block; font-size:11px; font-weight:600; color:#877ab4; margin-bottom:4px">Mật khẩu</label>
+            <div style="position:relative">
+              <input class="mat-input" type="password" value="12345678" style="padding-right:30px">
+              <div onclick="const inp=this.previousElementSibling; if(inp.type==='password'){inp.type='text'; this.style.opacity=1;}else{inp.type='password'; this.style.opacity=0.6;}" style="position:absolute; right:0; top:50%; transform:translateY(-50%); cursor:pointer; opacity:0.6; display:flex; align-items:center; justify-content:center">
+                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px; height:16px; color:#64748b"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+              </div>
+            </div>
+          </div>
+          
+          <button class="pill-btn" onclick="const btn=this; btn.style.background='#94a3b8'; btn.style.boxShadow='none'; btn.style.pointerEvents='none'; btn.innerHTML='<span style=\'display:inline-block; animation:spin 1s linear infinite; margin-right:8px\'>↻</span> Đang xử lý...'; setTimeout(() => { document.getElementById('login-shell').style.display='none'; document.getElementById('app-shell').style.display='flex'; btn.style.background=''; btn.style.boxShadow=''; btn.style.pointerEvents=''; btn.innerHTML='Đăng nhập'; }, 1000);">
+            Đăng nhập
+          </button>
+          
+          <div style="text-align:center; margin-top:20px">
+            <a href="#" onclick="document.getElementById('login-panel').style.display='none'; document.getElementById('register-panel').style.display='block'; return false;" class="link-text" style="font-size:12px">Tạo tài khoản mới</a>
+          </div>
+        </div>
+        
+        <!-- Register Panel -->
+        <div id="register-panel" style="display:none; animation: fadein 0.3s ease-out">
+          <h2 style="font-size:18px; font-weight:700; color:#6c56b7; text-align:center; margin-bottom:20px">Đăng ký tài khoản</h2>
+          
+          <div style="margin-bottom:20px">
+            <label style="display:block; font-size:11px; font-weight:600; color:#877ab4; margin-bottom:4px">Email</label>
+            <input class="mat-input" type="email" placeholder="Nhập địa chỉ email của bạn">
+          </div>
+          
+          <div style="margin-bottom:25px">
+            <label style="display:block; font-size:11px; font-weight:600; color:#877ab4; margin-bottom:4px">Mật khẩu</label>
+            <div style="position:relative">
+              <input class="mat-input" type="password" placeholder="********" style="padding-right:30px">
+              <div onclick="const inp=this.previousElementSibling; if(inp.type==='password'){inp.type='text'; this.style.opacity=1;}else{inp.type='password'; this.style.opacity=0.6;}" style="position:absolute; right:0; top:50%; transform:translateY(-50%); cursor:pointer; opacity:0.6; display:flex; align-items:center; justify-content:center">
+                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px; height:16px; color:#64748b"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+              </div>
+            </div>
+          </div>
+          
+          <button class="pill-btn" onclick="const btn=this; btn.style.background='#94a3b8'; btn.style.boxShadow='none'; btn.style.pointerEvents='none'; btn.innerHTML='<span style=\'display:inline-block; animation:spin 1s linear infinite; margin-right:8px\'>↻</span> Đang tạo...'; setTimeout(() => { document.getElementById('login-shell').style.display='none'; document.getElementById('app-shell').style.display='flex'; btn.style.background=''; btn.style.boxShadow=''; btn.style.pointerEvents=''; btn.innerHTML='Đăng ký ngay'; }, 1000);">
+            Đăng ký ngay
+          </button>
+          
+          <div style="text-align:center; margin-top:15px">
+            <a href="#" onclick="document.getElementById('register-panel').style.display='none'; document.getElementById('login-panel').style.display='block'; return false;" class="link-text" style="font-size:12px">Quay lại Đăng nhập</a>
+          </div>
+        </div>
+
+      </div>
+      
+      <!-- Footer (Forgot password / Social) -->
+      <div style="padding-bottom:30px; text-align:center">
+        <div style="margin-bottom:15px">
+           <a href="#" class="link-text" style="text-decoration:underline;">Quên mật khẩu?</a>
+        </div>
+        <button class="google-btn">
+          <svg viewBox="0 0 24 24" style="width:16px; height:16px"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+          Đăng nhập với Google
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>
+<div class="shell" id="app-shell" style="display:none">
 
 <!-- ══════════════ SIDEBAR ══════════════ -->
 <aside class="sidebar">
@@ -912,15 +1048,15 @@ select.finput{-webkit-appearance:none;appearance:none;padding-right:32px;padding
       </div>
 
       <div class="srow">
-        <div class="scard grn">
-          <div class="snum">2.450k</div>
-          <div class="slbl">Doanh thu hôm nay</div>
-        </div>
         <div class="scard pur">
           <div class="snum">24</div>
           <div class="slbl">Đơn hoàn thành</div>
         </div>
         <div class="scard red">
+          <div class="snum">2</div>
+          <div class="slbl">Đơn bị trễ hẹn</div>
+        </div>
+        <div class="scard grn">
           <div class="snum">92%</div>
           <div class="slbl">Hiệu suất máy</div>
         </div>
@@ -929,14 +1065,26 @@ select.finput{-webkit-appearance:none;appearance:none;padding-right:32px;padding
       <div class="crow">
         <div class="card" style="flex:2">
           <div class="ch"><div class="ctitle">Khách hàng tuần này</div></div>
-          <div class="bwrap" style="height:150px;align-items:flex-end">
-            <div class="bbar-g" style="flex:1"><div class="bnum">15</div><div class="bbar b1" style="height:40%;width:100%"></div><div class="blbl">T2</div></div>
-            <div class="bbar-g" style="flex:1"><div class="bnum">22</div><div class="bbar b2" style="height:60%;width:100%"></div><div class="blbl">T3</div></div>
-            <div class="bbar-g" style="flex:1"><div class="bnum">18</div><div class="bbar b3" style="height:50%;width:100%"></div><div class="blbl">T4</div></div>
-            <div class="bbar-g" style="flex:1"><div class="bnum">30</div><div class="bbar b4" style="height:80%;width:100%"></div><div class="blbl">T5</div></div>
-            <div class="bbar-g" style="flex:1"><div class="bnum">45</div><div class="bbar b1" style="height:100%;width:100%;background:var(--pu)"></div><div class="blbl" style="font-weight:700;color:var(--pu)">T6 (Nay)</div></div>
-            <div class="bbar-g" style="flex:1"><div class="bnum">0</div><div class="bbar" style="height:0%;width:100%;background:#e2e8f0"></div><div class="blbl">T7</div></div>
-            <div class="bbar-g" style="flex:1"><div class="bnum">0</div><div class="bbar" style="height:0%;width:100%;background:#e2e8f0"></div><div class="blbl">CN</div></div>
+          <div class="bwrap" style="height:150px; position:relative; align-items:flex-end">
+            <!-- Line Chart SVG -->
+            <svg style="position:absolute; top:40px; left:0; width:100%; height:90px; z-index:0; overflow:visible" viewBox="0 0 700 100" preserveAspectRatio="none">
+              <defs>
+                <linearGradient id="lineGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="var(--pu)" stop-opacity="0.3"></stop>
+                  <stop offset="100%" stop-color="var(--pu)" stop-opacity="0"></stop>
+                </linearGradient>
+              </defs>
+              <path d="M50,70 L150,56 L250,64 L350,40 L450,10 L550,100 L650,100" fill="none" stroke="var(--pu)" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"></path>
+              <path d="M50,70 L150,56 L250,64 L350,40 L450,10 L550,100 L650,100 L650,100 L50,100 Z" fill="url(#lineGrad)"></path>
+            </svg>
+            
+            <div class="bbar-g" style="flex:1; position:relative; z-index:1; height:100%"><div class="bnum" style="position:absolute; bottom:55px">15</div><div style="position:absolute; bottom:43px; width:10px; height:10px; background:#fff; border:2.5px solid var(--pu); border-radius:50%"></div><div class="blbl" style="position:absolute; bottom:0">T2</div></div>
+            <div class="bbar-g" style="flex:1; position:relative; z-index:1; height:100%"><div class="bnum" style="position:absolute; bottom:68px">22</div><div style="position:absolute; bottom:56px; width:10px; height:10px; background:#fff; border:2.5px solid var(--pu); border-radius:50%"></div><div class="blbl" style="position:absolute; bottom:0">T3</div></div>
+            <div class="bbar-g" style="flex:1; position:relative; z-index:1; height:100%"><div class="bnum" style="position:absolute; bottom:61px">18</div><div style="position:absolute; bottom:48px; width:10px; height:10px; background:#fff; border:2.5px solid var(--pu); border-radius:50%"></div><div class="blbl" style="position:absolute; bottom:0">T4</div></div>
+            <div class="bbar-g" style="flex:1; position:relative; z-index:1; height:100%"><div class="bnum" style="position:absolute; bottom:82px">30</div><div style="position:absolute; bottom:70px; width:10px; height:10px; background:#fff; border:2.5px solid var(--pu); border-radius:50%"></div><div class="blbl" style="position:absolute; bottom:0">T5</div></div>
+            <div class="bbar-g" style="flex:1; position:relative; z-index:1; height:100%"><div class="bnum" style="position:absolute; bottom:110px; color:var(--pu); font-size:11px">45</div><div style="position:absolute; bottom:96px; width:12px; height:12px; background:var(--pu); border:2.5px solid #fff; border-radius:50%; box-shadow:0 0 0 1px var(--pu)"></div><div class="blbl" style="position:absolute; bottom:0; font-weight:700; color:var(--pu)">T6 (Nay)</div></div>
+            <div class="bbar-g" style="flex:1; position:relative; z-index:1; height:100%"><div class="bnum" style="position:absolute; bottom:28px">0</div><div style="position:absolute; bottom:16px; width:10px; height:10px; background:#fff; border:2.5px solid var(--pu); border-radius:50%"></div><div class="blbl" style="position:absolute; bottom:0">T7</div></div>
+            <div class="bbar-g" style="flex:1; position:relative; z-index:1; height:100%"><div class="bnum" style="position:absolute; bottom:28px">0</div><div style="position:absolute; bottom:16px; width:10px; height:10px; background:#fff; border:2.5px solid var(--pu); border-radius:50%"></div><div class="blbl" style="position:absolute; bottom:0">CN</div></div>
           </div>
         </div>
         <div class="card" style="flex:1">
@@ -962,11 +1110,14 @@ select.finput{-webkit-appearance:none;appearance:none;padding-right:32px;padding
 <aside class="rp">
 
   <div>
-    <div class="rpt">Trạng thái máy</div>
+    <div class="frow" style="align-items:center;justify-content:space-between;margin-bottom:12px;gap:5px">
+      <div class="rpt" style="margin-bottom:0">Trạng thái máy</div>
+      <button class="bs" style="padding:4px 8px;font-size:10.5px" onclick="openMachineModal()"><svg class="icon icon-sm" style="color:var(--pu)"><use href="#i-plus"/></svg>Thêm máy</button>
+    </div>
     <div class="mgrid" id="mgrid">
       <!-- Machines will be dynamically rendered here -->
     </div>
-    <div style="font-size:12px;color:var(--ts);margin-top:8px;text-align:left;">3 đơn đang chờ trong hàng đợi</div>
+    <div id="queue-count-text" style="font-size:12px;color:var(--ts);margin-top:8px;text-align:left;">4 đơn đang chờ trong hàng đợi</div>
   </div>
 
   <div>
@@ -1047,19 +1198,6 @@ select.finput{-webkit-appearance:none;appearance:none;padding-right:32px;padding
       <div class="mtitle">Cài đặt hệ thống</div>
       <button class="mxbtn" onclick="closeM('sm')"><svg class="icon icon-sm"><use href="#i-x"/></svg></button>
     </div>
-    <div class="sdiv">Cấu hình máy giặt/sấy</div>
-    <div class="frow" style="margin-bottom:11px">
-      <div class="fg"><label class="flbl">Số lượng máy tại tiệm</label><input class="finput" type="number" id="cfg-machines" value="4"/></div>
-    </div>
-    <div class="sdiv">Công thức tính thời gian (phút)</div>
-    <div class="frow" style="margin-bottom:11px">
-      <div class="fg"><label class="flbl">Giặt - Phút cơ bản</label><input class="finput" type="number" id="cfg-wbase" value="25"/></div>
-      <div class="fg"><label class="flbl">Giặt - Phút / kg</label><input class="finput" type="number" id="cfg-wkg" value="5"/></div>
-    </div>
-    <div class="frow" style="margin-bottom:11px">
-      <div class="fg"><label class="flbl">Sấy - Phút cơ bản</label><input class="finput" type="number" id="cfg-dbase" value="15"/></div>
-      <div class="fg"><label class="flbl">Sấy - Phút / kg</label><input class="finput" type="number" id="cfg-dkg" value="10"/></div>
-    </div>
     <div class="sdiv" style="display:flex;justify-content:space-between;align-items:center">
       Thời gian phân ca
       <button class="bs" style="padding:4px 8px;font-size:10px" onclick="addShiftCfg()"><svg class="icon icon-sm"><use href="#i-plus"/></svg>Thêm ca</button>
@@ -1135,7 +1273,7 @@ select.finput{-webkit-appearance:none;appearance:none;padding-right:32px;padding
       <div class="fg">
         <label class="flbl">Dịch vụ</label>
         <select class="finput" id="add-svc" onchange="updateAddCalc()">
-          <option value="combo">Giặt + Sấy (chung máy)</option>
+          <option value="combo">Giặt + Sấy</option>
           <option value="wash">Chỉ giặt</option>
           <option value="dry">Chỉ sấy</option>
         </select>
@@ -1154,6 +1292,38 @@ select.finput{-webkit-appearance:none;appearance:none;padding-right:32px;padding
     <div style="display:flex;gap:9px;justify-content:flex-end">
       <button class="bs" onclick="closeM('am')">Hủy</button>
       <button class="bp" onclick="addNewOrder()"><svg class="icon icon-sm"><use href="#i-plus"/></svg>Tạo đơn</button>
+    </div>
+  </div>
+</div>
+
+
+<div class="mov" id="sm-machine" onclick="closeM('sm-machine')">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="mhd">
+      <div class="mtitle">Cài đặt máy</div>
+      <button class="mxbtn" onclick="closeM('sm-machine')"><svg class="icon icon-sm"><use href="#i-x"/></svg></button>
+    </div>
+    <input type="hidden" id="add-mach-id" value="">
+    <div class="frow" style="margin-bottom:11px">
+      <div class="fg" style="width:100%"><label class="flbl">Tên máy</label><input class="finput" type="text" id="add-mach-name" placeholder="Ví dụ: Máy 1" maxlength="10"/></div>
+    </div>
+    <div class="frow" style="margin-bottom:11px">
+      <div class="fg" style="width:100%">
+        <label class="flbl">Loại máy</label>
+        <select class="finput" id="add-mach-type" style="color:#999;" onchange="this.style.color='var(--tx)'">
+          <option value="" disabled selected hidden>Chọn loại máy</option>
+          <option value="wash" style="color:var(--tx)">Máy Giặt</option>
+          <option value="dry" style="color:var(--tx)">Máy Sấy</option>
+        </select>
+      </div>
+    </div>
+    <div class="frow" style="margin-bottom:18px">
+      <div class="fg"><label class="flbl">Công thức: Khối lượng (kg)</label><input class="finput" type="number" id="add-mach-kg" placeholder="VD: 7"/></div>
+      <div class="fg"><label class="flbl">Thời gian xử lý (phút)</label><input class="finput" type="number" id="add-mach-time" placeholder="VD: 30"/></div>
+    </div>
+    <div style="display:flex;gap:9px;">
+      <button class="bs" id="mach-del-btn" style="flex:1;color:var(--rd);border-color:#fecaca;height:38px;padding:0;font-size:14px;font-weight:700" onclick="deleteMachine()"><span style="display:flex;width:100%;align-items:center;justify-content:center;gap:4px;"><svg class="icon icon-sm"><use href="#i-trash"/></svg>Xóa</span></button>
+      <button class="bp" style="flex:2;height:38px;padding:0;font-size:14px;font-weight:700" onclick="saveMachine()"><span style="display:flex;width:100%;align-items:center;justify-content:center;gap:4px;"><svg class="icon icon-sm"><use href="#i-check"/></svg>Lưu cài đặt</span></button>
     </div>
   </div>
 </div>
@@ -1212,15 +1382,15 @@ select.finput{-webkit-appearance:none;appearance:none;padding-right:32px;padding
   updateShiftStatus();
   setInterval(updateShiftStatus, 60000);
 let cfg = { 
-  machines: 4, wBase: 25, wKg: 5, dBase: 15, dKg: 10,
   shifts: [
     { id: 1, name: 'Ca sáng', start: '06:00', end: '14:00' },
     { id: 2, name: 'Ca chiều', start: '14:00', end: '22:00' }
   ]
 };
 let machinesData = [
-  { st: 'giat', user: 'Nguyễn Minh Tuấn', timeLeft: 25 },
-  { st: 'say', user: 'Trần Thị Hoa', timeLeft: 35 }
+  { id: 1, name: 'Máy 1', type: 'wash', kg: 7, time: 30, st: 'dang-chay', user: 'Trần Văn B', timeLeft: 12 },
+  { id: 2, name: 'Máy 2', type: 'dry', kg: 10, time: 45, st: 'dang-chay', user: 'Mai Nguyễn', timeLeft: 40 },
+  { id: 3, name: 'Máy 3', type: 'wash', kg: 15, time: 50, st: 'trong', user: '', timeLeft: 0 }
 ];
 
 let staffData = [
@@ -1357,41 +1527,34 @@ function renderMachines() {
   const grid = document.getElementById('mgrid');
   if(!grid) return;
   let html = '';
-  for(let i=1; i<=cfg.machines; i++) {
-    let m = machinesData[i-1] || { st: 'trong', user: '', timeLeft: 0 };
-    if(m.st === 'giat') {
-      html += `<div class="mc bl on" onclick="showT('Máy ${i} · Đang giặt · ${m.user} · Còn ~${m.timeLeft} phút','grn')">
-        <button class="mc-tog"><div class="td"></div></button>
-        <div class="mc-ico"><svg class="icon" style="width:22px;height:22px"><use href="#i-washer"/></svg></div>
-        <div class="mc-name">Máy ${i}</div>
-        <div class="mc-st">Đang giặt<br><span style="font-size:10px;color:rgba(255,255,255,0.8);font-weight:400">Còn ~${m.timeLeft} phút</span></div>
-      </div>`;
-    } else if(m.st === 'say') {
-      html += `<div class="mc pk on" onclick="showT('Máy ${i} · Đang sấy · ${m.user} · Còn ~${m.timeLeft} phút','grn')">
-        <button class="mc-tog"><div class="td"></div></button>
-        <div class="mc-ico"><svg class="icon" style="width:22px;height:22px"><use href="#i-washer"/></svg></div>
-        <div class="mc-name">Máy ${i}</div>
-        <div class="mc-st">Đang sấy<br><span style="font-size:10px;color:rgba(255,255,255,0.8);font-weight:400">Còn ~${m.timeLeft} phút</span></div>
+  machinesData.forEach((m, idx) => {
+    let i = m.id;
+    let label = m.type === 'wash' ? 'Giặt' : 'Sấy';
+    let icon = m.type === 'wash' ? '#i-washer' : '#i-washer';
+    
+    if(m.st === 'trong') {
+      let typeBadge = `<div style="position:absolute;top:8px;right:8px;background:rgba(0,0,0,0.06);font-size:10px;padding:2px 6px;border-radius:6px;font-weight:700">${label}</div>`;
+      html += `<div class="mc gy" onclick="openMachineModal(${i})" style="position:relative">
+        ${typeBadge}
+        <div class="mc-ico"><svg class="icon" style="width:22px;height:22px"><use href="${icon}"/></svg></div>
+        <div class="mc-name">${m.name}</div>
+        <div class="mc-st" style="font-size:12px;font-weight:600;margin-top:2px;">Trống<br><span style="font-size:10px;font-weight:400;opacity:0.6">--</span></div>
       </div>`;
     } else {
-      html += `<div class="mc gy" onclick="showT('Máy ${i} đang trống, có thể sử dụng','grn')">
-        <button class="mc-tog"><div class="td"></div></button>
-        <div class="mc-ico"><svg class="icon" style="width:22px;height:22px"><use href="#i-washer"/></svg></div>
-        <div class="mc-name">Máy ${i}</div>
-        <div class="mc-st">Trống</div>
+      let bgClass = m.type === 'wash' ? 'bl' : 'pk';
+      let typeBadge = `<div style="position:absolute;top:8px;right:8px;background:rgba(255,255,255,0.25);font-size:10px;padding:2px 6px;border-radius:6px;font-weight:700;color:#fff">${label}</div>`;
+      html += `<div class="mc ${bgClass} on" onclick="showT('${m.name} · Đang ${label.toLowerCase()} · Còn ~${m.timeLeft} phút','grn')" style="position:relative">
+        ${typeBadge}
+        <div class="mc-ico"><svg class="icon" style="width:22px;height:22px;color:#fff"><use href="${icon}"/></svg></div>
+        <div class="mc-name" style="color:#fff">${m.name}</div>
+        <div class="mc-st" style="font-size:12px;font-weight:600;margin-top:2px;color:#fff">Đang ${label.toLowerCase()}<br><span style="font-size:10px;font-weight:400;opacity:0.9">Còn ~${m.timeLeft} phút</span></div>
       </div>`;
     }
-  }
+  });
   grid.innerHTML = html;
 }
 
 function saveSettings() {
-  cfg.machines = parseInt(document.getElementById('cfg-machines').value) || 4;
-  cfg.wBase = parseInt(document.getElementById('cfg-wbase').value) || 25;
-  cfg.wKg = parseInt(document.getElementById('cfg-wkg').value) || 5;
-  cfg.dBase = parseInt(document.getElementById('cfg-dbase').value) || 15;
-  cfg.dKg = parseInt(document.getElementById('cfg-dkg').value) || 10;
-  
   const sNames = document.querySelectorAll('.cfg-shift-name');
   const sStarts = document.querySelectorAll('.cfg-shift-start');
   const sEnds = document.querySelectorAll('.cfg-shift-end');
@@ -1402,10 +1565,8 @@ function saveSettings() {
 
   closeM('sm');
   showT('Đã lưu cấu hình cài đặt','grn');
-  updateAddCalc(); 
-  renderMachines();
-  renderShiftCfgs(); // Keep UI in sync
-  renderStaffList(); // In case shift names changed
+  renderShiftCfgs(); 
+  renderStaffList(); 
 }
 
 function renderShiftCfgs() {
@@ -1438,12 +1599,106 @@ function removeShiftCfg(id) {
 }
 
 function calcTime(svc, kg) {
-  let wash = cfg.wBase + cfg.wKg * kg;
-  let dry = cfg.dBase + cfg.dKg * kg;
-  if (svc === 'wash') return { text: 'Giặt', total: wash };
-  if (svc === 'dry') return { text: 'Sấy', total: dry };
-  return { text: 'Giặt + Sấy chung máy', total: wash + dry, combo: true };
+  let washMs = machinesData.filter(m => m.type === 'wash');
+  let dryMs = machinesData.filter(m => m.type === 'dry');
+  
+  let wTime = washMs.length > 0 ? washMs.reduce((a,b)=>a+parseInt(b.time),0)/washMs.length : 30;
+  let dTime = dryMs.length > 0 ? dryMs.reduce((a,b)=>a+parseInt(b.time),0)/dryMs.length : 45;
+  
+  if (svc === 'wash') return { text: 'Giặt', total: Math.round(wTime) };
+  if (svc === 'dry') return { text: 'Sấy', total: Math.round(dTime) };
+  return { text: 'Giặt + Sấy', total: Math.round(wTime + dTime), combo: true };
 }
+
+function playBeep() {
+  const ctx = new (window.AudioContext || window.webkitAudioContext)();
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  osc.connect(gain);
+  gain.connect(ctx.destination);
+  osc.type = 'sine';
+  osc.frequency.setValueAtTime(800, ctx.currentTime);
+  gain.gain.setValueAtTime(0.1, ctx.currentTime);
+  osc.start();
+  osc.stop(ctx.currentTime + 0.3);
+}
+
+function openMachineModal(id = null) {
+  if (id) {
+    let m = machinesData.find(x => x.id === id);
+    if(m) {
+      document.getElementById('add-mach-id').value = id;
+      document.getElementById('add-mach-name').value = m.name;
+      document.getElementById('add-mach-type').value = m.type;
+      document.getElementById('add-mach-type').style.color = 'var(--tx)';
+      document.getElementById('add-mach-kg').value = m.kg;
+      document.getElementById('add-mach-time').value = m.time;
+      document.getElementById('mach-del-btn').style.display = 'block';
+    }
+  } else {
+    document.getElementById('add-mach-id').value = '';
+    document.getElementById('add-mach-name').value = `Máy ${machinesData.length + 1}`;
+    document.getElementById('add-mach-type').value = '';
+    document.getElementById('add-mach-type').style.color = '#999';
+    document.getElementById('add-mach-kg').value = '';
+    document.getElementById('add-mach-time').value = '';
+    document.getElementById('mach-del-btn').style.display = 'none';
+  }
+  openM('sm-machine');
+}
+
+function saveMachine() {
+  let id = document.getElementById('add-mach-id').value;
+  let name = document.getElementById('add-mach-name').value || 'Máy mới';
+  let type = document.getElementById('add-mach-type').value;
+  let kg = parseInt(document.getElementById('add-mach-kg').value);
+  let time = parseInt(document.getElementById('add-mach-time').value);
+
+  if(!type || isNaN(kg) || isNaN(time)) {
+    showT('Vui lòng chọn loại máy và nhập số kg, phút', 'rd');
+    return;
+  }
+  
+  if (id) {
+    let m = machinesData.find(x => x.id == id);
+    if(m) {
+      m.name = name; m.type = type; m.kg = kg; m.time = time;
+    }
+  } else {
+    let newId = machinesData.length ? Math.max(...machinesData.map(m=>m.id)) + 1 : 1;
+    machinesData.push({ id: newId, name, type, kg, time, st: 'trong', user: '', timeLeft: 0 });
+  }
+  closeM('sm-machine');
+  showT('Đã lưu máy móc', 'grn');
+  renderMachines();
+}
+
+function deleteMachine() {
+  let id = document.getElementById('add-mach-id').value;
+  if(id) {
+    machinesData = machinesData.filter(x => x.id != id);
+  }
+  closeM('sm-machine');
+  showT('Đã xóa máy', 'grn');
+  renderMachines();
+}
+
+function machineTimer() {
+  let updated = false;
+  machinesData.forEach(m => {
+    if(m.st !== 'trong' && m.timeLeft > 0) {
+      m.timeLeft -= 1;
+      updated = true;
+      if(m.timeLeft <= 0) {
+        m.st = 'trong';
+        playBeep();
+        showT(`[THÔNG BÁO] ${m.name} đã chạy xong cho ${m.user}!`, 'pu');
+      }
+    }
+  });
+  if(updated) renderMachines();
+}
+setInterval(machineTimer, 60000); // 1 minute countdown
 
 function updateAddCalc() {
   const svc = document.getElementById('add-svc').value;
@@ -1608,7 +1863,7 @@ function openOM(name, deadline, atRisk, svcParam, isWaiting){
   </div>`:'';
   
   let svcText = '';
-  if (svcType === 'combo') svcText = 'Giặt + Sấy chung máy';
+  if (svcType === 'combo') svcText = 'Giặt + Sấy';
   else if (svcType === 'wash') svcText = 'Chỉ Giặt';
   else if (svcType === 'dry') svcText = 'Chỉ Sấy';
 
@@ -1618,11 +1873,16 @@ function openOM(name, deadline, atRisk, svcParam, isWaiting){
   let autoMsg = '';
   if (!isWaiting && actStage && (actStage === 'Đang giặt' || actStage === 'Đang sấy')) {
     let processName = actStage === 'Đang giặt' ? 'Giặt' : 'Sấy';
+    let msgDetail = 'Hết đếm ngược, lấy đồ ra để thực hiện công đoạn tiếp theo.';
+    if (svcType === 'combo' && actStage === 'Đang giặt') {
+      msgDetail = 'Hết đếm ngược, hệ thống sẽ đề xuất máy sấy trống phù hợp để chuyển đồ sang (nếu hết máy trống sẽ vào trạng thái Chờ).';
+    }
+    
     autoMsg = `<div style="background:#f0fdf4;border-radius:9px;padding:11px 13px;margin:11px 0;border-left:3px solid #22c55e;font-size:11.5px;color:#166534">
       <div style="font-size:14px;font-weight:700;margin-bottom:4px;display:flex;align-items:center;gap:4px">
         <svg class="icon icon-sm"><use href="#i-clock"/></svg> Còn ~25 phút ${processName}
       </div>
-      <div>Hết đếm ngược, hệ thống sẽ <strong>tự động</strong> chuyển qua công đoạn tiếp theo.</div>
+      <div>${msgDetail}</div>
     </div>`;
   }
 
@@ -1647,12 +1907,19 @@ function openOM(name, deadline, atRisk, svcParam, isWaiting){
 
   const btnsDiv = document.getElementById('om-btns');
   if(isWaiting) {
+    let reqType = 'wash';
+    if(actStage === 'Đang sấy') reqType = 'dry';
+    
     let opts = '';
-    for(let i=1; i<=cfg.machines; i++) {
-      let m = machinesData[i-1] || {st: 'trong'};
-      let isBusy = m.st !== 'trong';
-      opts += `<option value="m${i}" data-busy="${isBusy}">Máy ${i} ${isBusy ? '(Đang bận)' : '(Trống)'}</option>`;
-    }
+    machinesData.forEach(m => {
+      if(m.type === reqType) {
+        let isBusy = m.st !== 'trong';
+        opts += `<option value="${m.id}" data-busy="${isBusy}">${m.name} ${isBusy ? '(Đang bận)' : '(Trống)'}</option>`;
+      }
+    });
+    
+    if(opts === '') opts = '<option disabled>Không có máy phù hợp</option>';
+    
     btnsDiv.innerHTML = `
       <button class="bs" onclick="closeM('om')">Đóng</button>
       <select class="finput" style="width:160px;padding:7px 10px;height:35px" id="om-mach" onchange="checkMachStatus()">${opts}</select>
@@ -1682,8 +1949,16 @@ function openOM(name, deadline, atRisk, svcParam, isWaiting){
 }
 
 function startOrder(name) {
-  const m = document.getElementById('om-mach');
-  const sel = m.options[m.selectedIndex].text;
+  const mSelect = document.getElementById('om-mach');
+  const selText = mSelect.options[mSelect.selectedIndex].text;
+  const mId = mSelect.value;
+  
+  let m = machinesData.find(x => x.id == mId);
+  if(m) {
+    m.st = m.type;
+    m.user = name;
+    m.timeLeft = m.time;
+  }
   
   document.querySelectorAll('.orow').forEach(row => {
     let nameEl = row.querySelector('.oname');
@@ -1692,27 +1967,13 @@ function startOrder(name) {
         row.classList.remove('risk');
         let rkBadge = row.querySelector('.chip.rk');
         if(rkBadge) rkBadge.remove();
-        
-        let etaStrong = row.querySelector('.calc-eta strong');
-        if(etaStrong) {
-          let newTime = etaStrong.innerText.trim();
-          let otime = row.querySelector('.otime');
-          if(otime) {
-            otime.innerText = otime.innerText.replace(/Hẹn \d{2}:\d{2}/, 'Hẹn ' + newTime);
-          }
-          
-          let oldOnclick = row.getAttribute('onclick');
-          if(oldOnclick) {
-            let newOnclick = oldOnclick.replace(/'\d{2}:\d{2}'/, "'" + newTime + "'").replace(/true/, 'false');
-            row.setAttribute('onclick', newOnclick);
-          }
-        }
       }
     }
   });
 
   closeM('om');
-  showT(`Đã xếp ${name} vào ${sel}`,'grn');
+  renderMachines();
+  showT(`Đã xếp ${name} vào ${selText}`,'grn');
 }
 function doneOrder(name, isCombo) {
   closeM('om');
