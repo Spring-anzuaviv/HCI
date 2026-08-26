@@ -7,12 +7,14 @@ erDiagram
         INTEGER storeId PK
         VARCHAR_100 name
         VARCHAR_100 address
+        VARCHAR_255 email UK
+        VARCHAR_255 passwordHash
     }
 
     CUSTOMER {
         INTEGER customerId PK
-        VARCHAR_12 phone
         VARCHAR_50 name
+        VARCHAR_12 phone
     }
 
     EMPLOYEE {
@@ -81,3 +83,17 @@ erDiagram
     LAUNDRY_ORDER ||--o{ MACHINE_RUN : "has"
     MACHINE ||--o{ MACHINE_RUN : "runs"
 ~~~
+
+## Authentication notes
+
+- STORE.email is required and unique.
+- STORE.passwordHash stores only a one-way password hash.
+- Store accounts are created by seed data or an administrative database operation.
+- There is no public registration endpoint.
+- Authentication uses the store account; RBAC is out of scope.
+
+## Notification notes
+
+- Notification preview/send state is temporary and is not stored in the database.
+- Zalo sandbox results are returned directly to the frontend.
+- No real customer personal data is used in prototype seed data.

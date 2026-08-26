@@ -1,6 +1,21 @@
 import { Router } from "express";
 import { healthRouter } from "./health.routes.js";
+import { authRouter } from "./auth.routes.js";
+import { storeRouter } from "./store.routes.js";
+import { orderRouter } from "./order.routes.js";
+import { queueRouter } from "./queue.routes.js";
+import { machineRouter } from "./machine.routes.js";
+import { shiftRouter } from "./shift.routes.js";
+import { notificationRouter } from "./notification.routes.js";
+import { expediteRouter } from "./expedite.routes.js";
 
 export const apiRouter = Router();
-
 apiRouter.use(healthRouter);
+apiRouter.use(authRouter);
+apiRouter.use(storeRouter);
+apiRouter.use(orderRouter);
+apiRouter.use(queueRouter);
+apiRouter.use(machineRouter);
+apiRouter.use(shiftRouter);
+apiRouter.use(notificationRouter);
+apiRouter.use(expediteRouter);

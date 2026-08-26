@@ -11,3 +11,89 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
+model Store {
+  storeId      Int         @id @default(autoincrement())
+  name         String      @db.VarChar(100)
+  address      String?     @db.VarChar(100)
+  email        String      @unique @db.VarChar(255)
+  passwordHash String      @db.VarChar(255)
+  employees    Employee[]
+  shifts       WorkShift[]
+  machines     Machine[]
+}
+
+model Customer {
+  customerId Int            @id @default(autoincrement())
+  name       String         @db.VarChar(50)
+  phone      String         @unique @db.VarChar(12)
+  orders     LaundryOrder[]
+}
+
+model Employee {
+  employeeId Int                 @id @default(autoincrement())
+  storeId    Int
+  name       String              @db.VarChar(50)
+  role       String              @db.VarChar(50)
+  createdAt  DateTime            @default(now())
+  store      Store               @relation(fields: [storeId], references: [storeId], onDelete: Cascade)
+  shifts     EmployeeWorkShift[]
+}
+
+model WorkShift {
+  shiftId   Int                 @id @default(autoincrement())
+  storeId   Int
+  name      String              @db.VarChar(50)
+  startAt   DateTime
+  endAt     DateTime
+  workDate  DateTime            @db.Date
+  store     Store               @relation(fields: [storeId], references: [storeId], onDelete: Cascade)
+  employees EmployeeWorkShift[]
+}
+
+model EmployeeWorkShift {
+  employeeId Int
+  shiftId    Int
+  employee   Employee  @relation(fields: [employeeId], references: [employeeId], onDelete: Cascade)
+  shift      WorkShift @relation(fields: [shiftId], references: [shiftId], onDelete: Cascade)
+
+  @@id([employeeId, shiftId])
+}
+
+model Machine {
+  machineId         Int          @id @default(autoincrement())
+  storeId           Int
+  name              String       @db.VarChar(100)
+  status            String       @db.VarChar(20)
+  type              String       @db.VarChar(10)
+  capacityKg        Float
+  processingMinutes Int
+  store             Store        @relation(fields: [storeId], references: [storeId], onDelete: Cascade)
+  runs              MachineRun[]
+}
+
+model LaundryOrder {
+  orderId     Int          @id @default(autoincrement())
+  customerId  Int
+  weightKg    Decimal      @db.Decimal(5, 2)
+  serviceType String       @db.VarChar(50)
+  status      String       @db.VarChar(50)
+  pickupAt    DateTime?
+  estimatedAt DateTime?
+  completedAt DateTime?
+  createdAt   DateTime     @default(now())
+  customer    Customer     @relation(fields: [customerId], references: [customerId])
+  machineRuns MachineRun[]
+}
+
+model MachineRun {
+  machineRunId Int          @id @default(autoincrement())
+  orderId      Int
+  machineId    Int
+  stage        String       @db.VarChar(50)
+  startedAt    DateTime
+  endedAt      DateTime?
+  status       String       @db.VarChar(50)
+  order        LaundryOrder @relation(fields: [orderId], references: [orderId], onDelete: Cascade)
+  machine      Machine      @relation(fields: [machineId], references: [machineId])
+}

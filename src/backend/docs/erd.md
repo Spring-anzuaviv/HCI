@@ -1,89 +1,104 @@
-# ERD - Hệ thống quản lý cửa hàng giặt ủi
+# ERD - Laundry Store Management System
 
-```mermaid
+~~~mermaid
 erDiagram
 
-    KHACHHANG {
-        INT MAKH PK
-        NVARCHAR_50 TENKH
-        VARCHAR_12 SDT
+    STORE {
+        INTEGER storeId PK
+        VARCHAR_100 name
+        VARCHAR_100 address
+        VARCHAR_255 email UK
+        VARCHAR_255 passwordHash
     }
 
-    DONHANG {
-        INT MADH PK
-        DECIMAL_5_2 KHOILUONG
-        VARCHAR_50 LOAIDICHVU
-        VARCHAR_50 TRANGTHAIDH
-        TIMESTAMP GIOHENLAY
-        TIMESTAMP GIODUKIEN
-        TIMESTAMP GIOHOANTAT
-        TIMESTAMP NGAYTAO_DH
+    CUSTOMER {
+        INTEGER customerId PK
+        VARCHAR_50 name
+        VARCHAR_12 phone
     }
 
-    LICHCHAYMAY {
-        VARCHAR_50 CONGDOAN
-        TIMESTAMP GIOBATDAU
-        TIMESTAMP GIOKETTHUC
-        VARCHAR_50 TRANGTHAILC
+    EMPLOYEE {
+        INTEGER employeeId PK
+        INTEGER storeId FK
+        VARCHAR_50 name
+        VARCHAR_50 role
+        TIMESTAMPTZ createdAt
     }
 
-    MAYMOC {
-        INT MAMAY PK
-        NVARCHAR_100 TENMAY
-        VARCHAR_20 TRANGTHAI
-        VARCHAR_10 LOAIMAY
-        FLOAT SOKG
-        INT THOIGIAN
+    WORK_SHIFT {
+        INTEGER shiftId PK
+        INTEGER storeId FK
+        VARCHAR_50 name
+        TIMESTAMPTZ startAt
+        TIMESTAMPTZ endAt
+        DATE workDate
     }
 
-    NHANVIEN {
-        INT MANV PK
-        NVARCHAR_50 TENNV
-        VARCHAR_50 VAITRO
-        TIMESTAMP NGAYTAO_NV
+    EMPLOYEE_WORK_SHIFT {
+        INTEGER employeeId PK,FK
+        INTEGER shiftId PK,FK
     }
 
-    CALAMVIEC {
-        INT MACA PK
-        NVARCHAR_50 TENCA
-        TIMESTAMP GIOBDCA
-        TIMESTAMP GIOKTCA
-        DATE NGAY
+    MACHINE {
+        INTEGER machineId PK
+        INTEGER storeId FK
+        VARCHAR_100 name
+        VARCHAR_20 status
+        VARCHAR_10 type
+        REAL capacityKg
+        INTEGER processingMinutes
     }
 
-    CUAHANG {
-        INT MACH PK
-        NVARCHAR_100 TENCUAHANG
-        NVARCHAR_100 DIACHI
+    LAUNDRY_ORDER {
+        INTEGER orderId PK
+        INTEGER customerId FK
+        NUMERIC_5_2 weightKg
+        VARCHAR_50 serviceType
+        VARCHAR_50 status
+        TIMESTAMPTZ pickupAt "NULLABLE"
+        TIMESTAMPTZ estimatedAt "NULLABLE"
+        TIMESTAMPTZ completedAt "NULLABLE"
+        TIMESTAMPTZ createdAt
     }
 
-    KHACHHANG ||--|{ DONHANG : "co"
+    MACHINE_RUN {
+        INTEGER machineRunId PK
+        INTEGER orderId FK
+        INTEGER machineId FK
+        VARCHAR_50 stage
+        TIMESTAMPTZ startedAt
+        TIMESTAMPTZ endedAt "NULLABLE"
+        VARCHAR_50 status
+    }
 
-    DONHANG ||--o{ LICHCHAYMAY : "co"
+    STORE ||--o{ EMPLOYEE : "has"
+    STORE ||--o{ WORK_SHIFT : "has"
+    STORE ||--o{ MACHINE : "has"
 
-    MAYMOC ||--o{ LICHCHAYMAY : "chay"
+    EMPLOYEE ||--o{ EMPLOYEE_WORK_SHIFT : "assigned to"
+    WORK_SHIFT ||--o{ EMPLOYEE_WORK_SHIFT : "includes"
 
-    CUAHANG ||--|{ MAYMOC : "co"
+    CUSTOMER ||--o{ LAUNDRY_ORDER : "places"
 
-    CUAHANG ||--|{ NHANVIEN : "co"
+    LAUNDRY_ORDER ||--o{ MACHINE_RUN : "has"
+    MACHINE ||--o{ MACHINE_RUN : "runs"
+~~~
 
-    CUAHANG ||--|{ CALAMVIEC : "co"
+## Status values
 
-    NHANVIEN }|--|{ CALAMVIEC : "lam"
-```
+### Laundry order
 
-## Trạng thái
+- RECEIVED
+- WAITING
+- WASHING
+- DRYING
+- FOLDING_PACKING
+- READY
+- NOTIFIED
+- COMPLETED
 
-### Đơn hàng
+### Machine run
 
-- Chờ
-- Đang giặt
-- Đang sấy
-- Sẵn sàng
-- Đã thông báo
-- Hoàn tất
+- RUNNING
+- COMPLETED
 
-### Lịch chạy máy
-
-- Đang chạy
-- Hoàn tất

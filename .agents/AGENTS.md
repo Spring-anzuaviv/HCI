@@ -127,6 +127,23 @@ Sử dụng cấu trúc repository như một pipeline có thể tái sử dụn
 
 Trước khi dùng skill, đọc `plan.md` và `skill.md` của skill đó nếu có. Nếu skill, template hoặc tool cần thiết chưa tồn tại, không được giả vờ đã sử dụng; hãy tạo hoặc đề xuất artifact nhỏ nhất còn thiếu.
 
+## Quy tắc tham chiếu và skills theo loại task
+
+Trước khi implement, agent phải đọc các skill phù hợp với loại thay đổi:
+
+- **Backend**: đọc `nodejs-backend-patterns`.
+- **Frontend**: đọc `frontend-design`; với React/Vite dashboard, đọc thêm skill `stitch-build:react-vite-dashboard` khi phù hợp.
+- **Feature hoặc thay đổi behavior**: luôn đọc và tuân theo skill `brainstorming` trước khi implement.
+
+Nguồn tham chiếu bắt buộc:
+
+- **Feature requirements**: đọc `inputs/features.md`.
+- **Giao diện**: dùng `outputs/frontend.html` làm thiết kế tham chiếu và so sánh implementation với file này.
+- **Database**: schema, migration và seed phải bám theo `src/backend/docs/db.md`.
+- **API**: endpoint, request, response, error code và business rule phải bám theo `src/backend/docs/api.md`.
+
+Nếu có mâu thuẫn, agent phải nêu rõ file tham chiếu đang được dùng và không tự ý bỏ qua.
+
 ## 8. Workflow bắt buộc
 
 Với mọi task đáng kể, thực hiện workflow sau:
