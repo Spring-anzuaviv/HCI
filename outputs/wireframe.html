@@ -9,12 +9,12 @@
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
   --pu:#7c3aed;--pu2:#6d28d9;--pu3:#5b21b6;
-  --pl:#ede9fe;--pm:#c4b5fd;
-  --ye:#fbbf24;--ye2:#f59e0b;
+  --pl:#eee;--pm:#ccc;
+  --ye:#999;--ye2:#666;
   --bg:#ffffff;
   --sf:#fff;
-  --bd:#e0d9fa;
-  --tx:#1e1b4b;--ts:#6b7280;--tl:#9ca3af;
+  --bd:#ccc;
+  --tx:#222;--ts:#6b7280;--tl:#9ca3af;
   --bl:#3b82f6;--pk:#ec4899;--gn:#22c55e;
   --rd:#ef4444;--am:#f59e0b;
   --sw:110px;--rw:270px;
@@ -29,36 +29,36 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--tx);height:
 .shell{display:flex;height:100vh;overflow:hidden}
 
 /* ── SIDEBAR ── */
-.sidebar{width:var(--sw);background:var(--pu);display:flex;flex-direction:column;align-items:center;padding:18px 0 14px;flex-shrink:0;overflow-x:hidden}
-.logo-box{width:50px;height:50px;min-width:50px;min-height:50px;flex-shrink:0;background:var(--ye);border-radius:4px;display:flex;align-items:center;justify-content:center;margin-bottom:5px;}
-.logo-name{font-size:11px;font-weight:800;color:#fff;text-align:center;letter-spacing:.06em;text-transform:uppercase;margin-bottom:22px;line-height:1.3}
+.sidebar {width:var(--sw);background:#f3e8ff;display:flex;flex-direction:column;align-items:center;padding:18px 0 14px;flex-shrink:0;overflow-x:hidden}
+.logo-box{width:50px;height:50px;min-width:50px;min-height:50px;flex-shrink:0;background:var(--ye);border-radius: 0;display:flex;align-items:center;justify-content:center;margin-bottom:5px;box-shadow:0 4px 14px rgba(251,191,36,.45)}
+.logo-name {font-size:11px;font-weight:800;color:var(--tx);text-align:center;letter-spacing:.06em;text-transform:uppercase;margin-bottom:22px;line-height:1.3}
 .snav{display:flex;flex-direction:column;gap:6px;width:100%;padding:0 0 0 16px;flex:1}
-.ni{display:flex;flex-direction:column;align-items:center;gap:3px;padding:12px 16px 12px 0;border-radius:4px; 0 0 24px;cursor:pointer;border:none;background:none;width:100%;color:rgba(255,255,255,.6);position:relative}
-.ni:hover{background:rgba(255,255,255,.13);color:rgba(255,255,255,.9)}
+.ni {display:flex;flex-direction:column;align-items:center;gap:3px;padding:12px 16px 12px 0;border-radius: 0;cursor:pointer;border:none;background:none;width:100%;transition:background .15s;color:var(--ts);position:relative}
+.ni:hover {background:rgba(0,0,0,.04);color:var(--tx)}
 .ni .lbl{font-size:10px;font-weight:600;text-align:center;line-height:1.2;color:inherit}
 .ni.on{background:var(--bg);color:var(--pu)}
 .ni.on::before,.ni.on::after{content:'';position:absolute;right:0;width:24px;height:24px;background:transparent;pointer-events:none}
-.ni.on::before{top:-24px;}
-.ni.on::after{bottom:-24px;}
+.ni.on::before{top:-24px;border-bottom-right-radius:24px;box-shadow:12px 12px 0 12px var(--bg)}
+.ni.on::after{bottom:-24px;border-top-right-radius:24px;box-shadow:12px -12px 0 12px var(--bg)}
 .ni.on .lbl{font-weight:700}
 .su{display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px;margin-top:auto}
-.su-av{width:36px;height:36px;border-radius:50%;background:var(--ye);color:var(--pu3);font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center;border:2px solid rgba(255,255,255,.45)}
-.su-name{font-size:10px;font-weight:700;color:#fff}
-.su-sub{font-size:9px;color:rgba(255,255,255,.55)}
+.su-av{width:36px;height:36px;border-radius: 0;background:var(--ye);color:var(--pu3);font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center;border:2px solid rgba(255,255,255,.45)}
+.su-name {font-size:10px;font-weight:700;color:var(--tx)}
+.su-sub {font-size:9px;color:var(--ts)}
 
 /* ── MAIN ── */
 .main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
 
 /* ── TOPBAR ── */
 .topbar{display:flex;align-items:center;gap:10px;padding:12px 18px;flex-shrink:0}
-.searchbar{flex:1;max-width:450px;background:var(--sf);border-radius:4px;display:flex;align-items:center;gap:8px;padding:9px 14px;border:1.5px solid var(--bd);color:var(--tl)}
+.searchbar{flex:1;max-width:450px;background:var(--sf);border-radius: 0;display:flex;align-items:center;gap:8px;padding:9px 14px;border:1.5px solid var(--bd);color:var(--tl)}
 .searchbar input{border:none;outline:none;font-size:13px;color:var(--ts);background:none;flex:1;font-family:'Inter',sans-serif}
 .tbr{display:flex;align-items:center;gap:7px;margin-left:auto}
-.ibtn{width:36px;height:36px;border-radius:4px;background:var(--sf);border:1.5px solid var(--bd);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--ts);position:relative;}
+.ibtn{width:36px;height:36px;border-radius: 0;background:var(--sf);border:1.5px solid var(--bd);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--ts);position:relative;transition:all .15s}
 .ibtn:hover{background:var(--pu);color:#fff;border-color:var(--pu)}
-.bdg{position:absolute;top:-4px;right:-4px;width:15px;height:15px;border-radius:50%;background:var(--rd);color:#fff;font-size:8px;font-weight:700;display:flex;align-items:center;justify-content:center;border:1.5px solid var(--bg)}
-.tbuser{display:flex;align-items:center;gap:7px;padding:3px 11px 3px 4px;background:var(--sf);border-radius:4px;border:1.5px solid var(--bd);cursor:pointer}
-.tbav{width:28px;height:28px;border-radius:4px;background:var(--pu);color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.bdg{position:absolute;top:-4px;right:-4px;width:15px;height:15px;border-radius: 0;background:var(--rd);color:#fff;font-size:8px;font-weight:700;display:flex;align-items:center;justify-content:center;border:1.5px solid var(--bg)}
+.tbuser{display:flex;align-items:center;gap:7px;padding:3px 11px 3px 4px;background:var(--sf);border-radius: 0;border:1.5px solid var(--bd);cursor:pointer}
+.tbav{width:28px;height:28px;border-radius: 0;background:var(--pu);color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center}
 .tbname{font-size:12px;font-weight:600;color:var(--tx)}
 
 /* ── PAGES ── */
@@ -67,9 +67,9 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--tx);height:
 .page.on{display:flex}
 
 /* ── HERO ── */
-.hero{background:var(--pl);border-radius:4px;padding:16px 26px;display:flex;align-items:center;min-height:155px;position:relative;overflow:hidden;flex-shrink:0;max-width:100%}
-.hero::before{content:'';position:absolute;right:155px;top:-25px;width:190px;height:190px;border-radius:50%;background:rgba(255,255,255,.1)}
-.hero::after{content:'';position:absolute;right:68px;bottom:-45px;width:155px;height:155px;border-radius:50%;background:rgba(255,255,255,.08)}
+.hero{background:linear-gradient(135deg,#fbbf24 0%,#f59e0b 55%,#fde68a 100%);border-radius: 0;padding:16px 26px;display:flex;align-items:center;min-height:155px;position:relative;overflow:hidden;flex-shrink:0;max-width:100%}
+.hero::before{content:'';position:absolute;right:155px;top:-25px;width:190px;height:190px;border-radius: 0;background:rgba(255,255,255,.1)}
+.hero::after{content:'';position:absolute;right:68px;bottom:-45px;width:155px;height:155px;border-radius: 0;background:rgba(255,255,255,.08)}
 .hero-txt{flex:1;z-index:1}
 .hero-txt h2{font-size:23px;font-weight:900;color:#1e1b4b;margin-bottom:7px}
 .hero-txt p{font-size:12.5px;color:rgba(30,27,75,.72);line-height:1.55;margin-bottom:12px;max-width:305px}
@@ -77,20 +77,21 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--tx);height:
 .hm{font-size:11px;font-weight:700;color:#1e1b4b;text-transform:uppercase;letter-spacing:.05em;display:flex;align-items:center;gap:5px}
 .hero-img{z-index:1;flex-shrink:0;width:110px;height:105px;display:flex;align-items:center;justify-content:center}
 .hero-img svg{width:100%;height:auto}
-.hero-sub{min-height:108px}
+.hero-sub { background: #f5f3ff; color: var(--tx); }
 .hero-sub h2{font-size:19px}
 .hero-sub .hero-img{width:88px;height:88px}
 
 /* ── ALERT ── */
-.alert{background:#fef2f2;border-radius:4px;border:none;padding:11px 16px;display:flex;align-items:center;gap:11px;color:var(--rd)}
-50%{background-color:#fef2f2}}
-.alert{font-size:12.5px;font-weight:500;color:var(--tx)}
+.alert{background:#fef2f2;border-radius: 0;border:none;padding:11px 16px;display:flex;align-items:center;gap:11px;color:var(--rd)}
+@keyframes blink{0%,100%{background-color:#fee2e2}50%{background-color:#fef2f2}}
+.alert{animation:blink 2s infinite}
+.alert-txt{flex:1;font-size:12.5px;font-weight:500;color:var(--tx)}
 .alert-txt strong{color:var(--rd)}
 .alink{font-size:11.5px;font-weight:700;color:var(--rd);cursor:pointer;text-decoration:none;white-space:nowrap;display:flex;align-items:center;gap:3px;border:none;background:none;outline:none}
 
 /* ── STATS ROW ── */
 .srow{display:flex;gap:12px}
-.scard{flex:1;background:#fff;border-radius:4px;padding:14px 16px;border:1.5px solid var(--bd)}
+.scard{flex:1;background:#fff;border-radius: 0;padding:14px 16px;border:1.5px solid var(--bd)}
 .snum{font-size:26px;font-weight:900;line-height:1;color:var(--tx)}
 .slbl{font-size:10.5px;font-weight:600;color:var(--tl);text-transform:uppercase;letter-spacing:.06em;margin-top:3px}
 .scard.red .snum{color:var(--rd)}
@@ -101,46 +102,45 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--tx);height:
 .crow{display:flex;gap:14px}
 
 /* ── CARD ── */
-.card{background:#fff;border-radius:4px;padding:18px 20px;border:1.5px solid var(--bd)}
+.card{background:#fff;border-radius: 0;padding:18px 20px;border:1.5px solid var(--bd)}
 .ch{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
 .ctitle{font-size:13.5px;font-weight:700;color:var(--tx);display:flex;align-items:center;gap:8px}
-.cico{width:30px;height:30px;border-radius:4px;background:#f0ebff;display:flex;align-items:center;justify-content:center;color:var(--pu);flex-shrink:0}
+.cico{width:30px;height:30px;border-radius: 0;background:#f0ebff;display:flex;align-items:center;justify-content:center;color:var(--pu);flex-shrink:0}
 .clink{font-size:11.5px;font-weight:600;color:var(--pu);cursor:pointer;display:flex;align-items:center;gap:3px;border:none;background:none;font-family:'Inter',sans-serif}
 
 /* ── SUGGESTION BOX ── */
-.sugg{background:#f8fafc;border-radius:4px;padding:13px 15px;border:1.5px solid #e2e8f0;margin-bottom:13px}
-.sugg .bp{background:#475569;color:#fff}
-.sugg-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#64748b;margin-bottom:7px;display:flex;align-items:center;gap:5px}
+.sugg{background:linear-gradient(135deg,#f0ebff,#ede9fe);border-radius: 0;padding:13px 15px;border:1.5px solid var(--pm);margin-bottom:13px}
+.sugg-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--pu);margin-bottom:7px;display:flex;align-items:center;gap:5px}
 .sugg-row{display:flex;align-items:center;gap:10px}
-.sugg-n{font-size:22px;font-weight:900;color:#475569;line-height:1;min-width:32px}
+.sugg-n{font-size:22px;font-weight:900;color:var(--pu);line-height:1;min-width:32px}
 .sugg-info{flex:1}
 .sugg-name{font-size:13.5px;font-weight:700;color:var(--tx)}
 .sugg-meta{font-size:11.5px;color:var(--ts);margin-top:2px}
 
 /* Table Styles */
-.tb-wrap{border-radius:4px;border:1.5px solid var(--bd);background:#fff;overflow-x:auto}
+.tb-wrap{border-radius: 0;border:1.5px solid var(--bd);background:#fff;overflow-x:auto}
 .tb{width:100%;border-collapse:collapse;font-size:13px;text-align:left;min-width:650px}
 .tb th{padding:10px 16px;background:#f8fafc;color:var(--ts);font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.05em;border-bottom:1.5px solid var(--bd)}
 .tb td{padding:10px 16px;border-bottom:1.5px solid var(--bd);color:var(--tx)}
 .tb tr:last-child td{border-bottom:none}
 .tb tr:hover td{background:#f8fafc}
-.tb-st{display:inline-flex;align-items:center;padding:4px 10px;border-radius:4px;font-size:11px;font-weight:700;line-height:1;white-space:nowrap}
+.tb-st{display:inline-flex;align-items:center;padding:4px 10px;border-radius: 0;font-size:11px;font-weight:700;line-height:1;white-space:nowrap}
 
 /* ── BTNS ── */
-.bp{background:var(--pu);color:#fff;border:none;border-radius:4px;padding:8px 15px;font-size:11.5px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;white-space:nowrap;display:inline-flex;align-items:center;gap:5px}
+.bp{background:var(--pu);color:#fff;border:none;border-radius: 0;padding:8px 15px;font-size:11.5px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s;white-space:nowrap;display:inline-flex;align-items:center;gap:5px}
 .bp:hover{background:var(--pu3);transform:translateY(-1px)}
-.bs{background:#f0ebff;color:var(--pu);border:1.5px solid var(--pm);border-radius:4px;padding:7px 13px;font-size:11.5px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;display:inline-flex;align-items:center;gap:5px}
+.bs{background:#f0ebff;color:var(--pu);border:1.5px solid var(--pm);border-radius: 0;padding:7px 13px;font-size:11.5px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s;display:inline-flex;align-items:center;gap:5px}
 .bs:hover{background:#e0d4fc}
-.by{background:var(--ye);color:#1e1b4b;border:none;border-radius:4px;padding:8px 15px;font-size:11.5px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;display:inline-flex;align-items:center;gap:5px}
+.by{background:var(--ye);color:#1e1b4b;border:none;border-radius: 0;padding:8px 15px;font-size:11.5px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s;display:inline-flex;align-items:center;gap:5px}
 .by:hover{background:var(--ye2)}
-.br{background:#fee2e2;color:var(--rd);border:1.5px solid #fecaca;border-radius:4px;padding:7px 13px;font-size:11.5px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;display:inline-flex;align-items:center;gap:5px}
+.br{background:#fee2e2;color:var(--rd);border:1.5px solid #fecaca;border-radius: 0;padding:7px 13px;font-size:11.5px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;display:inline-flex;align-items:center;gap:5px}
 
 /* ── ORDER LIST ── */
 .olist{display:flex;flex-direction:column;gap:7px}
-.orow{display:flex;align-items:center;gap:10px;padding:9px 11px;border-radius:4px;border:1.5px solid var(--bd);cursor:pointer;}
+.orow{display:flex;align-items:center;gap:10px;padding:9px 11px;border-radius: 0;border:1.5px solid var(--bd);cursor:pointer;transition:all .15s}
 .orow:hover{border-color:var(--pm);background:#f9f7ff}
 .orow.risk{border-left:3px solid var(--rd)}
-.opri{width:22px;height:22px;border-radius:4px;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.opri{width:22px;height:22px;border-radius: 0;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .opri.p1{background:#fee2e2;color:var(--rd)}
 .opri.p2{background:#fef3c7;color:var(--am)}
 .opri.p3{background:#ede9fe;color:var(--pu)}
@@ -151,7 +151,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--tx);height:
 .opri.rd{background:#fee2e2;color:var(--rd)}
 .oname{font-size:12.5px;font-weight:600;color:var(--tx);flex:1}
 .otime{font-size:11px;color:var(--ts)}
-.chip{font-size:9.5px;font-weight:700;padding:2px 7px;border-radius:4px;text-transform:uppercase;letter-spacing:.04em}
+.chip{font-size:9.5px;font-weight:700;padding:2px 7px;border-radius: 0;text-transform:uppercase;letter-spacing:.04em}
 .chip.w{background:#dbeafe;color:#1d4ed8}
 .chip.d{background:#fef3c7;color:#92400e}
 .chip.ok{background:#dcfce7;color:#15803d}
@@ -166,22 +166,19 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--tx);height:
 .frow{display:flex;gap:11px;align-items:flex-end;flex-wrap:wrap}
 .fg{flex:1;min-width:145px}
 .flbl{font-size:10.5px;font-weight:700;color:var(--ts);text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px;display:block}
-.finput{width:100%;height:40px;border:1.5px solid var(--bd);border-radius:4px;padding:9px 12px;font-size:13.5px;font-family:'Inter',sans-serif;color:var(--tx);outline:none;background:#fff}
+.finput{width:100%;height:40px;border:1.5px solid var(--bd);border-radius: 0;padding:9px 12px;font-size:13.5px;font-family:'Inter',sans-serif;color:var(--tx);outline:none;transition:all .15s;background:#fff}
 select.finput{-webkit-appearance:none;appearance:none;padding-right:32px;padding-left:12px;cursor:pointer;background-image:url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%234b5563' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");background-repeat:no-repeat;background-position:right 12px center;background-size:16px;}
-.finput:focus{border-color:var(--pu);}
+.finput:focus{border-color:var(--pu);box-shadow:0 0 0 3px rgba(124,58,237,.1)}
 .fres{margin-top:14px;display:none}
 .fres.show{display:block}
-.rbadge{padding:5px 14px;border-radius:4px;font-size:11.5px;font-weight:800;text-transform:uppercase;display:inline-flex;align-items:center;gap:5px}
+.rbadge{padding:5px 14px;border-radius: 0;font-size:11.5px;font-weight:800;text-transform:uppercase;display:inline-flex;align-items:center;gap:5px}
 .rbadge.ok{background:#dcfce7;color:#15803d}
 .rbadge.ry{background:#fef3c7;color:#92400e}
 .rbadge.rr{background:#fee2e2;color:var(--rd)}
 .rtime{font-size:30px;font-weight:900;line-height:1;margin:10px 0 3px}
-.rsug{display:flex;align-items:center;gap:9px;margin-top:12px;padding:11px 14px;background:#f0ebff;border-radius:4px;}
-
-/* ── NOTIFY ── */
-.nc{background:#fff;border-radius:4px;padding:12px 16px;border:1.5px solid var(--bd);display:flex;align-items:center;gap:12px;margin-bottom:7px;}
+.rsug{display:flex;align-items:center;gap:9px;margin-top:12px;padding:11px 14px;background:#f0ebff;border-radius: 0;border-radius: 0;padding:12px 16px;border:1.5px solid var(--bd);display:flex;align-items:center;gap:12px;margin-bottom:7px;transition:all .15s}
 .nc:hover{border-color:var(--pm)}
-.nca{width:36px;height:36px;border-radius:50%;font-size:12px;font-weight:700;color:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.nca{width:36px;height:36px;border-radius: 0;font-size:12px;font-weight:700;color:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .ni2{flex:1}
 .nname{font-size:12.5px;font-weight:700;color:var(--tx)}
 .nmeta{font-size:11px;color:var(--ts);margin-top:2px}
@@ -189,17 +186,17 @@ select.finput{-webkit-appearance:none;appearance:none;padding-right:32px;padding
 
 /* ── HANDOVER (inside Queue page) ── */
 .hsum{display:grid;grid-template-columns:repeat(3,1fr);gap:11px;margin-bottom:14px}
-.hsc{background:#fff;border-radius:4px;padding:14px 16px;border:1.5px solid var(--bd);text-align:center}
+.hsc{background:#fff;border-radius: 0;padding:14px 16px;border:1.5px solid var(--bd);text-align:center}
 .hscn{font-size:26px;font-weight:900;color:var(--pu);line-height:1}
 .hscl{font-size:10.5px;font-weight:600;color:var(--ts);margin-top:3px}
-.horder{background:#fff;border-radius:4px;padding:13px 16px;border:1.5px solid var(--bd);display:flex;gap:12px;align-items:flex-start;margin-bottom:9px}
+.horder{background:#fff;border-radius: 0;padding:13px 16px;border:1.5px solid var(--bd);display:flex;gap:12px;align-items:flex-start;margin-bottom:9px}
 .horder.urg{border-left:3px solid var(--rd)}
-.hoico{width:34px;height:34px;border-radius:4px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.hoico{width:34px;height:34px;border-radius: 0;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .honame{font-size:13.5px;font-weight:700;color:var(--tx)}
 .hometa{font-size:11.5px;color:var(--ts);margin-top:3px;line-height:1.55}
-.hnote textarea{width:100%;border:1.5px solid var(--bd);border-radius:4px;padding:10px 12px;font-family:'Inter',sans-serif;font-size:12.5px;color:var(--tx);resize:vertical;min-height:72px;outline:none;margin-top:9px}
+.hnote textarea{width:100%;border:1.5px solid var(--bd);border-radius: 0;padding:10px 12px;font-family:'Inter',sans-serif;font-size:12.5px;color:var(--tx);resize:vertical;min-height:72px;outline:none;margin-top:9px}
 .hnote textarea:focus{border-color:var(--pu)}
-.hdone{background:linear-gradient(135deg,var(--pu),var(--pu3));border-radius:4px;padding:22px;color:#fff;text-align:center;display:none}
+.hdone{background:linear-gradient(135deg,var(--pu),var(--pu3));border-radius: 0;padding:22px;color:#fff;text-align:center;display:none}
 .hdone.show{display:block}
 .hdone h3{font-size:18px;font-weight:800;margin-bottom:6px}
 
@@ -207,51 +204,50 @@ select.finput{-webkit-appearance:none;appearance:none;padding-right:32px;padding
 .rp{width:var(--rw);flex-shrink:0;background:#f0ebff;padding:14px 15px;display:flex;flex-direction:column;gap:24px;overflow-y:auto;border-left:1.5px solid #ddd6fe}
 .rpt{font-size:12.5px;font-weight:800;color:var(--tx);margin-bottom:9px}
 .mgrid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
-.mc{border-radius:4px;padding:11px 11px 9px;display:flex;flex-direction:column;gap:5px;cursor:pointer;position:relative}
-.mc:hover{transform:translateY(-2px);}
+.mc{border-radius: 0;padding:11px 11px 9px;display:flex;flex-direction:column;gap:5px;cursor:pointer;transition:all .2s;position:relative}
+.mc:hover{transform:translateY(-2px);box-shadow:0 5px 14px rgba(0,0,0,.14)}
 .mc.bl{background:var(--bl);color:#fff}
 .mc.pk{background:var(--pk);color:#fff}
 .mc.gn{background:var(--gn);color:#fff}
 .mc.gy{background:#e2e8f0;color:#64748b}
 .mc.am{background:var(--am);color:#fff}
-.mc-tog{position:absolute;top:9px;right:9px;width:26px;height:15px;border-radius:4px;background:rgba(255,255,255,.38);border:none;cursor:pointer;display:flex;align-items:center;padding:2px}
-.td{width:11px;height:11px;border-radius:50%;background:#fff;}
+.mc-tog{position:absolute;top:9px;right:9px;width:26px;height:15px;border-radius: 0;background:rgba(255,255,255,.38);border:none;cursor:pointer;display:flex;align-items:center;padding:2px}
+.td{width:11px;height:11px;border-radius: 0;background:#fff;transition:transform .2s}
 .mc.on .td{transform:translateX(11px)}
 .mc-ico{color:rgba(255,255,255,.9)}
 .mc.gy .mc-ico{color:#64748b}
 .mc-name{font-size:10.5px;font-weight:700;line-height:1.2}
 .mc-st{font-size:9.5px;opacity:.82}
 .strow{display:flex;gap:7px;align-items:center}
-.stav{width:36px;height:36px;border-radius:50%;font-size:11px;font-weight:700;cursor:pointer;border:2px solid #fff;display:flex;align-items:center;justify-content:center}
+.stav{width:36px;height:36px;border-radius: 0;font-size:11px;font-weight:700;cursor:pointer;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.12);display:flex;align-items:center;justify-content:center}
 .stav:nth-child(1){background:var(--pu);color:#fff}
 .stav:nth-child(2){background:var(--pk);color:#fff}
 .stav:nth-child(3){background:var(--bl);color:#fff}
-.stadd{width:36px;height:36px;border-radius:50%;background:#ede9fe;color:var(--pu);font-size:17px;cursor:pointer;border:2px dashed var(--pm);display:flex;align-items:center;justify-content:center}
+.stadd{width:36px;height:36px;border-radius: 0;background:#ede9fe;color:var(--pu);font-size:17px;cursor:pointer;border:2px dashed var(--pm);display:flex;align-items:center;justify-content:center}
 .bwrap{display:flex;gap:5px;align-items:flex-end;height:66px;padding:0 3px}
 .bbar-g{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px}
 .bnum{font-size:8.5px;font-weight:700;color:var(--ts)}
-.bbar{width:100%;border-radius:4px; 0 0}
-.bbar.b1{height:52px;background:#94a3b8}
-.bbar.b2{height:44px;background:#94a3b8}
-.bbar.b3{height:34px;background:#94a3b8}
-.bbar.b4{height:18px;background:#94a3b8}
+.bbar{width:100%;border-radius: 0;background:var(--pu)}
+.bbar.b2{height:44px;background:var(--pk)}
+.bbar.b3{height:34px;background:var(--bl)}
+.bbar.b4{height:18px;background:var(--ye)}
 .blbl{font-size:8.5px;color:var(--tl)}
 
 /* ── MODAL ── */
-.mov{position:fixed;inset:0;background:rgba(15,10,40,.5);z-index:100;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;}
+.mov{position:fixed;inset:0;background:rgba(15,10,40,.5);z-index:100;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s}
 .mov.open{opacity:1;pointer-events:all}
-.modal{background:#fff;border-radius:4px;padding:26px 28px;width:470px;max-width:90vw;transform:translateY(18px);max-height:80vh;overflow-y:auto}
+.modal{background:#fff;border-radius: 0;padding:26px 28px;width:470px;max-width:90vw;transform:translateY(18px);transition:transform .25s;max-height:80vh;overflow-y:auto}
 .mov.open .modal{transform:translateY(0)}
 .mhd{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
 .mtitle{font-size:16px;font-weight:800;color:var(--tx)}
-.mxbtn{width:30px;height:30px;border-radius:4px;background:#f1f5f9;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--ts)}
-.impbox{background:#fff7ed;border:1.5px solid #fde68a;border-radius:4px;padding:14px 16px;margin:14px 0}
+.mxbtn{width:30px;height:30px;border-radius: 0;background:#f1f5f9;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--ts)}
+.impbox{background:#fff7ed;border:1.5px solid #fde68a;border-radius: 0;padding:14px 16px;margin:14px 0}
 .impt{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:var(--am);margin-bottom:10px;display:flex;align-items:center;gap:5px}
 .impi{display:flex;align-items:flex-start;gap:7px;margin-bottom:7px;font-size:12.5px;line-height:1.5}
 
 /* ── TOAST ── */
 .tc{position:fixed;bottom:22px;right:22px;display:flex;flex-direction:column;gap:7px;z-index:200}
-.toast{background:#1e1b4b;color:#fff;padding:11px 16px;border-radius:4px;font-size:12.5px;font-weight:500;display:flex;align-items:center;gap:9px;min-width:250px;transform:translateX(120%);}
+.toast{background:#1e1b4b;color:#fff;padding:11px 16px;border-radius: 0;font-size:12.5px;font-weight:500;display:flex;align-items:center;gap:9px;min-width:250px;transform:translateX(120%);transition:transform .3s;box-shadow:0 8px 24px rgba(0,0,0,.2)}
 .toast.show{transform:translateX(0)}
 .toast.grn{border-left:3px solid var(--gn)}
 .toast.red{border-left:3px solid var(--rd)}
@@ -325,7 +321,7 @@ select.finput{-webkit-appearance:none;appearance:none;padding-right:32px;padding
     <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
   </symbol>
   <symbol id="i-washer" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-    <rect x="2" y="2" width="20" height="20" rx="3"/><line x1="2" y1="8" x2="22" y2="8"/>
+    <rect x="2" y="2" width="20" height="20" rx="0"/><line x1="2" y1="8" x2="22" y2="8"/>
     <circle cx="12" cy="15" r="4"/><circle cx="12" cy="15" r="2"/>
     <line x1="5" y1="5" x2="5.01" y2="5" stroke-width="2.5"/>
     <line x1="8" y1="5" x2="8.01" y2="5" stroke-width="2.5"/>
@@ -340,7 +336,7 @@ select.finput{-webkit-appearance:none;appearance:none;padding-right:32px;padding
     <polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/>
   </symbol>
   <symbol id="i-cpu" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-    <rect x="9" y="9" width="6" height="6"/><rect x="3" y="3" width="18" height="18" rx="2"/>
+    <rect x="9" y="9" width="6" height="6"/><rect x="3" y="3" width="18" height="18" rx="0"/>
     <line x1="9" y1="3" x2="9" y2="1"/><line x1="12" y1="3" x2="12" y2="1"/><line x1="15" y1="3" x2="15" y2="1"/>
     <line x1="9" y1="23" x2="9" y2="21"/><line x1="12" y1="23" x2="12" y2="21"/><line x1="15" y1="23" x2="15" y2="21"/>
     <line x1="1" y1="9" x2="3" y2="9"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="1" y1="15" x2="3" y2="15"/>
@@ -373,12 +369,153 @@ select.finput{-webkit-appearance:none;appearance:none;padding-right:32px;padding
   </symbol>
 </svg>
 
-<div class="shell">
+<!-- LOGIN PAGE -->
+<div id="login-shell" style="width:100vw; height:100vh; background:linear-gradient(135deg, #4b1a8d 0%, #20104f 100%); display:flex; align-items:center; justify-content:center; z-index:9999; position:relative; font-family: 'Inter', sans-serif;">
+  <style>
+    @keyframes spin { 100% { transform:rotate(360deg); } }
+    @keyframes fadein { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+    
+    .mat-input { 
+      width:100%; height:30px; background:transparent; border:none; border-bottom:2px solid #d4c5f9; 
+      padding:0; font-size:14px; font-weight:500; color:#1e293b; outline:none; transition: all 0.2s;
+    }
+    .mat-input:focus { border-bottom-color: #a369eb; }
+    
+    .pill-btn {
+      width:140px; height:40px; border-radius: 0; background:linear-gradient(90deg, #a369eb 0%, #c47af8 100%);
+      color:#fff; border:none; font-size:14px; font-weight:600; cursor:pointer;
+      box-shadow: 0 4px 15px rgba(163,105,235,0.4); margin: 0 auto; display:block;
+      transition: all 0.2s;
+    }
+    .pill-btn:hover { }
+    
+    .link-text { color:#94a3b8; font-size:11px; font-weight:600; text-decoration:none; transition:all 0.2s; cursor:pointer;}
+    .link-text:hover { color:#a369eb; }
+    
+    .google-btn { 
+       display:flex; align-items:center; justify-content:center; gap:8px; 
+       background:#fff; border:1px solid #e2e8f0; border-radius: 0; 
+       height:38px; width:100%; max-width:180px; margin: 0 auto;
+       color:#475569; font-size:12px; font-weight:600; cursor:pointer; transition:all 0.2s;
+    }
+    .google-btn:hover { background:#f8fafc; border-color:#cbd5e1; }
+  </style>
+
+  <!-- Login Container -->
+  <div style="width:780px; height:480px; background:#fff; border-radius: 0; box-shadow:0 30px 60px rgba(0,0,0,0.3); display:flex; overflow:hidden">
+    
+    <!-- Cột trái (Graphic) -->
+    <div style="flex:1; background:linear-gradient(135deg, #a855f7 0%, #7d3ced 100%); position:relative; padding:30px; color:#fff; display:flex; flex-direction:column; justify-content:center; align-items:center; overflow:hidden">
+      <!-- Vòng tròn trang trí to -->
+      <div style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); width:260px; height:260px; border-radius: 0; background:rgba(0,0,0,0.05)"></div>
+      
+      <!-- Character / App Title -->
+      <div style="position:relative; z-index:1; text-align:center; transform:translateY(-15px)">
+        <!-- Icon máy giặt nền vàng -->
+        <div style="width:100px; height:100px; background:var(--ye); border-radius: 0; display:flex; align-items:center; justify-content:center; border:2px solid #555; margin: 0 auto 20px;">
+          <svg style="width:64px; height:64px; color:#333"><use href="#i-washer"/></svg>
+        </div>
+
+        <h1 style="font-size:34px; font-weight:900; line-height:1.2; margin-bottom:10px; letter-spacing:0.5px; text-shadow:0 2px 10px rgba(0,0,0,0.1)">WashTrack</h1>
+        <h2 style="font-size:18px; font-weight:800; line-height:1.4; margin-bottom:15px; opacity:1; text-shadow:0 1px 5px rgba(0,0,0,0.1)">Hệ thống quản lý giặt ủi thông minh</h2>
+        <p style="font-size:15px; font-weight:500; color:#fff; line-height:1.5; max-width:280px; margin:0 auto">Đơn giản hóa quy trình vận hành, nâng cao hiệu suất tiệm của bạn mỗi ngày!</p>
+      </div>
+    </div>
+    
+    <!-- Cột phải (Form) -->
+    <div style="flex:1.1; display:flex; flex-direction:column; position:relative; background:#fff">
+      
+      <!-- Tab Tím ở trên -->
+      <div style="position:absolute; top:0; left:0; background:#9f54ef; color:#fff; padding:10px 20px; border-bottom-right-radius:18px; font-weight:600; font-size:12px; box-shadow: 2px 2px 10px rgba(0,0,0,0.05)">
+        Chào mừng trở lại
+      </div>
+      
+      <!-- Box chứa form ở giữa -->
+      <div style="flex:1; padding:60px 45px 15px; display:flex; flex-direction:column; justify-content:center">
+        
+        <!-- Login Panel -->
+        <div id="login-panel" style="display:block; animation: fadein 0.3s ease-out">
+          <h2 style="font-size:18px; font-weight:700; color:#555; text-align:center; margin-bottom:30px">Đăng nhập tài khoản</h2>
+          
+          <div style="margin-bottom:20px">
+            <label style="display:block; font-size:11px; font-weight:600; color:#877ab4; margin-bottom:4px">Email</label>
+            <input class="mat-input" type="email" value="admin@washtrack.com">
+          </div>
+          
+          <div style="margin-bottom:35px">
+            <label style="display:block; font-size:11px; font-weight:600; color:#877ab4; margin-bottom:4px">Mật khẩu</label>
+            <div style="position:relative">
+              <input class="mat-input" type="password" value="12345678" style="padding-right:30px">
+              <div onclick="const inp=this.previousElementSibling; if(inp.type==='password'){inp.type='text'; this.style.opacity=1;}else{inp.type='password'; this.style.opacity=0.6;}" style="position:absolute; right:0; top:50%; transform:translateY(-50%); cursor:pointer; opacity:0.6; display:flex; align-items:center; justify-content:center">
+                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px; height:16px; color:#64748b"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+              </div>
+            </div>
+          </div>
+          
+          <button class="pill-btn" onclick="document.getElementById('login-shell').style.display='none'; document.getElementById('app-shell').style.display='flex';">
+            Đăng nhập
+          </button>
+          
+          <div style="text-align:center; margin-top:20px">
+            <a href="#" onclick="document.getElementById('login-panel').style.display='none'; document.getElementById('register-panel').style.display='block'; return false;" class="link-text" style="font-size:12px">Tạo tài khoản mới</a>
+          </div>
+        </div>
+        
+        <!-- Register Panel -->
+        <div id="register-panel" style="display:none; animation: fadein 0.3s ease-out">
+          <h2 style="font-size:18px; font-weight:700; color:#555; text-align:center; margin-bottom:20px">Đăng ký tài khoản</h2>
+          
+          <div style="margin-bottom:12px">
+            <label style="display:block; font-size:11px; font-weight:600; color:#877ab4; margin-bottom:4px">Tên cửa hàng</label>
+            <input class="mat-input" type="text" placeholder="Nhập tên tiệm giặt ủi của bạn">
+          </div>
+          
+          <div style="margin-bottom:12px">
+            <label style="display:block; font-size:11px; font-weight:600; color:#877ab4; margin-bottom:4px">Email</label>
+            <input class="mat-input" type="email" placeholder="Nhập địa chỉ email của bạn">
+          </div>
+          
+          <div style="margin-bottom:20px">
+            <label style="display:block; font-size:11px; font-weight:600; color:#877ab4; margin-bottom:4px">Mật khẩu</label>
+            <div style="position:relative">
+              <input class="mat-input" type="password" placeholder="********" style="padding-right:30px">
+              <div onclick="const inp=this.previousElementSibling; if(inp.type==='password'){inp.type='text'; this.style.opacity=1;}else{inp.type='password'; this.style.opacity=0.6;}" style="position:absolute; right:0; top:50%; transform:translateY(-50%); cursor:pointer; opacity:0.6; display:flex; align-items:center; justify-content:center">
+                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px; height:16px; color:#64748b"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+              </div>
+            </div>
+          </div>
+          
+          <button class="pill-btn" onclick="document.getElementById('login-shell').style.display='none'; document.getElementById('app-shell').style.display='flex';">
+            Đăng ký ngay
+          </button>
+          
+          <div style="text-align:center; margin-top:15px">
+            <a href="#" onclick="document.getElementById('register-panel').style.display='none'; document.getElementById('login-panel').style.display='block'; return false;" class="link-text" style="font-size:12px">Quay lại Đăng nhập</a>
+          </div>
+        </div>
+
+      </div>
+      
+      <!-- Footer (Forgot password / Social) -->
+      <div style="padding-bottom:30px; text-align:center">
+        <div style="margin-bottom:15px">
+           <a href="#" class="link-text" style="text-decoration:underline;">Quên mật khẩu?</a>
+        </div>
+        <button class="google-btn">
+          <svg viewBox="0 0 24 24" style="width:16px; height:16px"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+          Đăng nhập với Google
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>
+<div class="shell" id="app-shell" style="display:none">
 
 <!-- ══════════════ SIDEBAR ══════════════ -->
 <aside class="sidebar">
   <div class="logo-box">
-    <svg class="icon icon-xl" style="color:#5b21b6"><use href="#i-washer"/></svg>
+    <svg class="icon icon-xl" style="color:var(--pu3)"><use href="#i-washer"/></svg>
   </div>
   <div class="logo-name">Wash<br>Track</div>
   <nav class="snav">
@@ -405,8 +542,8 @@ select.finput{-webkit-appearance:none;appearance:none;padding-right:32px;padding
     </button>
   </nav>
   <div class="su">
-    <div class="su-av" style="margin-bottom:6px">NY</div>
-    <div class="su-name" style="font-size:11.5px;color:rgba(255,255,255,.9);text-align:center;line-height:1.25">Như Ý<br>Laundry</div>
+    <div class="su-av" id="sidebar-avatar" style="margin-bottom:6px">NÝ</div>
+    <div class="su-name" id="sidebar-shop-name" style="font-size:11.5px;color:rgba(255,255,255,.9);text-align:center;line-height:1.25">Như Ý<br>Laundry</div>
   </div>
 </aside>
 
@@ -424,11 +561,11 @@ select.finput{-webkit-appearance:none;appearance:none;padding-right:32px;padding
       </button>
       <div class="ibtn" onclick="go('n', document.querySelectorAll('.ni')[3])">
         <svg class="icon icon-sm"><use href="#i-send"/></svg>
-        <span class="bdg">2</span>
+        <span class="bdg">1</span>
       </div>
       <div class="tbuser">
-        <div class="tbav">NY</div>
-        <span class="tbname">Như Ý</span>
+        <div class="tbav" id="header-avatar">NÝ</div>
+        <span class="tbname" id="header-shop-name">Như Ý</span>
       </div>
     </div>
   </header>
@@ -448,27 +585,27 @@ select.finput{-webkit-appearance:none;appearance:none;padding-right:32px;padding
         </div>
         <div class="hero-img">
           <svg width="138" height="152" viewBox="0 0 138 152" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect x="7" y="26" width="124" height="118" rx="18" fill="white" stroke="#ddd6fe" stroke-width="2"/>
-            <rect x="7" y="26" width="124" height="38" rx="18" fill="#5b21b6"/>
-            <rect x="7" y="46" width="124" height="18" fill="#5b21b6"/>
-            <circle cx="43" cy="45" r="13" fill="#fbbf24"/><circle cx="43" cy="45" r="8" fill="#f59e0b"/><circle cx="43" cy="45" r="3" fill="#d97706"/>
+            <rect x="7" y="26" width="124" height="118" rx="0" fill="white" stroke="#999" stroke-width="2"/>
+            <rect x="7" y="26" width="124" height="38" rx="0" fill="#555"/>
+            <rect x="7" y="46" width="124" height="18" fill="#555"/>
+            <circle cx="43" cy="45" r="13" fill="#aaa"/><circle cx="43" cy="45" r="8" fill="#888"/><circle cx="43" cy="45" r="3" fill="#666"/>
             <rect x="70" y="36" width="12" height="12" rx="3.5" fill="#4ade80"/>
             <rect x="87" y="36" width="12" height="12" rx="3.5" fill="#ef4444"/>
             <rect x="70" y="52" width="12" height="8" rx="2.5" fill="#93c5fd"/>
             <rect x="87" y="52" width="12" height="8" rx="2.5" fill="#a78bfa"/>
-            <circle cx="69" cy="106" r="40" fill="#ddd6fe"/>
+            <circle cx="69" cy="106" r="40" fill="#ccc"/>
             <circle cx="69" cy="106" r="33" fill="#6d28d9"/>
             <circle cx="69" cy="106" r="27" fill="#bfdbfe"/>
             <circle cx="69" cy="106" r="22" fill="#93c5fd"/>
-            <ellipse cx="69" cy="116" rx="16" ry="7" fill="#3b82f6" opacity="0.45"/>
+            <ellipse cx="69" cy="116" rx="0" ry="0" fill="#3b82f6" opacity="0.45"/>
             <circle cx="56" cy="99" r="7" fill="white" opacity="0.82"/>
             <circle cx="78" cy="112" r="5" fill="white" opacity="0.72"/>
             <circle cx="64" cy="117" r="3.5" fill="white" opacity="0.62"/>
             <circle cx="81" cy="98" r="4" fill="white" opacity="0.55"/>
             <circle cx="57" cy="114" r="2.5" fill="white" opacity="0.5"/>
             <circle cx="97" cy="106" r="4.5" fill="#4c1d95"/>
-            <rect x="20" y="141" width="20" height="11" rx="5.5" fill="#5b21b6"/>
-            <rect x="98" y="141" width="20" height="11" rx="5.5" fill="#5b21b6"/>
+            <rect x="20" y="141" width="20" height="11" rx="5.5" fill="#555"/>
+            <rect x="98" y="141" width="20" height="11" rx="5.5" fill="#555"/>
           </svg>
         </div>
       </div>
@@ -558,7 +695,7 @@ select.finput{-webkit-appearance:none;appearance:none;padding-right:32px;padding
         </div>
         <div class="hero-img">
           <svg width="80" height="80" viewBox="0 0 80 80" fill="none">
-            <circle cx="40" cy="40" r="35" fill="rgba(255,255,255,0.2)"/>
+            <circle cx="40" cy="40" r="35" fill="rgba(91,33,182,0.1)"/>
             <g transform="translate(18,18)" color="var(--tx)">
               <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                 <polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/>
@@ -571,7 +708,7 @@ select.finput{-webkit-appearance:none;appearance:none;padding-right:32px;padding
       <!-- AI suggestion -->
       <div class="card">
         <div class="sugg-lbl" style="font-size:10.5px;margin-bottom:11px"><svg class="icon icon-sm"><use href="#i-cpu"/></svg> Máy 2 vừa trống - Đề xuất xử lý tiếp</div>
-        <div style="display:flex;align-items:center;gap:15px;padding:15px;background:var(--pl);border-radius:4px;border:1.5px solid #c4b5fd">
+        <div style="display:flex;align-items:center;gap:15px;padding:15px;background:linear-gradient(135deg,#f0ebff,#ede9fe);border-radius: 0;border:1.5px solid #c4b5fd">
           <div style="font-size:36px;font-weight:900;color:var(--pu);line-height:1">#3</div>
           <div style="flex:1">
             <div style="font-size:17px;font-weight:800;color:var(--tx)">Lê Văn Nam</div>
@@ -696,9 +833,9 @@ select.finput{-webkit-appearance:none;appearance:none;padding-right:32px;padding
       <p style="color:#3730a3;font-size:14px;font-weight:500;margin:0 0 8px 0;line-height:0">Tất cả các đơn hàng từ đang chờ xử lý đến khi hoàn tất.</p>
       
       <div class="frow" style="margin-bottom:8px;gap:8px">
-        <button class="bs" style="border-radius:4px;padding:6px 14px;font-size:12px;background:var(--pu);color:#fff;border-color:var(--pu)" onclick="filterOrd(this, 'all')">Tất cả</button>
-        <button class="bs" style="border-radius:4px;padding:6px 14px;font-size:12px;background:#fff;color:var(--ts)" onclick="filterOrd(this, 'pending')">Đang xử lý</button>
-        <button class="bs" style="border-radius:4px;padding:6px 14px;font-size:12px;background:#fff;color:var(--ts)" onclick="filterOrd(this, 'done')">Hoàn tất</button>
+        <button class="bs" style="border-radius: 0;padding:6px 14px;font-size:12px;background:var(--pu);color:#fff;border-color:var(--pu)" onclick="filterOrd(this, 'all')">Tất cả</button>
+        <button class="bs" style="border-radius: 0;padding:6px 14px;font-size:12px;background:#fff;color:var(--ts)" onclick="filterOrd(this, 'pending')">Đang xử lý</button>
+        <button class="bs" style="border-radius: 0;padding:6px 14px;font-size:12px;background:#fff;color:var(--ts)" onclick="filterOrd(this, 'done')">Hoàn tất</button>
       </div>
 
       <div class="tb-wrap">
@@ -851,7 +988,7 @@ select.finput{-webkit-appearance:none;appearance:none;padding-right:32px;padding
         </div>
         <div class="hero-img">
           <svg width="80" height="80" viewBox="0 0 80 80" fill="none">
-            <circle cx="40" cy="40" r="35" fill="rgba(255,255,255,0.2)"/>
+            <circle cx="40" cy="40" r="35" fill="rgba(91,33,182,0.1)"/>
             <g transform="translate(16, 19)" color="var(--tx)">
               <svg width="44" height="44">
                 <use href="#i-send" />
@@ -868,7 +1005,7 @@ select.finput{-webkit-appearance:none;appearance:none;padding-right:32px;padding
           <div class="ni2">
             <div class="nname">Đặng Quốc Anh</div>
             <div class="nmeta" style="display:flex;align-items:center;gap:4px"><svg class="icon icon-sm" style="color:var(--tl)"><use href="#i-phone"/></svg>0945 678 901 · Hoàn tất lúc 16:30 · Chưa thông báo</div>
-            <div style="margin-top:5px;font-size:10.5px;color:var(--ts);background:#f9fafb;padding:6px 10px;border-radius:4px;display:flex;align-items:flex-start;gap:5px">
+            <div style="margin-top:5px;font-size:10.5px;color:var(--ts);background:#f9fafb;padding:6px 10px;border-radius: 0;display:flex;align-items:flex-start;gap:5px">
               <svg class="icon icon-sm" style="color:var(--tl);flex-shrink:0;margin-top:1px"><use href="#i-message"/></svg>
               "Đồ của bạn đã sạch và sẵn sàng. Cảm ơn đã tin dùng Như Ý!"
             </div>
@@ -885,12 +1022,12 @@ select.finput{-webkit-appearance:none;appearance:none;padding-right:32px;padding
         <div class="nc">
           <div class="nca" style="background:var(--bl)">MT</div>
           <div class="ni2"><div class="nname">Nguyễn Minh Tuấn</div><div class="nmeta">Đang giặt · Hẹn 17:30 · Dự kiến xong 17:15</div></div>
-          <span style="font-size:10.5px;font-weight:600;color:var(--tl);background:#f1f5f9;padding:5px 10px;border-radius:4px;">Đang xử lý</span>
+          <span style="font-size:10.5px;font-weight:600;color:var(--tl);background:#f1f5f9;padding:5px 10px;border-radius: 0;">Đang xử lý</span>
         </div>
         <div class="nc">
           <div class="nca" style="background:var(--pk)">TH</div>
           <div class="ni2"><div class="nname">Trần Thị Hoa</div><div class="nmeta">Đang sấy · Hẹn 17:30 · Dự kiến xong 17:20</div></div>
-          <span style="font-size:10.5px;font-weight:600;color:var(--tl);background:#f1f5f9;padding:5px 10px;border-radius:4px;">Đang xử lý</span>
+          <span style="font-size:10.5px;font-weight:600;color:var(--tl);background:#f1f5f9;padding:5px 10px;border-radius: 0;">Đang xử lý</span>
         </div>
 
 
@@ -912,15 +1049,15 @@ select.finput{-webkit-appearance:none;appearance:none;padding-right:32px;padding
       </div>
 
       <div class="srow">
-        <div class="scard grn">
-          <div class="snum">2.450k</div>
-          <div class="slbl">Doanh thu hôm nay</div>
-        </div>
         <div class="scard pur">
           <div class="snum">24</div>
           <div class="slbl">Đơn hoàn thành</div>
         </div>
         <div class="scard red">
+          <div class="snum">2</div>
+          <div class="slbl">Đơn bị trễ hẹn</div>
+        </div>
+        <div class="scard grn">
           <div class="snum">92%</div>
           <div class="slbl">Hiệu suất máy</div>
         </div>
@@ -929,24 +1066,35 @@ select.finput{-webkit-appearance:none;appearance:none;padding-right:32px;padding
       <div class="crow">
         <div class="card" style="flex:2">
           <div class="ch"><div class="ctitle">Khách hàng tuần này</div></div>
-          <div class="bwrap" style="height:150px;align-items:flex-end">
-            <div class="bbar-g" style="flex:1"><div class="bnum">15</div><div class="bbar b1" style="height:40%;width:100%"></div><div class="blbl">T2</div></div>
-            <div class="bbar-g" style="flex:1"><div class="bnum">22</div><div class="bbar b2" style="height:60%;width:100%"></div><div class="blbl">T3</div></div>
-            <div class="bbar-g" style="flex:1"><div class="bnum">18</div><div class="bbar b3" style="height:50%;width:100%"></div><div class="blbl">T4</div></div>
-            <div class="bbar-g" style="flex:1"><div class="bnum">30</div><div class="bbar b4" style="height:80%;width:100%"></div><div class="blbl">T5</div></div>
-            <div class="bbar-g" style="flex:1"><div class="bnum">45</div><div class="bbar b1" style="height:100%;width:100%;background:var(--pu)"></div><div class="blbl" style="font-weight:700;color:var(--pu)">T6 (Nay)</div></div>
-            <div class="bbar-g" style="flex:1"><div class="bnum">0</div><div class="bbar" style="height:0%;width:100%;background:#e2e8f0"></div><div class="blbl">T7</div></div>
-            <div class="bbar-g" style="flex:1"><div class="bnum">0</div><div class="bbar" style="height:0%;width:100%;background:#e2e8f0"></div><div class="blbl">CN</div></div>
+          <div class="bwrap" style="height:150px; position:relative; align-items:flex-end">
+            <!-- Line Chart SVG -->
+            <svg style="position:absolute; top:40px; left:0; width:100%; height:90px; z-index:0; overflow:visible" viewBox="0 0 700 100" preserveAspectRatio="none">
+              <defs>
+                <linearGradient id="lineGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="var(--pu)" stop-opacity="0.3"></stop>
+                  <stop offset="100%" stop-color="var(--pu)" stop-opacity="0"></stop>
+                </linearGradient>
+              </defs>
+              <path d="M50,70 L150,56 L250,64 L350,40 L450,10 L550,100 L650,100" fill="none" stroke="var(--pu)" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"></path>
+              <path d="M50,70 L150,56 L250,64 L350,40 L450,10 L550,100 L650,100 L650,100 L50,100 Z" fill="url(#lineGrad)"></path>
+            </svg>
+            
+            <div class="bbar-g" style="flex:1; position:relative; z-index:1; height:100%"><div class="bnum" style="position:absolute; bottom:55px">15</div><div style="position:absolute; bottom:43px; width:10px; height:10px; background:#fff; border:2.5px solid var(--pu); border-radius: 0;"></div><div class="blbl" style="position:absolute; bottom:0">T2</div></div>
+            <div class="bbar-g" style="flex:1; position:relative; z-index:1; height:100%"><div class="bnum" style="position:absolute; bottom:68px">22</div><div style="position:absolute; bottom:56px; width:10px; height:10px; background:#fff; border:2.5px solid var(--pu); border-radius: 0;"></div><div class="blbl" style="position:absolute; bottom:0">T3</div></div>
+            <div class="bbar-g" style="flex:1; position:relative; z-index:1; height:100%"><div class="bnum" style="position:absolute; bottom:61px">18</div><div style="position:absolute; bottom:48px; width:10px; height:10px; background:#fff; border:2.5px solid var(--pu); border-radius: 0;"></div><div class="blbl" style="position:absolute; bottom:0">T4</div></div>
+            <div class="bbar-g" style="flex:1; position:relative; z-index:1; height:100%"><div class="bnum" style="position:absolute; bottom:82px">30</div><div style="position:absolute; bottom:70px; width:10px; height:10px; background:#fff; border:2.5px solid var(--pu); border-radius: 0;"></div><div class="blbl" style="position:absolute; bottom:0">T5</div></div>
+            <div class="bbar-g" style="flex:1; position:relative; z-index:1; height:100%"><div class="bnum" style="position:absolute; bottom:110px; color:var(--pu); font-size:11px">45</div><div style="position:absolute; bottom:96px; width:12px; height:12px; background:var(--pu); border:2.5px solid #fff; border-radius: 0; box-shadow:0 0 0 1px var(--pu)"></div><div class="blbl" style="position:absolute; bottom:0; font-weight:700; color:var(--pu)">T6 (Nay)</div></div>
+            <div class="bbar-g" style="flex:1; position:relative; z-index:1; height:100%"><div class="bnum" style="position:absolute; bottom:28px">0</div><div style="position:absolute; bottom:16px; width:10px; height:10px; background:#fff; border:2.5px solid var(--pu); border-radius: 0;"></div><div class="blbl" style="position:absolute; bottom:0">T7</div></div>
+            <div class="bbar-g" style="flex:1; position:relative; z-index:1; height:100%"><div class="bnum" style="position:absolute; bottom:28px">0</div><div style="position:absolute; bottom:16px; width:10px; height:10px; background:#fff; border:2.5px solid var(--pu); border-radius: 0;"></div><div class="blbl" style="position:absolute; bottom:0">CN</div></div>
           </div>
         </div>
         <div class="card" style="flex:1">
           <div class="ch"><div class="ctitle">Dịch vụ</div></div>
           <div style="display:flex;flex-direction:column;align-items:center;gap:15px;margin-top:10px">
-            <div style="width:110px;height:110px;border-radius:50%;background:conic-gradient(var(--pu) 0% 55%, var(--bl) 55% 85%, var(--am) 85% 100%);"></div>
             <div style="width:100%;font-size:11.5px;color:var(--tx);display:flex;flex-direction:column;gap:6px">
-              <div style="display:flex;justify-content:space-between"><span><span style="display:inline-block;width:10px;height:10px;background:var(--pu);border-radius:4px;margin-right:5px"></span>Giặt + Sấy</span><strong>55%</strong></div>
-              <div style="display:flex;justify-content:space-between"><span><span style="display:inline-block;width:10px;height:10px;background:var(--bl);border-radius:4px;margin-right:5px"></span>Chỉ Giặt</span><strong>30%</strong></div>
-              <div style="display:flex;justify-content:space-between"><span><span style="display:inline-block;width:10px;height:10px;background:var(--am);border-radius:4px;margin-right:5px"></span>Sấy khô</span><strong>15%</strong></div>
+              <div style="display:flex;justify-content:space-between"><span><span style="display:inline-block;width:10px;height:10px;background:var(--pu);border-radius: 0;margin-right:5px"></span>Giặt + Sấy</span><strong>55%</strong></div>
+              <div style="display:flex;justify-content:space-between"><span><span style="display:inline-block;width:10px;height:10px;background:var(--bl);border-radius: 0;margin-right:5px"></span>Chỉ Giặt</span><strong>30%</strong></div>
+              <div style="display:flex;justify-content:space-between"><span><span style="display:inline-block;width:10px;height:10px;background:var(--am);border-radius: 0;margin-right:5px"></span>Sấy khô</span><strong>15%</strong></div>
             </div>
           </div>
         </div>
@@ -962,11 +1110,14 @@ select.finput{-webkit-appearance:none;appearance:none;padding-right:32px;padding
 <aside class="rp">
 
   <div>
-    <div class="rpt">Trạng thái máy</div>
+    <div class="frow" style="align-items:center;justify-content:space-between;margin-bottom:12px;gap:5px">
+      <div class="rpt" style="margin-bottom:0">Trạng thái máy</div>
+      <button class="bs" style="padding:4px 8px;font-size:10.5px" onclick="openMachineModal()"><svg class="icon icon-sm" style="color:var(--pu)"><use href="#i-plus"/></svg>Thêm máy</button>
+    </div>
     <div class="mgrid" id="mgrid">
       <!-- Machines will be dynamically rendered here -->
     </div>
-    <div style="font-size:12px;color:var(--ts);margin-top:8px;text-align:left;">3 đơn đang chờ trong hàng đợi</div>
+    <div id="queue-count-text" style="font-size:12px;color:var(--ts);margin-top:8px;text-align:left;">4 đơn đang chờ trong hàng đợi</div>
   </div>
 
   <div>
@@ -1018,7 +1169,7 @@ select.finput{-webkit-appearance:none;appearance:none;padding-right:32px;padding
       <div class="mtitle" style="display:flex;align-items:center;gap:8px"><svg class="icon"><use href="#i-zap"/></svg>Điều chỉnh giờ lấy / Đôn đơn</div>
       <button class="mxbtn" onclick="closeM('pm')"><svg class="icon icon-sm"><use href="#i-x"/></svg></button>
     </div>
-    <div style="background:#f8fafc;border-radius:4px;padding:13px 15px;margin-bottom:14px">
+    <div style="background:#f8fafc;border-radius: 0;padding:13px 15px;margin-bottom:14px">
       <div style="font-size:11.5px;color:var(--ts)">Đơn hàng: <strong id="pm-name" style="color:var(--tx)"></strong></div>
       <div style="font-size:11.5px;color:var(--ts);margin-top:4px">Giờ hẹn cũ: <strong id="pm-old-time" style="color:var(--tx)"></strong></div>
     </div>
@@ -1041,33 +1192,51 @@ select.finput{-webkit-appearance:none;appearance:none;padding-right:32px;padding
     </div>
   </div>
 </div>
+<div class="mov" id="pwd-modal" onclick="closeM('pwd-modal')" style="z-index:110">
+  <div class="modal" onclick="event.stopPropagation()" style="width:320px">
+    <div class="mhd">
+      <div class="mtitle">Đổi mật khẩu</div>
+      <button class="mxbtn" onclick="closeM('pwd-modal')"><svg class="icon icon-sm"><use href="#i-x"/></svg></button>
+    </div>
+    <div style="margin-bottom:12px">
+      <label style="display:block; font-size:11px; font-weight:600; color:#64748b; margin-bottom:4px">Mật khẩu cũ</label>
+      <input type="password" placeholder="Nhập mật khẩu hiện tại" style="width:100%; border:1px solid #e2e8f0; border-radius: 0; height:32px; padding:0 10px; font-size:12px; font-family:inherit">
+    </div>
+    <div style="margin-bottom:20px">
+      <label style="display:block; font-size:11px; font-weight:600; color:#64748b; margin-bottom:4px">Mật khẩu mới</label>
+      <input type="password" placeholder="Nhập mật khẩu mới" style="width:100%; border:1px solid #e2e8f0; border-radius: 0; height:32px; padding:0 10px; font-size:12px; font-family:inherit">
+    </div>
+    <div style="display:flex;gap:9px;justify-content:flex-end">
+      <button class="bs" onclick="closeM('pwd-modal')">Hủy</button>
+      <button class="bp" onclick="closeM('pwd-modal'); showT('Đổi mật khẩu thành công','grn')"><svg class="icon icon-sm"><use href="#i-check"/></svg>Cập nhật</button>
+    </div>
+  </div>
+</div>
 <div class="mov" id="sm" onclick="closeM('sm')">
   <div class="modal" onclick="event.stopPropagation()">
     <div class="mhd">
-      <div class="mtitle">Cài đặt hệ thống</div>
+      <div class="mtitle">Cài đặt</div>
       <button class="mxbtn" onclick="closeM('sm')"><svg class="icon icon-sm"><use href="#i-x"/></svg></button>
     </div>
-    <div class="sdiv">Cấu hình máy giặt/sấy</div>
-    <div class="frow" style="margin-bottom:11px">
-      <div class="fg"><label class="flbl">Số lượng máy tại tiệm</label><input class="finput" type="number" id="cfg-machines" value="4"/></div>
-    </div>
-    <div class="sdiv">Công thức tính thời gian (phút)</div>
-    <div class="frow" style="margin-bottom:11px">
-      <div class="fg"><label class="flbl">Giặt - Phút cơ bản</label><input class="finput" type="number" id="cfg-wbase" value="25"/></div>
-      <div class="fg"><label class="flbl">Giặt - Phút / kg</label><input class="finput" type="number" id="cfg-wkg" value="5"/></div>
-    </div>
-    <div class="frow" style="margin-bottom:11px">
-      <div class="fg"><label class="flbl">Sấy - Phút cơ bản</label><input class="finput" type="number" id="cfg-dbase" value="15"/></div>
-      <div class="fg"><label class="flbl">Sấy - Phút / kg</label><input class="finput" type="number" id="cfg-dkg" value="10"/></div>
+    <div style="margin-bottom:12px; margin-top:10px">
+      <label style="display:block; font-size:11px; font-weight:600; color:#64748b; margin-bottom:4px">Tên cửa hàng</label>
+      <input id="setting-shop-name" type="text" value="Như Ý" style="width:100%; border:1px solid #e2e8f0; border-radius: 0; height:32px; padding:0 10px; font-size:12px; font-family:inherit">
     </div>
     <div class="sdiv" style="display:flex;justify-content:space-between;align-items:center">
       Thời gian phân ca
       <button class="bs" style="padding:4px 8px;font-size:10px" onclick="addShiftCfg()"><svg class="icon icon-sm"><use href="#i-plus"/></svg>Thêm ca</button>
     </div>
     <div id="cfg-shifts-container" style="margin-bottom:18px;display:flex;flex-direction:column;gap:7px"></div>
-    <div style="display:flex;gap:9px;justify-content:flex-end">
-      <button class="bs" onclick="closeM('sm')">Hủy</button>
-      <button class="bp" onclick="saveSettings()"><svg class="icon icon-sm"><use href="#i-check"/></svg>Lưu cài đặt</button>
+    <div style="margin-bottom:18px">
+      <label style="display:block; font-size:11px; font-weight:600; color:#64748b; margin-bottom:4px">Bảo mật</label>
+      <button class="bs" onclick="openM('pwd-modal')" style="width:100%; justify-content:center">Đổi mật khẩu</button>
+    </div>
+    <div style="display:flex;gap:9px;justify-content:space-between">
+      <button class="bs" style="color:#ef4444; border-color:#ef4444" onclick="document.getElementById('app-shell').style.display='none'; document.getElementById('login-shell').style.display='flex'; closeM('sm');">Đăng xuất</button>
+      <div style="display:flex; gap:9px">
+         <button class="bs" onclick="closeM('sm')">Hủy</button>
+         <button class="bp" onclick="saveSettings()"><svg class="icon icon-sm"><use href="#i-check"/></svg>Lưu cài đặt</button>
+      </div>
     </div>
   </div>
 </div>
@@ -1104,14 +1273,14 @@ select.finput{-webkit-appearance:none;appearance:none;padding-right:32px;padding
       <button class="mxbtn" onclick="closeM('sm-staff-details')"><svg class="icon icon-sm"><use href="#i-x"/></svg></button>
     </div>
     <div style="display:flex;flex-direction:column;align-items:center;margin-bottom:20px;margin-top:-10px">
-      <div id="sd-ava" style="width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,var(--pu) 0%,var(--bl) 100%);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:24px;margin-bottom:12px;box-shadow:0 4px 10px rgba(99,102,241,0.2)"></div>
+      <div id="sd-ava" style="width:64px;height:64px;border-radius: 0;background:linear-gradient(135deg,var(--pu) 0%,var(--bl) 100%);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:24px;margin-bottom:12px;box-shadow:0 4px 10px rgba(99,102,241,0.2)"></div>
       <div id="sd-name" style="font-weight:700;font-size:18px;color:var(--tx)"></div>
       <div id="sd-phone" style="font-size:13px;color:var(--ts);margin-top:4px"></div>
     </div>
     <div class="frow" style="margin-bottom:18px">
       <div class="fg">
         <label class="flbl">Ca làm việc hiện tại</label>
-        <div id="sd-shift" style="padding:12px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:4px;font-size:13px;font-weight:500;color:var(--pu);text-align:center"></div>
+        <div id="sd-shift" style="padding:12px;background:#f8fafc;border:1px solid #e2e8f0;border-radius: 0;font-size:13px;font-weight:500;color:var(--pu);text-align:center"></div>
       </div>
     </div>
     <div style="display:flex;gap:9px;justify-content:space-between">
@@ -1135,13 +1304,13 @@ select.finput{-webkit-appearance:none;appearance:none;padding-right:32px;padding
       <div class="fg">
         <label class="flbl">Dịch vụ</label>
         <select class="finput" id="add-svc" onchange="updateAddCalc()">
-          <option value="combo">Giặt + Sấy (chung máy)</option>
+          <option value="combo">Giặt + Sấy</option>
           <option value="wash">Chỉ giặt</option>
           <option value="dry">Chỉ sấy</option>
         </select>
       </div>
     </div>
-    <div id="add-calc" style="background:#f1f5f9;border-radius:4px;padding:11px 14px;margin-bottom:14px;font-size:11.5px;color:var(--ts)">
+    <div id="add-calc" style="background:#f1f5f9;border-radius: 0;padding:11px 14px;margin-bottom:14px;font-size:11.5px;color:var(--ts)">
       <strong>Dự tính:</strong> Vui lòng nhập thông tin để hệ thống kiểm tra giờ.
     </div>
     <div class="frow" style="margin-bottom:11px">
@@ -1154,6 +1323,38 @@ select.finput{-webkit-appearance:none;appearance:none;padding-right:32px;padding
     <div style="display:flex;gap:9px;justify-content:flex-end">
       <button class="bs" onclick="closeM('am')">Hủy</button>
       <button class="bp" onclick="addNewOrder()"><svg class="icon icon-sm"><use href="#i-plus"/></svg>Tạo đơn</button>
+    </div>
+  </div>
+</div>
+
+
+<div class="mov" id="sm-machine" onclick="closeM('sm-machine')">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="mhd">
+      <div class="mtitle">Cài đặt máy</div>
+      <button class="mxbtn" onclick="closeM('sm-machine')"><svg class="icon icon-sm"><use href="#i-x"/></svg></button>
+    </div>
+    <input type="hidden" id="add-mach-id" value="">
+    <div class="frow" style="margin-bottom:11px">
+      <div class="fg" style="width:100%"><label class="flbl">Tên máy</label><input class="finput" type="text" id="add-mach-name" placeholder="Ví dụ: Máy 1" maxlength="10"/></div>
+    </div>
+    <div class="frow" style="margin-bottom:11px">
+      <div class="fg" style="width:100%">
+        <label class="flbl">Loại máy</label>
+        <select class="finput" id="add-mach-type" style="color:#999;" onchange="this.style.color='var(--tx)'">
+          <option value="" disabled selected hidden>Chọn loại máy</option>
+          <option value="wash" style="color:var(--tx)">Máy Giặt</option>
+          <option value="dry" style="color:var(--tx)">Máy Sấy</option>
+        </select>
+      </div>
+    </div>
+    <div class="frow" style="margin-bottom:18px">
+      <div class="fg"><label class="flbl">Công thức: Khối lượng (kg)</label><input class="finput" type="number" id="add-mach-kg" placeholder="VD: 7"/></div>
+      <div class="fg"><label class="flbl">Thời gian xử lý (phút)</label><input class="finput" type="number" id="add-mach-time" placeholder="VD: 30"/></div>
+    </div>
+    <div style="display:flex;gap:9px;">
+      <button class="bs" id="mach-del-btn" style="flex:1;color:var(--rd);border-color:#fecaca;height:38px;padding:0;font-size:14px;font-weight:700" onclick="deleteMachine()"><span style="display:flex;width:100%;align-items:center;justify-content:center;gap:4px;"><svg class="icon icon-sm"><use href="#i-trash"/></svg>Xóa</span></button>
+      <button class="bp" style="flex:2;height:38px;padding:0;font-size:14px;font-weight:700" onclick="saveMachine()"><span style="display:flex;width:100%;align-items:center;justify-content:center;gap:4px;"><svg class="icon icon-sm"><use href="#i-check"/></svg>Lưu cài đặt</span></button>
     </div>
   </div>
 </div>
@@ -1212,15 +1413,15 @@ select.finput{-webkit-appearance:none;appearance:none;padding-right:32px;padding
   updateShiftStatus();
   setInterval(updateShiftStatus, 60000);
 let cfg = { 
-  machines: 4, wBase: 25, wKg: 5, dBase: 15, dKg: 10,
   shifts: [
     { id: 1, name: 'Ca sáng', start: '06:00', end: '14:00' },
     { id: 2, name: 'Ca chiều', start: '14:00', end: '22:00' }
   ]
 };
 let machinesData = [
-  { st: 'giat', user: 'Nguyễn Minh Tuấn', timeLeft: 25 },
-  { st: 'say', user: 'Trần Thị Hoa', timeLeft: 35 }
+  { id: 1, name: 'Máy 1', type: 'wash', kg: 7, time: 30, st: 'dang-chay', user: 'Trần Văn B', timeLeft: 12 },
+  { id: 2, name: 'Máy 2', type: 'dry', kg: 10, time: 45, st: 'dang-chay', user: 'Mai Nguyễn', timeLeft: 40 },
+  { id: 3, name: 'Máy 3', type: 'wash', kg: 15, time: 50, st: 'trong', user: '', timeLeft: 0 }
 ];
 
 let staffData = [
@@ -1357,41 +1558,34 @@ function renderMachines() {
   const grid = document.getElementById('mgrid');
   if(!grid) return;
   let html = '';
-  for(let i=1; i<=cfg.machines; i++) {
-    let m = machinesData[i-1] || { st: 'trong', user: '', timeLeft: 0 };
-    if(m.st === 'giat') {
-      html += `<div class="mc bl on" onclick="showT('Máy ${i} · Đang giặt · ${m.user} · Còn ~${m.timeLeft} phút','grn')">
-        <button class="mc-tog"><div class="td"></div></button>
-        <div class="mc-ico"><svg class="icon" style="width:22px;height:22px"><use href="#i-washer"/></svg></div>
-        <div class="mc-name">Máy ${i}</div>
-        <div class="mc-st">Đang giặt<br><span style="font-size:10px;color:rgba(255,255,255,0.8);font-weight:400">Còn ~${m.timeLeft} phút</span></div>
-      </div>`;
-    } else if(m.st === 'say') {
-      html += `<div class="mc pk on" onclick="showT('Máy ${i} · Đang sấy · ${m.user} · Còn ~${m.timeLeft} phút','grn')">
-        <button class="mc-tog"><div class="td"></div></button>
-        <div class="mc-ico"><svg class="icon" style="width:22px;height:22px"><use href="#i-washer"/></svg></div>
-        <div class="mc-name">Máy ${i}</div>
-        <div class="mc-st">Đang sấy<br><span style="font-size:10px;color:rgba(255,255,255,0.8);font-weight:400">Còn ~${m.timeLeft} phút</span></div>
+  machinesData.forEach((m, idx) => {
+    let i = m.id;
+    let label = m.type === 'wash' ? 'Giặt' : 'Sấy';
+    let icon = m.type === 'wash' ? '#i-washer' : '#i-washer';
+    
+    if(m.st === 'trong') {
+      let typeBadge = `<div style="position:absolute;top:8px;right:8px;background:rgba(0,0,0,0.06);font-size:10px;padding:2px 6px;border-radius: 0;font-weight:700">${label}</div>`;
+      html += `<div class="mc gy" onclick="openMachineModal(${i})" style="position:relative">
+        ${typeBadge}
+        <div class="mc-ico"><svg class="icon" style="width:22px;height:22px"><use href="${icon}"/></svg></div>
+        <div class="mc-name">${m.name}</div>
+        <div class="mc-st" style="font-size:12px;font-weight:600;margin-top:2px;">Trống<br><span style="font-size:10px;font-weight:400;opacity:0.6">--</span></div>
       </div>`;
     } else {
-      html += `<div class="mc gy" onclick="showT('Máy ${i} đang trống, có thể sử dụng','grn')">
-        <button class="mc-tog"><div class="td"></div></button>
-        <div class="mc-ico"><svg class="icon" style="width:22px;height:22px"><use href="#i-washer"/></svg></div>
-        <div class="mc-name">Máy ${i}</div>
-        <div class="mc-st">Trống</div>
+      let bgClass = m.type === 'wash' ? 'bl' : 'pk';
+      let typeBadge = `<div style="position:absolute;top:8px;right:8px;background:rgba(255,255,255,0.25);font-size:10px;padding:2px 6px;border-radius: 0;font-weight:700;color:#fff">${label}</div>`;
+      html += `<div class="mc ${bgClass} on" onclick="showT('${m.name} · Đang ${label.toLowerCase()} · Còn ~${m.timeLeft} phút','grn')" style="position:relative">
+        ${typeBadge}
+        <div class="mc-ico"><svg class="icon" style="width:22px;height:22px;color:#fff"><use href="${icon}"/></svg></div>
+        <div class="mc-name" style="color:#fff">${m.name}</div>
+        <div class="mc-st" style="font-size:12px;font-weight:600;margin-top:2px;color:#fff">Đang ${label.toLowerCase()}<br><span style="font-size:10px;font-weight:400;opacity:0.9">Còn ~${m.timeLeft} phút</span></div>
       </div>`;
     }
-  }
+  });
   grid.innerHTML = html;
 }
 
 function saveSettings() {
-  cfg.machines = parseInt(document.getElementById('cfg-machines').value) || 4;
-  cfg.wBase = parseInt(document.getElementById('cfg-wbase').value) || 25;
-  cfg.wKg = parseInt(document.getElementById('cfg-wkg').value) || 5;
-  cfg.dBase = parseInt(document.getElementById('cfg-dbase').value) || 15;
-  cfg.dKg = parseInt(document.getElementById('cfg-dkg').value) || 10;
-  
   const sNames = document.querySelectorAll('.cfg-shift-name');
   const sStarts = document.querySelectorAll('.cfg-shift-start');
   const sEnds = document.querySelectorAll('.cfg-shift-end');
@@ -1400,12 +1594,28 @@ function saveSettings() {
     cfg.shifts.push({ id: idx + 1, name: input.value, start: sStarts[idx].value, end: sEnds[idx].value });
   });
 
+  const shopName = document.getElementById('setting-shop-name').value || 'WashTrack';
+  const parts = shopName.split(' ').filter(w => w.trim().length > 0);
+  let initials = 'WT';
+  if (parts.length >= 2) initials = (parts[0][0] + parts[1][0]).toUpperCase();
+  else if (parts.length === 1) initials = parts[0].substring(0, 2).toUpperCase();
+  
+  const headerShopName = document.getElementById('header-shop-name');
+  if(headerShopName) headerShopName.innerText = shopName;
+  
+  const headerAvatar = document.getElementById('header-avatar');
+  if(headerAvatar) headerAvatar.innerText = initials;
+  
+  const sidebarShopName = document.getElementById('sidebar-shop-name');
+  if(sidebarShopName) sidebarShopName.innerHTML = shopName + '<br>Laundry';
+  
+  const sidebarAvatar = document.getElementById('sidebar-avatar');
+  if(sidebarAvatar) sidebarAvatar.innerText = initials;
+
   closeM('sm');
   showT('Đã lưu cấu hình cài đặt','grn');
-  updateAddCalc(); 
-  renderMachines();
-  renderShiftCfgs(); // Keep UI in sync
-  renderStaffList(); // In case shift names changed
+  renderShiftCfgs(); 
+  renderStaffList(); 
 }
 
 function renderShiftCfgs() {
@@ -1438,12 +1648,106 @@ function removeShiftCfg(id) {
 }
 
 function calcTime(svc, kg) {
-  let wash = cfg.wBase + cfg.wKg * kg;
-  let dry = cfg.dBase + cfg.dKg * kg;
-  if (svc === 'wash') return { text: 'Giặt', total: wash };
-  if (svc === 'dry') return { text: 'Sấy', total: dry };
-  return { text: 'Giặt + Sấy chung máy', total: wash + dry, combo: true };
+  let washMs = machinesData.filter(m => m.type === 'wash');
+  let dryMs = machinesData.filter(m => m.type === 'dry');
+  
+  let wTime = washMs.length > 0 ? washMs.reduce((a,b)=>a+parseInt(b.time),0)/washMs.length : 30;
+  let dTime = dryMs.length > 0 ? dryMs.reduce((a,b)=>a+parseInt(b.time),0)/dryMs.length : 45;
+  
+  if (svc === 'wash') return { text: 'Giặt', total: Math.round(wTime) };
+  if (svc === 'dry') return { text: 'Sấy', total: Math.round(dTime) };
+  return { text: 'Giặt + Sấy', total: Math.round(wTime + dTime), combo: true };
 }
+
+function playBeep() {
+  const ctx = new (window.AudioContext || window.webkitAudioContext)();
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  osc.connect(gain);
+  gain.connect(ctx.destination);
+  osc.type = 'sine';
+  osc.frequency.setValueAtTime(800, ctx.currentTime);
+  gain.gain.setValueAtTime(0.1, ctx.currentTime);
+  osc.start();
+  osc.stop(ctx.currentTime + 0.3);
+}
+
+function openMachineModal(id = null) {
+  if (id) {
+    let m = machinesData.find(x => x.id === id);
+    if(m) {
+      document.getElementById('add-mach-id').value = id;
+      document.getElementById('add-mach-name').value = m.name;
+      document.getElementById('add-mach-type').value = m.type;
+      document.getElementById('add-mach-type').style.color = 'var(--tx)';
+      document.getElementById('add-mach-kg').value = m.kg;
+      document.getElementById('add-mach-time').value = m.time;
+      document.getElementById('mach-del-btn').style.display = 'block';
+    }
+  } else {
+    document.getElementById('add-mach-id').value = '';
+    document.getElementById('add-mach-name').value = `Máy ${machinesData.length + 1}`;
+    document.getElementById('add-mach-type').value = '';
+    document.getElementById('add-mach-type').style.color = '#999';
+    document.getElementById('add-mach-kg').value = '';
+    document.getElementById('add-mach-time').value = '';
+    document.getElementById('mach-del-btn').style.display = 'none';
+  }
+  openM('sm-machine');
+}
+
+function saveMachine() {
+  let id = document.getElementById('add-mach-id').value;
+  let name = document.getElementById('add-mach-name').value || 'Máy mới';
+  let type = document.getElementById('add-mach-type').value;
+  let kg = parseInt(document.getElementById('add-mach-kg').value);
+  let time = parseInt(document.getElementById('add-mach-time').value);
+
+  if(!type || isNaN(kg) || isNaN(time)) {
+    showT('Vui lòng chọn loại máy và nhập số kg, phút', 'rd');
+    return;
+  }
+  
+  if (id) {
+    let m = machinesData.find(x => x.id == id);
+    if(m) {
+      m.name = name; m.type = type; m.kg = kg; m.time = time;
+    }
+  } else {
+    let newId = machinesData.length ? Math.max(...machinesData.map(m=>m.id)) + 1 : 1;
+    machinesData.push({ id: newId, name, type, kg, time, st: 'trong', user: '', timeLeft: 0 });
+  }
+  closeM('sm-machine');
+  showT('Đã lưu máy móc', 'grn');
+  renderMachines();
+}
+
+function deleteMachine() {
+  let id = document.getElementById('add-mach-id').value;
+  if(id) {
+    machinesData = machinesData.filter(x => x.id != id);
+  }
+  closeM('sm-machine');
+  showT('Đã xóa máy', 'grn');
+  renderMachines();
+}
+
+function machineTimer() {
+  let updated = false;
+  machinesData.forEach(m => {
+    if(m.st !== 'trong' && m.timeLeft > 0) {
+      m.timeLeft -= 1;
+      updated = true;
+      if(m.timeLeft <= 0) {
+        m.st = 'trong';
+        playBeep();
+        showT(`[THÔNG BÁO] ${m.name} đã chạy xong cho ${m.user}!`, 'pu');
+      }
+    }
+  });
+  if(updated) renderMachines();
+}
+setInterval(machineTimer, 60000); // 1 minute countdown
 
 function updateAddCalc() {
   const svc = document.getElementById('add-svc').value;
@@ -1593,7 +1897,7 @@ function openOM(name, deadline, atRisk, svcParam, isWaiting){
   stages.forEach((s,i)=>{
     const done=i<cur,act=i===cur;
     sh+=`<div style="flex:1;text-align:center;position:relative">
-      <div style="width:26px;height:26px;border-radius:50%;margin:0 auto;z-index:1;position:relative;
+      <div style="width:26px;height:26px;border-radius: 0;margin:0 auto;z-index:1;position:relative;
         background:${done||act?'#7c3aed':'#e2e8f0'};color:${done||act?'#fff':'#9ca3af'};
         display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700">
         ${done?'✓':i+1}</div>
@@ -1602,13 +1906,13 @@ function openOM(name, deadline, atRisk, svcParam, isWaiting){
     </div>`;
   });
   sh+='</div>';
-  const risk=atRisk?`<div style="background:#fee2e2;border-radius:4px;padding:11px 13px;margin:11px 0;border-left:3px solid var(--rd)">
+  const risk=atRisk?`<div style="background:#fee2e2;border-radius: 0;padding:11px 13px;margin:11px 0;border-left:3px solid var(--rd)">
     <div style="font-size:11.5px;font-weight:700;color:var(--rd);margin-bottom:3px">Cảnh báo trễ hẹn</div>
     <div style="font-size:11.5px;color:#9ca3af">Dự kiến xong 18:35 · Hẹn ${deadline} · Trễ ~65 phút</div>
   </div>`:'';
   
   let svcText = '';
-  if (svcType === 'combo') svcText = 'Giặt + Sấy chung máy';
+  if (svcType === 'combo') svcText = 'Giặt + Sấy';
   else if (svcType === 'wash') svcText = 'Chỉ Giặt';
   else if (svcType === 'dry') svcText = 'Chỉ Sấy';
 
@@ -1618,11 +1922,16 @@ function openOM(name, deadline, atRisk, svcParam, isWaiting){
   let autoMsg = '';
   if (!isWaiting && actStage && (actStage === 'Đang giặt' || actStage === 'Đang sấy')) {
     let processName = actStage === 'Đang giặt' ? 'Giặt' : 'Sấy';
-    autoMsg = `<div style="background:#f0fdf4;border-radius:4px;padding:11px 13px;margin:11px 0;border-left:3px solid #22c55e;font-size:11.5px;color:#166534">
+    let msgDetail = 'Hết đếm ngược, lấy đồ ra để thực hiện công đoạn tiếp theo.';
+    if (svcType === 'combo' && actStage === 'Đang giặt') {
+      msgDetail = 'Hết đếm ngược, hệ thống sẽ đề xuất máy sấy trống phù hợp để chuyển đồ sang (nếu hết máy trống sẽ vào trạng thái Chờ).';
+    }
+    
+    autoMsg = `<div style="background:#f0fdf4;border-radius: 0;padding:11px 13px;margin:11px 0;border-left:3px solid #22c55e;font-size:11.5px;color:#166534">
       <div style="font-size:14px;font-weight:700;margin-bottom:4px;display:flex;align-items:center;gap:4px">
         <svg class="icon icon-sm"><use href="#i-clock"/></svg> Còn ~25 phút ${processName}
       </div>
-      <div>Hết đếm ngược, hệ thống sẽ <strong>tự động</strong> chuyển qua công đoạn tiếp theo.</div>
+      <div>${msgDetail}</div>
     </div>`;
   }
 
@@ -1633,7 +1942,7 @@ function openOM(name, deadline, atRisk, svcParam, isWaiting){
       <div style="margin-left:auto;text-align:right">
         <div style="font-size:20px;font-weight:900;color:${atRisk?'#ef4444':'#1e1b4b'};display:flex;align-items:center;gap:4px;justify-content:flex-end">
           ${deadline}
-          <button style="background:none;border:none;cursor:pointer;color:var(--tl);padding:2px;border-radius:4px;" onclick="openDonDon('${name}', '${deadline}')" title="Đổi giờ lấy / Đôn đơn">
+          <button style="background:none;border:none;cursor:pointer;color:var(--tl);padding:2px;border-radius: 0;" onclick="openDonDon('${name}', '${deadline}')" title="Đổi giờ lấy / Đôn đơn">
             <svg class="icon icon-sm" style="width:16px;height:16px"><use href="#i-edit"/></svg>
           </button>
         </div>
@@ -1647,12 +1956,19 @@ function openOM(name, deadline, atRisk, svcParam, isWaiting){
 
   const btnsDiv = document.getElementById('om-btns');
   if(isWaiting) {
+    let reqType = 'wash';
+    if(actStage === 'Đang sấy') reqType = 'dry';
+    
     let opts = '';
-    for(let i=1; i<=cfg.machines; i++) {
-      let m = machinesData[i-1] || {st: 'trong'};
-      let isBusy = m.st !== 'trong';
-      opts += `<option value="m${i}" data-busy="${isBusy}">Máy ${i} ${isBusy ? '(Đang bận)' : '(Trống)'}</option>`;
-    }
+    machinesData.forEach(m => {
+      if(m.type === reqType) {
+        let isBusy = m.st !== 'trong';
+        opts += `<option value="${m.id}" data-busy="${isBusy}">${m.name} ${isBusy ? '(Đang bận)' : '(Trống)'}</option>`;
+      }
+    });
+    
+    if(opts === '') opts = '<option disabled>Không có máy phù hợp</option>';
+    
     btnsDiv.innerHTML = `
       <button class="bs" onclick="closeM('om')">Đóng</button>
       <select class="finput" style="width:160px;padding:7px 10px;height:35px" id="om-mach" onchange="checkMachStatus()">${opts}</select>
@@ -1682,8 +1998,16 @@ function openOM(name, deadline, atRisk, svcParam, isWaiting){
 }
 
 function startOrder(name) {
-  const m = document.getElementById('om-mach');
-  const sel = m.options[m.selectedIndex].text;
+  const mSelect = document.getElementById('om-mach');
+  const selText = mSelect.options[mSelect.selectedIndex].text;
+  const mId = mSelect.value;
+  
+  let m = machinesData.find(x => x.id == mId);
+  if(m) {
+    m.st = m.type;
+    m.user = name;
+    m.timeLeft = m.time;
+  }
   
   document.querySelectorAll('.orow').forEach(row => {
     let nameEl = row.querySelector('.oname');
@@ -1692,27 +2016,13 @@ function startOrder(name) {
         row.classList.remove('risk');
         let rkBadge = row.querySelector('.chip.rk');
         if(rkBadge) rkBadge.remove();
-        
-        let etaStrong = row.querySelector('.calc-eta strong');
-        if(etaStrong) {
-          let newTime = etaStrong.innerText.trim();
-          let otime = row.querySelector('.otime');
-          if(otime) {
-            otime.innerText = otime.innerText.replace(/Hẹn \d{2}:\d{2}/, 'Hẹn ' + newTime);
-          }
-          
-          let oldOnclick = row.getAttribute('onclick');
-          if(oldOnclick) {
-            let newOnclick = oldOnclick.replace(/'\d{2}:\d{2}'/, "'" + newTime + "'").replace(/true/, 'false');
-            row.setAttribute('onclick', newOnclick);
-          }
-        }
       }
     }
   });
 
   closeM('om');
-  showT(`Đã xếp ${name} vào ${sel}`,'grn');
+  renderMachines();
+  showT(`Đã xếp ${name} vào ${selText}`,'grn');
 }
 function doneOrder(name, isCombo) {
   closeM('om');
@@ -1847,17 +2157,17 @@ function quickCheck(){
   res.classList.add('show');
   
   if (kg <= 0) {
-    res.innerHTML = `<div style="background:#fef3c7;border-radius:4px;padding:10px 13px;border-left:3px solid var(--am)"><strong style="color:#92400e">Thiếu thông tin</strong> <span style="font-size:11.5px;color:var(--ts)">· Vui lòng nhập số kg</span></div>`;
+    res.innerHTML = `<div style="background:#fef3c7;border-radius: 0;padding:10px 13px;border-left:3px solid var(--am)"><strong style="color:#92400e">Thiếu thông tin</strong> <span style="font-size:11.5px;color:var(--ts)">· Vui lòng nhập số kg</span></div>`;
     return;
   }
   
   // Safe margin is ~30 mins.
   if(avail >= needed + 30) {
-    res.innerHTML=`<div style="background:#dcfce7;border-radius:4px;padding:10px 13px;border-left:3px solid var(--gn)"><strong style="color:#15803d">Khả thi</strong> <span style="font-size:11.5px;color:var(--ts)">· Đủ thời gian xử lý (~${needed} phút)</span></div>`;
+    res.innerHTML=`<div style="background:#dcfce7;border-radius: 0;padding:10px 13px;border-left:3px solid var(--gn)"><strong style="color:#15803d">Khả thi</strong> <span style="font-size:11.5px;color:var(--ts)">· Đủ thời gian xử lý (~${needed} phút)</span></div>`;
   } else if(avail >= needed) {
-    res.innerHTML=`<div style="background:#fef3c7;border-radius:4px;padding:10px 13px;border-left:3px solid var(--am)"><strong style="color:#92400e">Có rủi ro</strong> <span style="font-size:11.5px;color:var(--ts)">· Vừa kịp nhưng dự phòng thấp</span></div>`;
+    res.innerHTML=`<div style="background:#fef3c7;border-radius: 0;padding:10px 13px;border-left:3px solid var(--am)"><strong style="color:#92400e">Có rủi ro</strong> <span style="font-size:11.5px;color:var(--ts)">· Vừa kịp nhưng dự phòng thấp</span></div>`;
   } else {
-    res.innerHTML=`<div style="background:#fee2e2;border-radius:4px;padding:10px 13px;border-left:3px solid var(--rd)"><strong style="color:var(--rd)">Không khả thi</strong> <span style="font-size:11.5px;color:var(--ts)">· Cần ít nhất ${needed} phút. Hẹn sau ${toTime(16*60+45+needed)}</span></div>`;
+    res.innerHTML=`<div style="background:#fee2e2;border-radius: 0;padding:10px 13px;border-left:3px solid var(--rd)"><strong style="color:var(--rd)">Không khả thi</strong> <span style="font-size:11.5px;color:var(--ts)">· Cần ít nhất ${needed} phút. Hẹn sau ${toTime(16*60+45+needed)}</span></div>`;
   }
 }
 
