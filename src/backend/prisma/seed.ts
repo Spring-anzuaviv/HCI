@@ -115,6 +115,14 @@ async function main() {
       groupCode: "GROUP-001",
       stages: [
         {
+          stage: "SORTING",
+          plannedStartAt: minutesFromNow(-90),
+          plannedEndAt: minutesFromNow(-85),
+          actualStartedAt: minutesFromNow(-90),
+          actualEndedAt: minutesFromNow(-85),
+          status: "COMPLETED",
+        },
+        {
           machineId: washer1.machineId,
           stage: "WASH",
           plannedStartAt: minutesFromNow(-85),
@@ -124,12 +132,26 @@ async function main() {
           status: "COMPLETED",
         },
         {
+          stage: "TRANSFER",
+          plannedStartAt: minutesFromNow(-40),
+          plannedEndAt: minutesFromNow(-35),
+          actualStartedAt: minutesFromNow(-40),
+          actualEndedAt: minutesFromNow(-35),
+          status: "COMPLETED",
+        },
+        {
           machineId: dryer1.machineId,
           stage: "DRY",
           plannedStartAt: minutesFromNow(-35),
           plannedEndAt: minutesFromNow(15),
           actualStartedAt: minutesFromNow(-30),
           status: "RUNNING",
+        },
+        {
+          stage: "PACKING",
+          plannedStartAt: minutesFromNow(15),
+          plannedEndAt: minutesFromNow(25),
+          status: "PLANNED",
         },
       ],
     },
@@ -144,12 +166,26 @@ async function main() {
       groupCode: "GROUP-001",
       stages: [
         {
+          stage: "SORTING",
+          plannedStartAt: minutesFromNow(-80),
+          plannedEndAt: minutesFromNow(-75),
+          actualStartedAt: minutesFromNow(-80),
+          actualEndedAt: minutesFromNow(-75),
+          status: "COMPLETED",
+        },
+        {
           machineId: washer2.machineId,
           stage: "WASH",
           plannedStartAt: minutesFromNow(-35),
           plannedEndAt: minutesFromNow(20),
           actualStartedAt: minutesFromNow(-30),
           status: "RUNNING",
+        },
+        {
+          stage: "PACKING",
+          plannedStartAt: minutesFromNow(20),
+          plannedEndAt: minutesFromNow(30),
+          status: "PLANNED",
         },
       ],
     },
@@ -163,10 +199,24 @@ async function main() {
       estimatedAt: minutesFromNow(80),
       stages: [
         {
+          stage: "SORTING",
+          plannedStartAt: minutesFromNow(-20),
+          plannedEndAt: minutesFromNow(-15),
+          actualStartedAt: minutesFromNow(-20),
+          actualEndedAt: minutesFromNow(-15),
+          status: "COMPLETED",
+        },
+        {
           machineId: dryer2.machineId,
           stage: "DRY",
           plannedStartAt: minutesFromNow(5),
           plannedEndAt: minutesFromNow(50),
+          status: "PLANNED",
+        },
+        {
+          stage: "PACKING",
+          plannedStartAt: minutesFromNow(50),
+          plannedEndAt: minutesFromNow(60),
           status: "PLANNED",
         },
       ],
@@ -180,6 +230,14 @@ async function main() {
       pickupAt: minutesFromNow(-10),
       estimatedAt: minutesFromNow(-25),
       stages: [
+        {
+          stage: "SORTING",
+          plannedStartAt: minutesFromNow(-240),
+          plannedEndAt: minutesFromNow(-235),
+          actualStartedAt: minutesFromNow(-240),
+          actualEndedAt: minutesFromNow(-235),
+          status: "COMPLETED",
+        },
         {
           machineId: washer2.machineId,
           stage: "WASH",
@@ -198,6 +256,22 @@ async function main() {
           actualEndedAt: minutesFromNow(-110),
           status: "COMPLETED",
         },
+        {
+          stage: "TRANSFER",
+          plannedStartAt: minutesFromNow(-110),
+          plannedEndAt: minutesFromNow(-105),
+          actualStartedAt: minutesFromNow(-110),
+          actualEndedAt: minutesFromNow(-105),
+          status: "COMPLETED",
+        },
+        {
+          stage: "PACKING",
+          plannedStartAt: minutesFromNow(-105),
+          plannedEndAt: minutesFromNow(-95),
+          actualStartedAt: minutesFromNow(-105),
+          actualEndedAt: minutesFromNow(-95),
+          status: "COMPLETED",
+        },
       ],
     },
     {
@@ -211,12 +285,28 @@ async function main() {
       completedAt: minutesFromNow(-250),
       stages: [
         {
+          stage: "SORTING",
+          plannedStartAt: minutesFromNow(-360),
+          plannedEndAt: minutesFromNow(-355),
+          actualStartedAt: minutesFromNow(-360),
+          actualEndedAt: minutesFromNow(-355),
+          status: "COMPLETED",
+        },
+        {
           machineId: washer1.machineId,
           stage: "WASH",
           plannedStartAt: minutesFromNow(-345),
           plannedEndAt: minutesFromNow(-300),
           actualStartedAt: minutesFromNow(-345),
           actualEndedAt: minutesFromNow(-300),
+          status: "COMPLETED",
+        },
+        {
+          stage: "PACKING",
+          plannedStartAt: minutesFromNow(-300),
+          plannedEndAt: minutesFromNow(-290),
+          actualStartedAt: minutesFromNow(-300),
+          actualEndedAt: minutesFromNow(-290),
           status: "COMPLETED",
         },
       ],
@@ -229,7 +319,27 @@ async function main() {
       readyAt: minutesFromNow(-5),
       pickupAt: minutesFromNow(240),
       estimatedAt: minutesFromNow(95),
-      stages: [],
+      stages: [
+        {
+          stage: "SORTING",
+          plannedStartAt: minutesFromNow(-5),
+          plannedEndAt: minutesFromNow(0),
+          status: "PLANNED",
+        },
+        {
+          machineId: dryer1.machineId,
+          stage: "DRY",
+          plannedStartAt: minutesFromNow(5),
+          plannedEndAt: minutesFromNow(55),
+          status: "PLANNED",
+        },
+        {
+          stage: "PACKING",
+          plannedStartAt: minutesFromNow(55),
+          plannedEndAt: minutesFromNow(65),
+          status: "PLANNED",
+        },
+      ],
     },
   ];
 

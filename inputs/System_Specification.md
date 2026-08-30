@@ -14,9 +14,10 @@ Các quy tắc chính:
 
 - Chỉ có hai loại máy: `WASHER` và `DRYER`.
 - Một máy chỉ chạy một order stage trong một khoảng thời gian.
-- Chỉ stage chạy máy được lưu trong `order_stages`.
-- Sorting, transfer, packing không tạo record riêng; thời lượng của chúng được
-  tính bởi scheduler.
+- Tất cả stage `SORTING`, `WASH`, `TRANSFER`, `DRY`, `PACKING` đều được lưu
+  trong `order_stages`.
+- `machineId` là `null` với stage thủ công; thời lượng của stage thủ công lấy
+  từ cấu hình scheduler.
 - Lịch kế hoạch có thể thay đổi. Stage đã hoàn tất hoặc đang chạy không bị
   reschedule.
 - Các order có cùng `groupCode` được xử lý riêng nhưng khách chỉ được báo lấy
@@ -26,11 +27,11 @@ Các quy tắc chính:
 
 ### 1.1. Loại dịch vụ
 
-| Dịch vụ | Chuỗi xử lý | Stage chạy máy được lưu |
+| Dịch vụ | Chuỗi xử lý | Stage được lưu |
 |---|---|---|
-| `WASH` | phân loại → giặt → đóng gói | `WASH` trên `WASHER` |
-| `DRY` | phân loại → sấy → đóng gói | `DRY` trên `DRYER` |
-| `WASH_DRY` | phân loại → giặt → chuyển đồ → sấy → đóng gói | `WASH` trên `WASHER`, sau đó `DRY` trên `DRYER` |
+| `WASH` | phân loại → giặt → đóng gói | `SORTING`, `WASH` trên `WASHER`, `PACKING` |
+| `DRY` | phân loại → sấy → đóng gói | `SORTING`, `DRY` trên `DRYER`, `PACKING` |
+| `WASH_DRY` | phân loại → giặt → chuyển đồ → sấy → đóng gói | `SORTING`, `WASH` trên `WASHER`, `TRANSFER`, `DRY` trên `DRYER`, `PACKING` |
 
 Không có máy vừa giặt vừa sấy.
 
@@ -52,13 +53,18 @@ Nếu một lần nhận phải tách đồ trắng/màu hoặc vượt sức ch
 nhiều order và gán cùng một `groupCode`. Không dùng một order có khối lượng
 vượt sức chứa rồi trông chờ scheduler tự chia mẻ.
 
+Tất cả order có cùng `groupCode` phải dùng cùng một `pickupAt`. Nếu nhân viên
+đổi giờ hẹn của một order trong nhóm, hệ thống áp dụng `pickupAt` mới cho toàn
+bộ order cùng `groupCode` để tránh một nhóm có nhiều giờ lấy khác nhau.
+
 ### 1.3. Dữ liệu order stage
 
 `OrderStage` là model Prisma của bảng database `order_stages`; quan hệ trên
-`LaundryOrder` có tên `stages`. Đây là nguồn lịch duy nhất. Mỗi record có thể
-là stage `WASH` hoặc `DRY`; `machineId` bắt buộc với hai stage này.
-`machineId` chỉ nullable ở mức schema để giữ khả năng mở rộng, không được để
-null khi tạo stage máy.
+`LaundryOrder` có tên `stages`. Đây là nguồn lịch duy nhất. Các stage hợp lệ
+là `SORTING`, `WASH`, `TRANSFER`, `DRY`, `PACKING`.
+
+- `machineId` bắt buộc với `WASH` và `DRY`.
+- `machineId` phải là `null` với `SORTING`, `TRANSFER` và `PACKING`.
 
 - `PLANNED`: có lịch nhưng chưa bắt đầu.
 - `RUNNING`: nhân viên đã đưa đồ vào máy.
@@ -70,8 +76,8 @@ null khi tạo stage máy.
   bắt buộc khi `status = RUNNING`, `actualEndedAt` bắt buộc khi
   `status = COMPLETED`.
 
-Sorting, transfer, packing và buffer không lưu thành stage; chúng chỉ là các
-khoảng thời gian trong phép tính ETA.
+Sorting, transfer và packing được lưu thành stage. `BUFFER_TIME` chỉ là khoảng
+dự phòng sau khi `PACKING` hoàn tất và không tạo stage riêng.
 
 ## 2. Thuật toán dùng chung
 
@@ -135,22 +141,24 @@ chọn `machineId` nhỏ hơn để kết quả deterministic.
 `calculateETA()` thực hiện theo thứ tự:
 
 1. Bắt đầu từ `readyTime`.
-2. Cộng `SORTING_TIME`.
+2. Lập hoặc đọc stage `SORTING`.
 3. Tính stage máy đầu tiên còn lại.
 4. Nếu stage đang `RUNNING`, giữ nguyên stage và dùng thời điểm kết thúc dự
    kiến từ `actualStartedAt + processingMinutes`.
 5. Nếu stage là `PLANNED` và slot còn hợp lệ, giữ nguyên slot.
 6. Nếu stage chưa có lịch hoặc slot không còn hợp lệ, gọi
    `findEarliestAvailableSlot()`.
-7. Với `WASH_DRY`, sau khi giặt xong cộng `TRANSFER_TIME`, rồi lập lịch sấy.
-8. Sau stage máy cuối cùng, cộng `PACKING_TIME` và `BUFFER_TIME`.
+7. Với `WASH_DRY`, lập hoặc đọc stage `TRANSFER`, rồi lập lịch `DRY` sau khi
+   transfer hoàn tất.
+8. Lập hoặc đọc stage `PACKING` sau stage máy cuối cùng.
+9. Cộng `BUFFER_TIME` sau khi `PACKING` hoàn tất.
 
 ```text
-estimatedAt = finishOfLastMachineStage + PACKING_TIME + BUFFER_TIME
+estimatedAt = packingStage.plannedEndAt + BUFFER_TIME
 ```
 
-Nếu order đang ở `FOLDING_PACKING`, không được lập thêm stage máy; ETA là
-`max(now, thời điểm stage máy cuối hoàn tất) + PACKING_TIME + BUFFER_TIME`.
+Nếu order đang ở `FOLDING_PACKING`, không được lập thêm stage máy; hệ thống đọc
+stage `PACKING` và tính ETA từ `packingStage.plannedEndAt + BUFFER_TIME`.
 Nếu order đã `READY`, `estimatedAt` giữ nguyên và không tạo thêm stage máy.
 
 ETA phải tính theo từng máy và từng khoảng trống, không được chỉ cộng một số
@@ -164,11 +172,11 @@ Order không có `groupCode`:
 feasible = estimatedAt <= pickupAt
 ```
 
-Các order có cùng `groupCode`:
+Các order có cùng `groupCode` dùng chung một `pickupAt`:
 
 ```text
 groupETA = MAX(estimatedAt của mọi order trong nhóm)
-feasible = groupETA <= pickupAt
+feasible = groupETA <= pickupAt chung của nhóm
 ```
 
 Không lấy trung bình ETA. Màn hình phải hiển thị cả `pickupAt` và `groupETA`
@@ -266,11 +274,13 @@ status = COMPLETED
 ```
 
 6. Máy chuyển thành `AVAILABLE` nếu không còn stage thực tế khác.
-7. Với `WASH_DRY`, order chuyển sang chờ stage `DRY`.
-8. Với `WASH` hoặc sau stage `DRY`, order chuyển sang `FOLDING_PACKING` hoặc
-   `READY` theo quy ước workflow của prototype.
-9. Hệ thống chạy `recalculateSchedule()` cho các stage chưa bắt đầu.
-10. Hệ thống gọi `getWorkQueue()` để đề xuất việc tiếp theo.
+7. Với `WASH_DRY`, sau khi `WASH` hoàn tất, order tiếp tục qua `TRANSFER` rồi
+   chờ stage `DRY` theo schedule.
+8. Với `WASH`, hoặc sau khi `DRY` cuối cùng hoàn tất, order chuyển sang
+   `FOLDING_PACKING` và xử lý stage `PACKING`.
+9. Chỉ khi stage `PACKING` đạt `COMPLETED` thì order mới chuyển sang `READY`.
+10. Hệ thống chạy `recalculateSchedule()` cho các stage chưa bắt đầu.
+11. Hệ thống gọi `getWorkQueue()` để đề xuất việc tiếp theo.
 
 Stage đã `COMPLETED` không bị đổi lịch. Nếu máy lỗi, không chuyển máy thành
 `AVAILABLE` và không tự động lập lịch mới trên máy đó.
@@ -285,33 +295,48 @@ Hai chế độ dùng cùng thuật toán:
 - **Preview:** chỉ trả recommendation, không ghi database.
 - **Active:** sau khi nhân viên xác nhận và đưa đồ vào máy mới ghi stage thật.
 
-### 6.1. Lọc candidate
+### 6.1. Xác định việc tiếp theo
 
-Order là candidate khi:
+`order_stages` là nguồn lịch duy nhất. Smart Work Queue không tự tạo một thứ tự
+khác với schedule hiện tại.
+
+Khi một machine `AVAILABLE`:
+
+1. Tìm stage `PLANNED` sớm nhất đã được gán cho machine đó.
+2. Kiểm tra lại machine, capacity, trạng thái order và điều kiện stage trước đó.
+3. Nếu stage vẫn hợp lệ, đề xuất chính stage đó.
+4. Nếu machine chưa có stage `PLANNED` tiếp theo hoặc slot hiện tại không còn
+   hợp lệ, gọi `recalculateSchedule()` rồi đọc lại stage đầu tiên của machine.
+
+Stage máy chỉ hợp lệ khi:
 
 ```text
 order chưa COMPLETED
-stage kế tiếp cần đúng loại máy
+stage là WASH hoặc DRY đúng với loại machine
 weightKg <= machine.capacityKg
 machine đang hoạt động và AVAILABLE
-order không có stage khác đang RUNNING
+order không có stage máy khác đang RUNNING
+các stage trước đó đã đủ điều kiện hoàn tất
 ```
 
-Với `WASH_DRY`, order chỉ là candidate cho `DRYER` sau khi stage `WASH` đã
-`COMPLETED` và transfer đã đủ thời gian.
+Với `WASH_DRY`, stage `DRY` chỉ được bắt đầu sau khi `WASH` đã `COMPLETED` và
+`TRANSFER` đã hoàn tất theo workflow.
 
-### 6.2. Thứ tự đề xuất
+### 6.2. Cách hiển thị đề xuất
 
-Sau khi tính ETA, xếp theo thứ tự:
+Work Queue hiển thị stage `PLANNED` tiếp theo của machine cùng 2–3 lý do dễ hiểu,
+ví dụ:
 
-1. Order có nguy cơ trễ trước.
-2. `pickupAt` gần hơn.
-3. Còn nhiều stage máy hơn.
-4. `createdAt` sớm hơn.
-5. `orderId` nhỏ hơn để phá hòa.
+- đây là stage tiếp theo trong schedule hiện tại;
+- `pickupAt` đang gần hoặc order có nguy cơ trễ;
+- stage trước đã hoàn tất và machine phù hợp.
 
-Nếu thiếu deadline, order vẫn có thể được đề xuất nhưng phải ghi rõ lý do
+Nếu thiếu deadline, vẫn có thể đề xuất theo schedule nhưng phải ghi rõ
 "Chưa đủ dữ liệu để đánh giá nguy cơ trễ".
+
+Nếu nhân viên muốn chọn một order khác với stage đang được schedule, hệ thống
+phải xem đó là thay đổi lịch: chạy simulation/recalculate, hiển thị ảnh hưởng,
+rồi chỉ áp dụng sau khi nhân viên xác nhận.
 
 ### 6.3. Luồng xác nhận
 
@@ -320,14 +345,15 @@ Nếu thiếu deadline, order vẫn có thể được đề xuất nhưng phả
 3. Nhân viên có thể chọn order hợp lệ khác.
 4. Nhân viên nhấn xác nhận và đưa đồ vào máy.
 5. Hệ thống kiểm tra lại machine, capacity và trạng thái order.
-6. Hệ thống tạo `order_stage`:
+6. Hệ thống cập nhật stage `PLANNED` đã được schedule, không tạo stage trùng:
 
 ```text
-stage = WASH hoặc DRY
-machineId = máy được chọn
 actualStartedAt = thời điểm xác nhận thực tế
 status = RUNNING
 ```
+
+Nếu stage `PLANNED` không còn hợp lệ, không được bắt đầu trực tiếp; phải
+`recalculateSchedule()` trước.
 
 7. Hệ thống cập nhật order thành `WASHING` hoặc `DRYING` và machine thành
    `RUNNING`.
@@ -424,8 +450,12 @@ ETA, risk và next action. Notification preview phải áp dụng cùng quy tắ
 - ETA nhóm luôn là giá trị lớn nhất của các ETA thành viên.
 - Simulation không thay đổi database.
 - Reschedule không đổi stage đã hoàn tất hoặc đang chạy.
+- Recommendation luôn đọc từ schedule hiện tại; Work Queue không tự tạo thứ tự
+  xử lý khác với `order_stages`.
 - Recommendation có lý do và luôn yêu cầu nhân viên xác nhận.
+- Các order cùng `groupCode` luôn dùng cùng một `pickupAt`.
 - Order cùng nhóm chỉ tạo một thông báo khi toàn bộ nhóm `READY`.
+- Order chỉ chuyển `READY` sau khi stage `PACKING` đã `COMPLETED`.
 
 ## 11. Ngoài phạm vi prototype
 
@@ -433,5 +463,4 @@ ETA, risk và next action. Notification preview phải áp dụng cùng quy tắ
 - Tự động chia một order thành nhiều order.
 - Gửi Zalo production.
 - Lưu lịch sử expedite/audit riêng.
-- Lưu từng stage thủ công vào database.
 - Tối ưu lịch bằng AI hoặc thuật toán không deterministic.
