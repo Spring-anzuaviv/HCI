@@ -2,6 +2,7 @@
 -- before the old table is removed.
 
 ALTER TABLE laundry_orders
+    ADD COLUMN store_id INTEGER,
     ADD COLUMN ready_at TIMESTAMP(3),
     ADD COLUMN group_code VARCHAR(100);
 
@@ -70,9 +71,23 @@ ALTER TABLE order_stages
 CREATE INDEX laundry_orders_group_code_idx ON laundry_orders(group_code);
 CREATE INDEX laundry_orders_status_idx ON laundry_orders(status);
 CREATE INDEX laundry_orders_pickup_at_idx ON laundry_orders(pickup_at);
+CREATE INDEX laundry_orders_store_id_status_idx ON laundry_orders(store_id, status);
 CREATE INDEX order_stages_order_id_stage_idx ON order_stages(order_id, stage);
 CREATE INDEX order_stages_machine_status_start_idx
     ON order_stages(machine_id, status, planned_start_at);
+CREATE UNIQUE INDEX order_stages_order_id_stage_key
+    ON order_stages(order_id, stage);
+
+UPDATE laundry_orders orders
+SET store_id = machines.store_id
+FROM machine_runs runs
+JOIN machines ON machines.machine_id = runs.machine_id
+WHERE runs.order_id = orders.order_id;
+
+ALTER TABLE laundry_orders
+    ALTER COLUMN store_id SET NOT NULL,
+    ADD CONSTRAINT laundry_orders_store_id_fkey
+        FOREIGN KEY (store_id) REFERENCES stores(store_id) ON DELETE CASCADE ON UPDATE CASCADE;
 
 ALTER TABLE machines
     ADD CONSTRAINT machines_type_check CHECK (type IN ('WASHER', 'DRYER'));

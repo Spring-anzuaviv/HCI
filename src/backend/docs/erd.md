@@ -51,6 +51,7 @@ erDiagram
 
     LAUNDRY_ORDERS {
         INTEGER order_id PK
+        INTEGER store_id FK
         INTEGER customer_id FK
         NUMERIC_5_2 weight_kg
         VARCHAR_50 service_type
@@ -78,6 +79,7 @@ erDiagram
     STORES ||--o{ EMPLOYEES : "has"
     STORES ||--o{ WORK_SHIFTS : "has"
     STORES ||--o{ MACHINES : "has"
+    STORES ||--o{ LAUNDRY_ORDERS : "has"
 
     EMPLOYEES ||--o{ EMPLOYEE_WORK_SHIFTS : "assigned to"
     WORK_SHIFTS ||--o{ EMPLOYEE_WORK_SHIFTS : "includes"
@@ -107,3 +109,10 @@ erDiagram
 - RUNNING
 - COMPLETED
 - CANCELLED
+
+## Scheduling values
+
+- Machine type: `WASHER`, `DRYER`.
+- Service type: `WASH`, `DRY`, `WASH_DRY`.
+- Stage: `SORTING`, `WASH`, `TRANSFER`, `DRY`, `PACKING`.
+- `machine_id` is null for `SORTING`, `TRANSFER` and `PACKING`.

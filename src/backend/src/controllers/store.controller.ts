@@ -14,7 +14,7 @@ export const dashboard = asyncRoute(async (req, res) => {
   ok(res, await service.dashboard(storeId));
 });
 export const deadlineCheck = asyncRoute(async (req, res) => {
-  requireStore(req);
+  const storeId = requireStore(req);
   validateBody(req.body, ["pickupAt", "weightKg", "serviceType"]);
-  ok(res, service.checkDeadline(req.body));
+  ok(res, await service.checkDeadline(storeId, req.body));
 });

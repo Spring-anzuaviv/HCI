@@ -1,5 +1,10 @@
 import { prisma } from "../lib/prisma.js";
 import { ApiError } from "../lib/http.js";
+import {
+  getWorkflowStages,
+  checkDeadlineFeasibility,
+  generateSchedule,
+} from "./scheduling.service.js";
 
 export const stages = [
   "RECEIVED",
@@ -22,15 +27,11 @@ export const activeStatuses = new Set([
 ]);
 export const orderInclude = {
   customer: true,
-  machineRuns: {
+  stages: {
     include: { machine: true },
-    orderBy: { startedAt: "desc" as const },
+    orderBy: { plannedStartAt: "asc" as const },
   },
 };
-export const estimateMinutes = (service: string, weight: number) =>
-  Math.round(
-    (service === "COMBO" ? 115 : service === "WASH" ? 45 : 50) + weight * 3,
-  );
 export const getNextAction = (status: string) =>
   (
     ({
@@ -45,34 +46,32 @@ export const getNextAction = (status: string) =>
     }) as Record<string, string>
   )[status] ?? "Kiểm tra đơn";
 export function riskLevel(order: any) {
-  if (
-    !order.pickupAt ||
-    !order.estimatedAt ||
-    !activeStatuses.has(order.status)
-  )
-    return "LOW";
-  if (order.estimatedAt > order.pickupAt) return "HIGH";
-  return order.pickupAt.getTime() - order.estimatedAt.getTime() < 1800000
-    ? "MEDIUM"
-    : "LOW";
+  if (!activeStatuses.has(order.status)) return "LOW";
+  const result = checkDeadlineFeasibility(order.estimatedAt, order.pickupAt);
+  return result.result === "NOT_FEASIBLE"
+    ? "HIGH"
+    : result.result === "AT_RISK"
+      ? "MEDIUM"
+      : "LOW";
 }
 export function serializeOrder(order: any) {
   const risk = riskLevel(order);
-  const current = order.machineRuns?.find((run: any) => !run.endedAt);
+  const current = order.stages?.find((stage: any) => stage.status === "RUNNING");
+  const next = order.stages?.find((stage: any) => stage.status !== "COMPLETED");
   return {
     ...order,
     weightKg: Number(order.weightKg),
     riskLevel: risk,
-    currentStage: current?.stage ?? order.status,
+    currentStage: current?.stage ?? next?.stage ?? order.status,
     currentMachine: current?.machine ?? null,
     nextAction: getNextAction(order.status),
     priorityReason:
-      risk === "HIGH" ? "Đã vượt hoặc sắp đến hạn" : "Theo thứ tự công việc",
+      risk === "HIGH" ? "Đã vượt giờ hẹn" : risk === "MEDIUM" ? "Sắp đến giờ hẹn" : "Theo schedule hiện tại",
   };
 }
 export async function findOrderForStore(orderId: number, storeId: number) {
   const order = await prisma.laundryOrder.findFirst({
-    where: { orderId, machineRuns: { some: { machine: { storeId } } } },
+    where: { orderId, storeId },
     include: orderInclude,
   });
   if (!order)
@@ -85,40 +84,69 @@ export async function findOrderForStore(orderId: number, storeId: number) {
 }
 export async function findStoreOrders(storeId: number) {
   return prisma.laundryOrder.findMany({
-    where: { machineRuns: { some: { machine: { storeId } } } },
+    where: { storeId },
     include: orderInclude,
   });
 }
 export async function createOrder(storeId: number, input: any) {
-  const machine = await prisma.machine.findFirst({ where: { storeId } });
+  getWorkflowStages(input.serviceType);
   const customer = await prisma.customer.upsert({
     where: { phone: input.customer.phone },
     update: { name: input.customer.name },
     create: { name: input.customer.name, phone: input.customer.phone },
   });
-  return prisma.laundryOrder.create({
+  const created = await prisma.laundryOrder.create({
     data: {
       customerId: customer.customerId,
+      storeId,
       weightKg: Number(input.weightKg),
       serviceType: input.serviceType,
       status: "WAITING",
+      readyAt: input.readyAt ? new Date(input.readyAt) : new Date(),
       pickupAt: input.pickupAt ? new Date(input.pickupAt) : null,
-      estimatedAt: new Date(
-        Date.now() +
-          estimateMinutes(input.serviceType, Number(input.weightKg)) * 60000,
-      ),
-      machineRuns: machine
-        ? {
-            create: {
-              machineId: machine.machineId,
-              stage: "WAITING",
-              startedAt: new Date(),
-              status: "PENDING",
-            },
-          }
-        : undefined,
+      groupCode: input.groupCode ?? null,
+      stages: {
+        create: getWorkflowStages(input.serviceType).map((stage) => ({
+          stage,
+          machineId: null,
+          status: "PLANNED",
+        })),
+      },
     },
     include: orderInclude,
+  });
+  await refreshStoreSchedule(storeId);
+  return findOrderForStore(created.orderId, storeId);
+}
+
+export async function refreshStoreSchedule(storeId: number) {
+  const [orders, machines] = await Promise.all([
+    prisma.laundryOrder.findMany({
+      where: { storeId },
+      include: { stages: { include: { machine: true } } },
+    }),
+    prisma.machine.findMany({ where: { storeId } }),
+  ]);
+  const schedule = generateSchedule(orders, machines);
+  return prisma.$transaction(async (tx) => {
+    for (const item of schedule) {
+      for (const stage of item.stages) {
+        if (stage.status !== "PLANNED") continue;
+        await tx.orderStage.update({
+          where: { orderStageId: stage.orderStageId },
+          data: {
+            machineId: stage.machineId,
+            plannedStartAt: stage.plannedStartAt,
+            plannedEndAt: stage.plannedEndAt,
+          },
+        });
+      }
+      await tx.laundryOrder.update({
+        where: { orderId: item.orderId },
+        data: { estimatedAt: item.estimatedAt },
+      });
+    }
+    return schedule;
   });
 }
 export async function updateStatus(orderId: number, status: string) {

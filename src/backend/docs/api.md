@@ -1,168 +1,136 @@
-# API - Laundry Order Coordination System
+# API - Laundry Work Queue
 
-Tài liệu API phục vụ Software Product, bám theo mô hình trong db.md. Dữ liệu là mô phỏng; API không điều khiển máy giặt/sấy thật.
+API phục vụ prototype Smart Work Queue. Dữ liệu mô phỏng và API không điều
+khiển máy giặt/sấy thật.
 
-## 1. Conventions
+## 1. Quy ước
 
-- Base URL: http://localhost:4000/api
-- Content-Type: application/json
-- Thời gian: ISO 8601 có timezone.
-- Path parameters dùng English names: storeId, orderId, machineId, machineRunId, shiftId, employeeId.
-- Field API dùng camelCase; database tables và columns dùng lowercase `snake_case`.
-- Response thành công dùng { data, meta }; lỗi dùng { error: { code, message } }.
-- Mã lỗi: VALIDATION_ERROR, NOT_FOUND, WORKFLOW_CONFLICT, DEADLINE_NOT_FEASIBLE, INTERNAL_ERROR.
+- Base URL: `http://localhost:4000/api`
+- Body và response dùng `application/json`.
+- Thời gian dùng ISO 8601, ví dụ `2026-08-15T18:00:00+07:00`.
+- Field API dùng camelCase; database dùng lowercase `snake_case`.
+- Thành công: `{ "data": ... }` hoặc `{ "data": ..., "meta": ... }`.
+- Lỗi: `{ "error": { "code": "...", "message": "..." } }`.
+- Protected route lấy `storeId` từ JWT, không tin `storeId` trong body.
 
-## Authentication and middleware
+Các mã lỗi chính:
 
-Đăng nhập dùng tài khoản cửa hàng lưu trong `stores`. Phiên bản này không có API đăng ký, không có RBAC và không kiểm tra quyền theo role của nhân viên.
+```text
+VALIDATION_ERROR
+UNAUTHORIZED
+INVALID_TOKEN
+NOT_FOUND
+WORKFLOW_CONFLICT
+SCHEDULE_CONFLICT
+INTERNAL_ERROR
+NOTIFICATION_PROVIDER_NOT_IMPLEMENTED
+```
 
-### POST /auth/login
+## 2. Authentication
 
-Đăng nhập bằng email và mật khẩu của cửa hàng.
+### POST `/auth/login`
 
 Request:
 
-~~~json
+```json
 {
   "email": "admin@washtrack.com",
   "password": "your-password"
 }
-~~~
+```
 
-Response:
+Response gồm `accessToken`, `tokenType`, `expiresIn` và thông tin store.
 
-~~~json
-{
-  "data": {
-    "accessToken": "<jwt>",
-    "tokenType": "Bearer",
-    "expiresIn": "8h",
-    "store": {
-      "storeId": 1,
-      "name": "Như Ý",
-      "email": "admin@washtrack.com"
-    }
-  }
-}
-~~~
+### GET `/auth/me`
 
-Sai email hoặc mật khẩu trả `401 INVALID_CREDENTIALS`. Mật khẩu chỉ được so sánh với `passwordHash`, không lưu hoặc trả về plain text password.
+Trả store của access token hiện tại.
 
-### GET /auth/me
+Header:
 
-Trả thông tin cửa hàng của access token hiện tại.
-
-Header bắt buộc:
-
-~~~text
+```text
 Authorization: Bearer <accessToken>
-~~~
+```
 
-### POST /auth/logout
+### POST `/auth/logout`
 
-Logout phía client bằng cách xóa access token. Server trả thành công mà không cần blacklist token trong prototype.
-
-### Middleware pipeline
-
-Thứ tự middleware chung trong Express:
-
-1. `corsMiddleware` — cho phép origin frontend từ environment variable.
-2. `jsonLimitMiddleware` — giới hạn JSON body mặc định 1 MB.
-3. `requestIdMiddleware` — tạo hoặc giữ `X-Request-Id` cho log và response.
-4. `authMiddleware` — xác thực Bearer JWT và gắn `storeId` vào request context.
-5. `validationMiddleware` — kiểm tra body, params và query.
-6. `notFoundMiddleware` — chuẩn hóa lỗi endpoint không tồn tại.
-7. `errorMiddleware` — chuẩn hóa lỗi, không trả stack trace ở production.
-
-`authMiddleware` trả `401 UNAUTHORIZED` khi thiếu token, `401 INVALID_TOKEN` khi token sai/hết hạn. JWT chứa tối thiểu `sub`, `storeId` và `type: "access"`, hết hạn mặc định sau 8 giờ theo `JWT_EXPIRES_IN`.
-
-### Route protection
-
-Public:
-
-- `GET /health`
-- `GET /health/db`
-- `POST /auth/login`
-
-Protected:
-
-- `GET /auth/me`
-- `POST /auth/logout`
-- Tất cả endpoint `/stores/*`, `/orders/*`, `/machines/*`, `/machine-runs/*` và `/shifts/*`.
-
-Các endpoint protected phải giới hạn dữ liệu theo `storeId` trong token. Không triển khai middleware RBAC hoặc role guard.
-
-### Authentication flow
-
-Luồng đăng nhập và gọi API:
-
-~~~text
-Login
-  ↓
-POST /api/auth/login
-  ↓
-Server tìm STORE theo email
-  ↓
-So sánh password với passwordHash
-  ↓
-Tạo access token JWT chứa storeId
-  ↓
-Frontend lưu accessToken vào sessionStorage
-  ↓
-Frontend gửi Authorization: Bearer <accessToken>
-  ↓
-Backend authMiddleware đọc và verify JWT
-  ↓
-Middleware gắn storeId vào request context
-  ↓
-Protected route xử lý request theo storeId
-~~~
-
-Quy tắc của flow:
-
-- JWT không chứa password hoặc passwordHash.
-- Backend không tin `storeId` từ request body; `storeId` phải lấy từ JWT.
-- Login sai thông tin trả `401 INVALID_CREDENTIALS`.
-- Thiếu token trả `401 UNAUTHORIZED`.
-- Token sai hoặc hết hạn trả `401 INVALID_TOKEN`.
-- Khi logout, frontend xóa accessToken khỏi `sessionStorage`.
-- Không có API đăng ký và không triển khai RBAC.
-
-## 2. Resource mapping
-
-| Resource | Database table | Màn hình |
-|---|---|---|
-| Store | stores | Dashboard, cài đặt |
-| Customer | customers | Tạo đơn, chi tiết đơn |
-| Employee/shift | employees, work_shifts, employee_work_shifts | Dashboard, cấu hình |
-| Machine | machines | Dashboard, chi tiết đơn |
-| Order | laundry_orders | Queue, Orders, Notifications |
-| Machine run | machine_runs | Timeline, ETA, deadline check |
+Prototype logout phía client. Frontend xóa access token; server không
+blacklist token.
 
 ## 3. Health
 
-### GET /health
+### GET `/health`
 
 Kiểm tra server.
 
-### GET /health/db
+### GET `/health/db`
 
-Kiểm tra kết nối Supabase/PostgreSQL.
+Kiểm tra kết nối PostgreSQL/Supabase.
 
-## 4. Dashboard
+## 4. Resource và trạng thái
 
-### GET /stores/:storeId/dashboard
+| Resource | Prisma model | Database table |
+|---|---|---|
+| Store | `Store` | `stores` |
+| Customer | `Customer` | `customers` |
+| Machine | `Machine` | `machines` |
+| Order | `LaundryOrder` | `laundry_orders` |
+| Order stage | `OrderStage` | `order_stages` |
+| Employee/shift | `Employee`, `WorkShift` | `employees`, `work_shifts` |
 
-Trả summary, machine availability, risk orders, next task và attention items.
+### Service type
 
-Query tùy chọn: date, shiftId.
+```text
+WASH      -> SORTING -> WASH -> PACKING
+DRY       -> SORTING -> DRY -> PACKING
+WASH_DRY  -> SORTING -> WASH -> TRANSFER -> DRY -> PACKING
+```
+
+`WASH` chạy trên `WASHER`; `DRY` chạy trên `DRYER`. Stage thủ công có
+`machineId = null`.
+
+### Order stage status
+
+```text
+PLANNED -> RUNNING -> COMPLETED
+PLANNED -> CANCELLED
+```
+
+Các field quan trọng của `OrderStage`:
+
+```text
+orderStageId
+orderId
+machineId nullable
+stage
+plannedStartAt nullable
+plannedEndAt nullable
+actualStartedAt nullable
+actualEndedAt nullable
+status
+```
+
+Các field scheduling của `LaundryOrder`:
+
+```text
+storeId
+readyAt
+pickupAt nullable
+estimatedAt nullable
+groupCode nullable
+```
+
+## 5. Dashboard
+
+### GET `/stores/:storeId/dashboard`
+
+Trả summary, task tiếp theo và danh sách cần chú ý.
 
 Response mẫu:
 
-~~~json
+```json
 {
   "data": {
-    "store": { "storeId": 1, "name": "Như Ý" },
+    "store": { "storeId": 1, "name": "Nhu Y" },
     "summary": {
       "pendingOrders": 4,
       "riskOrders": 2,
@@ -171,311 +139,298 @@ Response mẫu:
     },
     "nextTask": {
       "orderId": 123,
-      "reason": "Còn 45 phút đến giờ hẹn, còn 2 công đoạn"
+      "reason": "Sắp đến giờ hẹn"
     },
     "attentionItems": []
   }
 }
-~~~
+```
 
-Các trường tổng hợp được suy ra từ `laundry_orders` và `machine_runs`.
+## 6. Orders
 
-## 5. Orders
+### GET `/stores/:storeId/orders`
 
-### GET /stores/:storeId/orders
+Query hỗ trợ:
 
-Lấy danh sách order cho Orders và Queue.
+```text
+status, search, page, limit
+```
 
-Query: status, from, to, search, sort=priority|deadline|createdAt, page, limit.
+Order response gồm customer, stage, machine, `readyAt`, `pickupAt`,
+`estimatedAt`, `groupCode`, `riskLevel`, `priorityReason` và `nextAction`.
 
-Mỗi order nên trả customer, service, status, pickupAt, estimatedAt, priorityReason, riskLevel, currentStage, currentMachine và nextAction.
+### GET `/orders/:orderId`
 
-### GET /orders/:orderId
+Lấy order thuộc store trong JWT, customer và toàn bộ `stages`.
 
-Lấy order, customer và các `machine_runs` của order.
+### POST `/stores/:storeId/orders`
 
-### POST /stores/:storeId/orders
+Tạo order và các stage workflow ban đầu. API không tự chọn máy tùy ý; các
+planned stage được scheduler gán máy khi lập lịch.
 
-Tạo order mới.
+Request:
 
-~~~json
+```json
 {
   "customer": {
-    "name": "Nguyễn Văn A",
-    "phone": "0900000000"
+    "name": "Nguyen Van A",
+    "phone": "0900000001"
   },
   "weightKg": 3,
-  "serviceType": "COMBO",
-  "pickupAt": "2026-08-15T18:00:00+07:00"
+  "serviceType": "WASH_DRY",
+  "readyAt": "2026-08-15T14:00:00+07:00",
+  "pickupAt": "2026-08-15T18:00:00+07:00",
+  "groupCode": "GROUP-001"
 }
-~~~
+```
 
-API tạo hoặc tìm `customers`, tạo `laundry_orders` với status WAITING và tính estimatedAt.
+`groupCode` dùng chung cho các order của một lần nhận. Các order cùng group
+phải dùng cùng `pickupAt`. Nếu vượt capacity, nhân viên tạo order riêng và
+gán chung `groupCode`.
 
-### PATCH /orders/:orderId/status
+### PATCH `/orders/:orderId/status`
 
-Cập nhật trạng thái sau mỗi stage.
+Endpoint legacy để cập nhật chuỗi trạng thái order tuần tự:
 
-~~~json
-{
-  "status": "WASHING",
-  "machineId": 1,
-  "note": "Đã đưa đồ vào máy"
-}
-~~~
+```text
+RECEIVED -> WAITING -> WASHING -> DRYING -> FOLDING_PACKING
+          -> READY -> NOTIFIED -> COMPLETED
+```
 
-Chuỗi status:
+Request:
 
-~~~text
-RECEIVED -> WAITING -> WASHING -> DRYING -> FOLDING_PACKING -> READY -> NOTIFIED -> COMPLETED
-~~~
+```json
+{ "status": "WASHING" }
+```
 
-Response phải có status mới, estimatedAt và nextAction.
+Không dùng endpoint này để tạo stage máy. Việc bắt đầu/kết thúc stage phải dùng
+API Order Stage bên dưới.
 
-## 6. Queue và expedite
+## 7. Smart Work Queue
 
-### GET /stores/:storeId/queue
+### GET `/stores/:storeId/queue`
 
-Trả order theo thứ tự gợi ý, kèm rank, pickupAt, stage, ETA, riskLevel, priorityReason và nextAction.
+Đọc schedule hiện tại và trả danh sách order được đề xuất, gồm:
 
-Logic v1:
+```text
+rank
+orderId
+nextStage
+machineId
+plannedStartAt
+plannedEndAt
+estimatedAt
+groupETA
+riskLevel
+priorityReason
+nextAction
+```
+
+Thứ tự đề xuất:
 
 1. Order có nguy cơ trễ.
-2. pickupAt gần hơn.
-3. Order còn nhiều stage nhưng vẫn có thể hoàn thành.
-4. Thời điểm tiếp nhận sớm hơn.
+2. `pickupAt` gần hơn.
+3. Còn nhiều stage hơn.
+4. `createdAt` sớm hơn.
+5. `orderId` nhỏ hơn.
 
-API chỉ đề xuất; nhân viên vẫn quyết định.
+Recommendation chỉ là đề xuất. Nhân viên phải xác nhận trước khi bắt đầu.
 
-### POST /stores/:storeId/queue/recommendation
+### POST `/stores/:storeId/queue/recommendation`
 
-Tính lại đề xuất mà không thay đổi dữ liệu.
+Tạo recommendation trong memory, không thay đổi database.
 
-~~~json
+Request tùy chọn:
+
+```json
 {
-  "shiftId": 2,
   "excludeOrderIds": [124]
 }
-~~~
+```
 
-### POST /orders/:orderId/expedite
+## 8. Deadline và ETA
 
-Kiểm tra tác động khi khách yêu cầu lấy sớm.
+### POST `/stores/:storeId/deadline-check`
 
-~~~json
+Kiểm tra deadline trước khi xác nhận order. Scheduler xét:
+
+- `readyAt ?? createdAt`.
+- Hàng đợi từng máy.
+- `machine.type`, `capacityKg`, `processingMinutes`.
+- Các stage `SORTING`, `WASH`, `TRANSFER`, `DRY`, `PACKING`.
+- `BUFFER_TIME` sau packing.
+
+Request:
+
+```json
+{
+  "weightKg": 3,
+  "serviceType": "WASH_DRY",
+  "pickupAt": "2026-08-15T18:00:00+07:00"
+}
+```
+
+Response:
+
+```json
+{
+  "data": {
+    "result": "FEASIBLE",
+    "estimatedAt": "2026-08-15T17:25:00+07:00",
+    "pickupAt": "2026-08-15T18:00:00+07:00",
+    "groupETA": null,
+    "requiredMinutes": 205,
+    "affectedOrders": [],
+    "reason": "Đủ thời gian xử lý"
+  }
+}
+```
+
+`result` nhận `FEASIBLE`, `AT_RISK`, `NOT_FEASIBLE` hoặc `UNKNOWN`.
+
+Với order có `groupCode`, deadline phải so sánh với:
+
+```text
+groupETA = MAX(estimatedAt của toàn bộ order trong group)
+```
+
+## 9. Bắt đầu và hoàn tất stage
+
+### GET `/stores/:storeId/machines`
+
+Trả machine, status, stage đang chạy và `timeLeft`.
+
+### GET `/machines/:machineId`
+
+Trả machine và stage gần nhất.
+
+### POST `/orders/:orderId/stages/:stage/start`
+
+Bắt đầu stage đã được schedule. `stage` nhận `SORTING`, `WASH`, `TRANSFER`,
+`DRY`, `PACKING`.
+
+Request với stage máy:
+
+```json
+{
+  "machineId": 1,
+  "startedAt": "2026-08-15T14:15:00+07:00"
+}
+```
+
+Với stage thủ công, `machineId` không cần gửi.
+
+Backend kiểm tra:
+
+- Stage đang `PLANNED`.
+- Các stage trước đã `COMPLETED`.
+- Stage `WASH` dùng `WASHER`; `DRY` dùng `DRYER`.
+- Capacity đủ.
+- Machine không `BROKEN`/`INACTIVE` và đang `AVAILABLE`.
+- Order không có stage khác `RUNNING`.
+
+### PATCH `/order-stages/:orderStageId/complete`
+
+Hoàn tất stage:
+
+```json
+{
+  "endedAt": "2026-08-15T14:45:00+07:00"
+}
+```
+
+Backend cập nhật `actualEndedAt`, chuyển stage thành `COMPLETED`, cập nhật
+order status và refresh planned schedule.
+
+## 10. Expedite
+
+### POST `/orders/:orderId/expedite`
+
+Preview tác động khi đổi giờ lấy. Không ghi database.
+
+Request:
+
+```json
 {
   "newPickupAt": "2026-08-15T14:30:00+07:00",
   "reason": "Khách có việc đột xuất"
 }
-~~~
+```
 
-Response phải gồm orderId, feasibility, newEstimatedAt, affectedOrders và reason. feasibility nhận FEASIBLE, AT_RISK hoặc NOT_FEASIBLE.
+Response gồm `newEstimatedAt`, `groupETA`, `feasibility`, `affectedOrders` và
+`reason`.
 
-## 7. Deadline check
+### POST `/orders/:orderId/expedite/confirm`
 
-### POST /stores/:storeId/deadline-check
+Áp dụng giờ lấy mới sau khi nhân viên đã xem preview. Nếu order thuộc group,
+`pickupAt` được cập nhật cho toàn bộ group, sau đó schedule được tính lại.
 
-Kiểm tra giờ hẹn trước khi xác nhận với khách.
+Request:
 
-~~~json
-{
-  "pickupAt": "2026-08-15T15:00:00+07:00",
-  "weightKg": 3,
-  "serviceType": "COMBO"
-}
-~~~
+```json
+{ "newPickupAt": "2026-08-15T14:30:00+07:00" }
+```
 
-Response:
+## 11. Employees và shifts
 
-~~~json
-{
-  "data": {
-    "result": "FEASIBLE",
-    "availableAt": "2026-08-15T14:40:00+07:00",
-    "latestSafePickup": "2026-08-15T15:10:00+07:00",
-    "requiredMinutes": 115,
-    "bufferMinutes": 30,
-    "affectedOrders": [],
-    "reason": "Đủ thời gian cho các stage và khoảng dự phòng"
-  }
-}
-~~~
-
-result nhận FEASIBLE, AT_RISK hoặc NOT_FEASIBLE; không chỉ trả boolean hoặc màu.
-
-## 8. Machines và machine runs
-
-### GET /stores/:storeId/machines
-
-Lấy machine, status và thời gian còn lại.
-
-### GET /machines/:machineId
-
-Lấy machine và machine run gần nhất.
-
-### POST /orders/:orderId/machine-runs
-
-Tạo `machine_runs` khi bắt đầu stage.
-
-~~~json
-{
-  "machineId": 1,
-  "stage": "WASHING",
-  "startedAt": "2026-08-15T14:15:00+07:00"
-}
-~~~
-
-Từ chối nếu machine đang có run chưa kết thúc hoặc không phù hợp type.
-
-### PATCH /machine-runs/:machineRunId/complete
-
-Đánh dấu run hoàn tất.
-
-~~~json
-{
-  "endedAt": "2026-08-15T14:45:00+07:00"
-}
-~~~
-
-## 9. Employees và shifts
-
-### GET /stores/:storeId/employees
+### GET `/stores/:storeId/employees`
 
 Lấy employee của store.
 
-### GET /stores/:storeId/shifts?date=2026-08-15
+### GET `/stores/:storeId/shifts?date=2026-08-15`
 
-Lấy work shift và employee được phân công.
+Lấy shift và employee được phân công.
 
-### POST /stores/:storeId/shifts/:shiftId/assignments
+### POST `/stores/:storeId/shifts/:shiftId/assignments`
 
-Gán employee vào shift.
+Request:
 
-~~~json
+```json
 { "employeeId": 1 }
-~~~
-
-Nhóm này chủ yếu phục vụ màn hình cấu hình.
-
-## 10. Customer notifications
-
-### Zalo sandbox configuration
-
-Notification delivery uses a provider adapter. In the HCI prototype, the provider is Zalo sandbox only; production Zalo delivery is out of scope.
-
-Required environment variables:
-
-~~~env
-ZALO_SANDBOX_BASE_URL=https://sandbox.example.invalid
-ZALO_SANDBOX_ACCESS_TOKEN=replace-with-local-secret
-ZALO_SANDBOX_APP_ID=replace-with-sandbox-app-id
-~~~
-
-- Secrets are read from environment variables and never committed to the repository.
-- The backend must not expose ZALO_SANDBOX_ACCESS_TOKEN to the frontend.
-- Customer-facing content is sent only after the employee reviews the preview.
-- The provider adapter maps the internal orderId/customer phone to the sandbox recipient format.
-- The exact external sandbox path and payload are isolated inside the adapter so the internal API remains stable.
-
-Internal notification states:
-
-~~~text
-PENDING -> SENT
-PENDING -> FAILED
-~~~
-
-Notification preview/send state is temporary and is not stored in the database. The Zalo sandbox result is returned directly to the frontend.
-
-### GET /stores/:storeId/notifications/pending
-
-Lấy order READY chưa được thông báo.
-
-### POST /orders/:orderId/notifications/preview
-
-Tạo content để employee kiểm tra trước khi gửi.
-
-~~~json
-{ "channel": "ZALO" }
-~~~
-
-Response gồm orderId, channel, recipient và content; content tự điền customer name, order code, status và pickup time. Preview chưa gọi Zalo sandbox và chưa tạo trạng thái SENT.
-
-### POST /orders/:orderId/notifications/send
-
-Gửi notification qua Zalo sandbox sau khi employee xác nhận nội dung.
-
-~~~json
-{
-  "channel": "ZALO",
-  "content": "Chào chị Lan, đơn L-123 đã hoàn tất và sẵn sàng để nhận từ 15:00 hôm nay."
-}
-~~~
-
-Backend gọi provider adapter và trả kết quả trực tiếp:
-
-- SENT nếu sandbox chấp nhận request; trả sentAt và providerMessageId nếu có.
-- FAILED nếu sandbox trả lỗi hoặc timeout; trả errorMessage để frontend hiển thị và cho phép thử lại.
-
-Response thành công:
-
-~~~json
-{
-  "data": {
-    "orderId": 123,
-    "channel": "ZALO",
-    "status": "SENT",
-    "sentAt": "2026-08-15T16:35:00+07:00",
-    "providerMessageId": "sandbox-message-123"
-  }
-}
-~~~
-
-Không gọi Zalo production. Nếu gửi thất bại, API trả `502 NOTIFICATION_PROVIDER_ERROR` và frontend phải cho phép retry có kiểm soát.
-
-## 11. Shift handover
-
-### GET /stores/:storeId/handovers/preview?shiftId=2
-
-Xem các order chưa hoàn tất, gồm status, stage, machine/location, pickupAt, ETA, riskLevel và nextAction.
-
-## 12. Database limitations
-
-db.md hiện chưa có bảng/cột riêng cho priority, expedite reason, order assignee, special requirements, bag location, status history, SHIFT_HANDOVER, audit hoặc reminder configuration. Trạng thái gửi Zalo sandbox chỉ tồn tại tạm thời trong frontend.
-
-Vì vậy notification, expedite, handover và reminder chỉ nên dùng state tạm thời hoặc mock trong phiên bản HCI; không mô tả chúng là dữ liệu lưu bền vững hoặc tích hợp Zalo production.
-
-## 13. Business rules
-
-1. Một `machines` không có hai `machine_runs` đang hoạt động.
-2. Một `laundry_orders` không có hai stage chạy đồng thời.
-3. `machine_runs` phải phù hợp với machine type.
-4. Status update phải trả ETA và nextAction.
-5. Deadline check phải trả result, reason và giờ đề xuất.
-6. Expedite phải trả affected orders trước khi xác nhận.
-7. Notification phải preview trước khi send qua Zalo sandbox.
-8. Dữ liệu machine chỉ là mô phỏng.
-
-## 14. Earliest pickup time / ETA
-
-`estimatedAt` là thời điểm sớm nhất một đơn dự kiến hoàn tất và có thể bàn giao cho khách. Trong prototype hiện tại, ETA được mô phỏng theo công thức:
-
-```text
-estimatedAt = currentTime + requiredServiceMinutes
-requiredServiceMinutes = baseServiceMinutes + (weightKg × weightFactor)
 ```
 
-Đây chưa phải là lịch máy chính xác. Khi hoàn thiện logic, cần tính thêm:
+## 12. Notifications và handover
 
-1. Thời gian còn lại của các machine run đang chạy.
-2. Hàng đợi trước đơn trên từng máy.
-3. Machine type, capacityKg và processingMinutes phù hợp với từng stage.
-4. Chuỗi stage của serviceType, ví dụ giặt → sấy → gấp/đóng gói.
-5. Khoảng dự phòng cho gián đoạn, chuyển mẻ và kiểm tra chất lượng.
+### GET `/stores/:storeId/notifications/pending`
 
-Khi status hoặc machine run thay đổi, API nên tính lại `estimatedAt`, `riskLevel`, `priorityReason` và `nextAction`. Mọi đề xuất ETA phải giải thích được các yếu tố ảnh hưởng để nhân viên có thể xem xét và điều chỉnh.
+Lấy các order có thể thông báo. Order không group được thông báo khi `READY`;
+order trong group chỉ được trả khi toàn bộ group `READY`.
 
-## 15. Implementation priority
+### POST `/orders/:orderId/notifications/preview`
 
-Nên làm thật bằng API: dashboard, orders, queue recommendation, create order, status update, deadline check, machines và machine runs.
+Request tùy chọn:
 
-Có thể mock ở frontend: push notification, persistent handover và expedite history. Gửi Zalo production vẫn nằm ngoài phạm vi; chỉ dùng Zalo sandbox.
+```json
+{ "channel": "ZALO" }
+```
+
+Tạo nội dung preview. Không gọi provider và không lưu trạng thái gửi.
+
+### POST `/orders/:orderId/notifications/send`
+
+Provider Zalo chưa triển khai trong backend prototype. Endpoint hiện trả
+`501 NOTIFICATION_PROVIDER_NOT_IMPLEMENTED`.
+
+### GET `/stores/:storeId/handovers/preview`
+
+Trả order chưa `COMPLETED`, stage hiện tại, machine, pickup, ETA, risk và
+next action. Dữ liệu handover không được lưu thành bảng riêng.
+
+## 13. Quy tắc scheduling
+
+- `OrderStage` là nguồn schedule duy nhất.
+- Stage `COMPLETED` và `RUNNING` không bị đổi khi reschedule.
+- Chỉ stage `PLANNED` chưa bắt đầu được lập lại.
+- Không có hai stage `RUNNING` hoặc `PLANNED` chồng thời gian trên một máy.
+- Preview và simulation không ghi database.
+- `groupETA` luôn là giá trị lớn nhất, không phải trung bình.
+- Nếu thiếu `pickupAt` hoặc dữ liệu máy, kết quả là `UNKNOWN`.
+- Mọi recommendation phải có lý do và cần nhân viên xác nhận.
+
+## 14. Giới hạn prototype
+
+- Không điều khiển máy thật.
+- Không tự chia một order thành nhiều order.
+- Không lưu expedite history, audit hoặc notification history.
+- Không gửi Zalo production.
+- Không dùng AI để xếp lịch.

@@ -13,14 +13,15 @@ datasource db {
 }
 
 model Store {
-  storeId      Int         @id @default(autoincrement()) @map("store_id")
-  name         String      @db.VarChar(100)
-  address      String?     @db.VarChar(100)
-  email        String      @unique @db.VarChar(255)
-  passwordHash String      @map("password_hash") @db.VarChar(255)
+  storeId      Int            @id @default(autoincrement()) @map("store_id")
+  name         String         @db.VarChar(100)
+  address      String?        @db.VarChar(100)
+  email        String         @unique @db.VarChar(255)
+  passwordHash String         @map("password_hash") @db.VarChar(255)
   employees    Employee[]
   shifts       WorkShift[]
   machines     Machine[]
+  orders       LaundryOrder[]
 
   @@map("stores")
 }
@@ -85,6 +86,7 @@ model Machine {
 
 model LaundryOrder {
   orderId     Int          @id @default(autoincrement()) @map("order_id")
+  storeId     Int          @map("store_id")
   customerId  Int          @map("customer_id")
   weightKg    Decimal      @map("weight_kg") @db.Decimal(5, 2)
   serviceType String       @map("service_type") @db.VarChar(50)
@@ -95,12 +97,14 @@ model LaundryOrder {
   groupCode   String?      @map("group_code") @db.VarChar(100)
   completedAt DateTime?    @map("completed_at")
   createdAt   DateTime     @default(now()) @map("created_at")
+  store       Store        @relation(fields: [storeId], references: [storeId], onDelete: Cascade)
   customer    Customer     @relation(fields: [customerId], references: [customerId])
   stages      OrderStage[]
 
   @@index([groupCode])
   @@index([status])
   @@index([pickupAt])
+  @@index([storeId, status])
   @@map("laundry_orders")
 }
 
@@ -117,6 +121,7 @@ model OrderStage {
   order           LaundryOrder @relation(fields: [orderId], references: [orderId], onDelete: Cascade)
   machine         Machine?     @relation(fields: [machineId], references: [machineId], onDelete: SetNull)
 
+  @@unique([orderId, stage])
   @@index([orderId, stage])
   @@index([machineId, status, plannedStartAt])
   @@map("order_stages")

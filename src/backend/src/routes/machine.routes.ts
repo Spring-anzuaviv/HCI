@@ -3,8 +3,8 @@ import * as controller from "../controllers/machine.controller.js";
 export const machineRouter = Router();
 machineRouter.get("/stores/:storeId/machines", controller.list);
 machineRouter.get("/machines/:machineId", controller.detail);
-machineRouter.post("/orders/:orderId/machine-runs", controller.startRun);
+machineRouter.post("/orders/:orderId/stages/:stage/start", controller.startRun);
 machineRouter.patch(
-  "/machine-runs/:machineRunId/complete",
+  "/order-stages/:orderStageId/complete",
   controller.completeRun,
 );

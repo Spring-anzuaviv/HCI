@@ -346,6 +346,7 @@ async function main() {
   for (const order of orders) {
     await prisma.laundryOrder.create({
       data: {
+        storeId: store.storeId,
         customerId: order.customerId,
         weightKg: order.weightKg,
         serviceType: order.serviceType,

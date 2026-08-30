@@ -1,18 +1,11 @@
 import { prisma } from "../lib/prisma.js";
-import {
-  activeStatuses,
-  estimateMinutes,
-  findStoreOrders,
-  serializeOrder,
-} from "./order.service.js";
 import { ApiError } from "../lib/http.js";
+import { activeStatuses, findStoreOrders, serializeOrder } from "./order.service.js";
+import { generateSchedule, checkDeadlineFeasibility } from "./scheduling.service.js";
 
 export async function dashboard(storeId: number) {
   const [store, orders, machines] = await Promise.all([
-    prisma.store.findUnique({
-      where: { storeId },
-      select: { storeId: true, name: true },
-    }),
+    prisma.store.findUnique({ where: { storeId }, select: { storeId: true, name: true } }),
     findStoreOrders(storeId),
     prisma.machine.findMany({ where: { storeId } }),
   ]);
@@ -24,51 +17,48 @@ export async function dashboard(storeId: number) {
     summary: {
       pendingOrders: pending.length,
       riskOrders: data.filter((order: any) => order.riskLevel !== "LOW").length,
-      runningMachines: machines.filter(
-        (machine) => machine.status === "RUNNING",
-      ).length,
-      availableMachines: machines.filter(
-        (machine) => machine.status === "AVAILABLE",
-      ).length,
+      runningMachines: machines.filter((machine) => machine.status === "RUNNING").length,
+      availableMachines: machines.filter((machine) => machine.status === "AVAILABLE").length,
     },
-    nextTask: pending[0]
-      ? { orderId: pending[0].orderId, reason: pending[0].priorityReason }
-      : null,
-    attentionItems: data
-      .filter((order: any) => order.riskLevel !== "LOW")
-      .slice(0, 5),
+    nextTask: pending[0] ? { orderId: pending[0].orderId, reason: pending[0].priorityReason } : null,
+    attentionItems: data.filter((order: any) => order.riskLevel !== "LOW").slice(0, 5),
   };
 }
 
-export function checkDeadline(input: {
-  pickupAt: string;
-  weightKg: number;
-  serviceType: string;
-}) {
-  const pickup = new Date(input.pickupAt);
-  const requiredMinutes = estimateMinutes(
-    input.serviceType,
-    Number(input.weightKg),
-  );
-  const availableAt = new Date(Date.now() + requiredMinutes * 60000);
-  const bufferMinutes = 30;
-  const safe = new Date(availableAt.getTime() + bufferMinutes * 60000);
-  const result =
-    safe <= pickup
-      ? "FEASIBLE"
-      : availableAt <= pickup
-        ? "AT_RISK"
-        : "NOT_FEASIBLE";
+export async function checkDeadline(storeId: number, input: { pickupAt: string; weightKg: number; serviceType: string }) {
+  const pickupAt = new Date(input.pickupAt);
+  const now = new Date();
+  const [machines, existingOrders] = await Promise.all([
+    prisma.machine.findMany({ where: { storeId } }),
+    prisma.laundryOrder.findMany({
+      where: { storeId, status: { not: "COMPLETED" } },
+      include: { stages: { include: { machine: true } } },
+    }),
+  ]);
+  const order = {
+    orderId: -1,
+    weightKg: input.weightKg,
+    serviceType: input.serviceType,
+    readyAt: now,
+    createdAt: now,
+    stages: ["SORTING", ...(["WASH_DRY"].includes(input.serviceType) ? ["WASH", "TRANSFER", "DRY"] : [input.serviceType]), "PACKING"].map((stage) => ({ stage, status: "PLANNED" })),
+  };
+  let estimatedAt: Date | null = null;
+  try {
+    estimatedAt = generateSchedule([...existingOrders, order], machines, now).find(
+      (item) => item.orderId === order.orderId,
+    )?.estimatedAt ?? null;
+  } catch {
+    estimatedAt = null;
+  }
+  const result = checkDeadlineFeasibility(estimatedAt, pickupAt);
   return {
-    result,
-    availableAt,
-    latestSafePickup: new Date(pickup.getTime() + 10 * 60000),
-    requiredMinutes,
-    bufferMinutes,
+    result: result.result,
+    estimatedAt,
+    pickupAt,
+    groupETA: null,
+    requiredMinutes: estimatedAt ? Math.ceil((estimatedAt.getTime() - now.getTime()) / 60000) : null,
     affectedOrders: [],
-    reason:
-      result === "FEASIBLE"
-        ? "Đủ thời gian cho các stage và khoảng dự phòng"
-        : "Cần kiểm tra lại hàng chờ hoặc thời hạn",
+    reason: result.result === "FEASIBLE" ? "Đủ thời gian xử lý" : "Cần kiểm tra lại lịch máy và giờ hẹn",
   };
 }

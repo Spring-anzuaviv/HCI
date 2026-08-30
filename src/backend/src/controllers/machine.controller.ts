@@ -23,13 +23,13 @@ export const detail = asyncRoute(async (req, res) =>
   ),
 );
 export const startRun = asyncRoute(async (req, res) => {
-  validateBody(req.body, ["machineId", "stage"]);
+  const input = { ...req.body, stage: String(req.params.stage).toUpperCase() };
   ok(
     res,
     await service.startRun(
       parseId(req.params.orderId, "orderId"),
       requireStore(req),
-      req.body,
+      input,
     ),
   );
 });
@@ -37,7 +37,7 @@ export const completeRun = asyncRoute(async (req, res) =>
   ok(
     res,
     await service.completeRun(
-      parseId(req.params.machineRunId, "machineRunId"),
+      parseId(req.params.orderStageId, "orderStageId"),
       requireStore(req),
       req.body?.endedAt,
     ),

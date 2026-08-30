@@ -51,6 +51,7 @@ erDiagram
 
     LAUNDRY_ORDERS {
         INTEGER order_id PK
+        INTEGER store_id FK
         INTEGER customer_id FK
         NUMERIC_5_2 weight_kg
         VARCHAR_50 service_type
@@ -78,6 +79,7 @@ erDiagram
     STORES ||--o{ EMPLOYEES : "has"
     STORES ||--o{ WORK_SHIFTS : "has"
     STORES ||--o{ MACHINES : "has"
+    STORES ||--o{ LAUNDRY_ORDERS : "has"
 
     EMPLOYEES ||--o{ EMPLOYEE_WORK_SHIFTS : "assigned to"
     WORK_SHIFTS ||--o{ EMPLOYEE_WORK_SHIFTS : "includes"
@@ -92,7 +94,7 @@ erDiagram
 
 - Tên bảng và cột PostgreSQL dùng lowercase `snake_case`; tên bảng dùng số nhiều.
 - Prisma giữ model và field camelCase bằng `@@map` và `@map`.
-- API tiếp tục dùng camelCase, không thay đổi contract hiện tại.
+- API dùng camelCase; route stage được mô tả trong `api.md`.
 
 ## Scheduling notes
 
@@ -101,6 +103,9 @@ erDiagram
 - `planned_*` là lịch do scheduler đề xuất; `actual_*` là thời gian nhân viên thực tế bắt đầu/kết thúc.
 - `status` hỗ trợ `PLANNED`, `RUNNING`, `COMPLETED` và `CANCELLED`.
 - `ready_at` là thời điểm dự kiến khách giao đồ; `pickup_at` là giờ khách muốn lấy; `group_code` liên kết các order cần lấy cùng nhau.
+- `service_type` chỉ nhận `WASH`, `DRY` hoặc `WASH_DRY`.
+- `machines.type` chỉ nhận `WASHER` hoặc `DRYER`.
+- `order_stages.stage` nhận `SORTING`, `WASH`, `TRANSFER`, `DRY` hoặc `PACKING`.
 
 ## Authentication notes
 
