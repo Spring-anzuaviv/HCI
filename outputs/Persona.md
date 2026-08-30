@@ -57,8 +57,8 @@ Mai Anh làm việc tại cửa hàng giặt ủi có nhiều máy và nhiều �
 1. Tiếp nhận đơn, ghi loại dịch vụ, yêu cầu đặc biệt và giờ khách muốn nhận.
 2. Xem các đơn đang chờ, tình trạng máy và các yêu cầu gấp để chọn đơn xử lý tiếp theo.
 3. Đưa đơn vào máy phù hợp, theo dõi tiếng báo và chuyển đồ sang công đoạn tiếp theo.
-4. Cập nhật công đoạn, người đang xử lý và thời gian hoàn thành dự kiến của đơn.
-5. Xử lý thay đổi như máy gặp sự cố, đồ cần sấy thêm, đơn chen gấp hoặc hàng chờ kéo dài.
+4. Nhớ công đoạn, gian hoàn thành dự kiến của đơn.
+5. Xử lý thay đổi như máy gặp sự cố, đồ cần sấy thêm, đơn chen gấp.
 6. Đóng bao, gắn hóa đơn và đặt đơn hoàn tất lên kệ.
 7. Trước khi hết ca, rà soát đơn đang làm dở và bàn giao trạng thái, việc tiếp theo cùng lưu ý cho ca sau.
 8. Báo cho khách khi đơn được tiếp nhận, khi thời gian dự kiến thay đổi và khi đơn sẵn sàng nhận.

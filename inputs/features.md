@@ -12,11 +12,11 @@
 - Tạo bản ghi bàn giao có trạng thái, công đoạn, vị trí, người phụ trách, ngoại lệ và bước tiếp theo.
 - Cho phép chọn mẫu cập nhật dựa trên trạng thái đơn, xem lại nội dung trước khi gửi và ghi nhận đã thông báo.
 - Ước tính khoảng hoàn thành từ tải máy, hàng chờ, thời lượng từng công đoạn và thời gian dự phòng; hiển thị deadline có rủi ro.
-- Nhắc việc trên app/web khi phát sinh; chỉ push điện thoại cho việc cần xử lý ngay, nhắc lại sau khoảng 10–15 phút nếu chưa xử lý và không nhắc liên tục.
-- Giải thích ngắn gọn lý do xếp hạng và cho phép xác nhận hoặc kéo đổi thứ tự.
-- Hiển thị một dòng tóm tắt “đang ở đâu, ai phụ trách, làm gì tiếp theo” trên mỗi đơn.
+- Nhắc việc trên app/web khi phát sinh, nhắc lại sau khoảng 10–15 phút nếu chưa xử lý và không nhắc liên tục.
+- Giải thích ngắn gọn lý do xếp hạng.
+- Hiển thị một dòng tóm tắt “đang ở đâu, làm gì tiếp theo” trên mỗi đơn.
 - Dùng trạng thái và nhãn chữ, không chỉ dùng màu, để giúp quét nhanh danh sách.
-- Tạo bản tóm tắt cuối ca từ các đơn chưa hoàn tất.
+- Tạo bản tóm tắt cuối ca từ các đơn chưa hoàn tất. (còn thiếu trong UI)
 - Hiển thị lịch sử thông báo và trạng thái gửi theo từng đơn.
 - Hiển thị khoảng hoàn thành dự kiến, mức rủi ro deadline và giờ gần nhất có thể đáp ứng trước khi chốt giờ hẹn.
 - Hiển thị timeline và các mốc thời gian còn lại của từng công đoạn.
