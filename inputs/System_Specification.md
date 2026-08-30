@@ -407,7 +407,143 @@ thứ tự:
 Việc đôn order không tự tạo stage đang chạy và không thay đổi stage đã hoàn
 tất/đang chạy.
 
-## 8. Reschedule khi lịch thực tế thay đổi
+## 8. Các use case bổ sung
+
+### 8.1. UC-SQ-05 — Tạo order và kiểm tra giờ hẹn
+
+**Actor:** Nhân viên tiếp nhận.
+
+**Trigger:** Khách giao đồ và yêu cầu giờ có thể nhận đồ.
+
+**Tiền điều kiện:** Nhân viên đã đăng nhập; hệ thống có dữ liệu machine và thời
+lượng xử lý.
+
+**Luồng cơ bản:**
+
+1. Nhân viên mở "Thêm đơn".
+2. Nhân viên nhập tên khách, số điện thoại, khối lượng, loại dịch vụ, giờ hẹn
+   và ghi chú nếu có.
+3. Hệ thống xác định chuỗi stage theo `serviceType`.
+4. Hệ thống tạo schedule tạm trong memory và gọi `calculateETA()` cùng
+   `checkDeadlineFeasibility()`.
+5. Hệ thống hiển thị khoảng hoàn thành dự kiến, mức `feasible`, thời gian xử lý
+   và giờ gần nhất có thể đáp ứng.
+6. Nhân viên kiểm tra kết quả, có thể điều chỉnh giờ hẹn hoặc tiếp tục với cảnh
+   báo rủi ro.
+7. Khi nhân viên xác nhận, hệ thống tạo order và các planned `order_stages`,
+   sau đó cập nhật hàng đợi.
+
+**Ngoại lệ:**
+
+- Thiếu tên, số điện thoại, khối lượng hoặc loại dịch vụ: không cho tạo order.
+- Không có máy phù hợp hoặc thiếu `pickupAt`: hiển thị `UNKNOWN`, không tự coi
+  là khả thi.
+- Khối lượng vượt sức chứa mọi máy phù hợp: hiển thị lỗi và không tự chia order.
+- Nếu order cần tách theo màu hoặc sức chứa, nhân viên tạo nhiều order với cùng
+  `groupCode`.
+
+Không ghi database khi nhân viên mới nhập hoặc thay đổi dữ liệu trong phần kiểm
+tra tạm.
+
+### 8.2. UC-SQ-06 — Xem hồ sơ và timeline order
+
+**Actor:** Nhân viên vận hành.
+
+**Trigger:** Nhân viên chọn một order từ dashboard, hàng đợi hoặc danh sách order.
+
+**Luồng cơ bản:**
+
+1. Hệ thống đọc order, customer, machine và toàn bộ `order_stages` liên quan.
+2. Hệ thống hiển thị dịch vụ, khối lượng, giờ hẹn, ETA, risk và thông tin liên
+   hệ khách.
+3. Hệ thống hiển thị timeline từ `SORTING` đến `PACKING`, gồm stage hiện tại,
+   stage đã hoàn tất, stage kế tiếp và thời gian còn lại.
+4. Hệ thống hiển thị dòng tóm tắt "đang ở đâu, ai phụ trách, làm gì tiếp theo".
+5. Nếu order có nguy cơ trễ, hệ thống hiển thị `estimatedAt`, `pickupAt` và
+   phần chênh lệch hoặc thời gian dự phòng.
+6. Nhân viên chọn hành động phù hợp như bắt đầu stage, hoàn tất công đoạn hoặc
+   mở kiểm tra đôn order.
+
+**Ngoại lệ:**
+
+- Không có stage hoặc dữ liệu stage mâu thuẫn với trạng thái order: hiển thị
+  "Cần kiểm tra" và không cho bắt đầu stage trực tiếp.
+- Order đã `READY`: chỉ hiển thị ETA đã giữ nguyên và hành động thông báo nếu
+  chưa gửi.
+- Không có dữ liệu deadline: hiển thị rõ "Chưa đủ dữ liệu để đánh giá nguy cơ
+  trễ".
+
+Chỉ xem hồ sơ và timeline không làm thay đổi database.
+
+### 8.3. UC-SQ-07 — Cập nhật tiến trình và thông báo khách
+
+**Actor:** Nhân viên vận hành.
+
+**Trigger:** Nhân viên bắt đầu/kết thúc một công đoạn hoặc order chuyển sang
+`READY`.
+
+**Luồng cơ bản:**
+
+1. Nhân viên mở order hoặc chọn thông báo máy hoàn tất.
+2. Nhân viên xác nhận bắt đầu hoặc hoàn tất công đoạn theo luồng
+   `UC-SQ-02` và `UC-SQ-03`.
+3. Hệ thống ghi thời điểm thực tế và trạng thái stage, sau đó cập nhật order,
+   machine và công đoạn kế tiếp.
+4. Hệ thống gọi `recalculateSchedule()` cho các stage chưa bắt đầu và cập nhật
+   ETA, risk, countdown cùng recommendation trong hàng đợi.
+5. Khi order đạt `READY`, hệ thống đưa order vào danh sách cần thông báo.
+6. Hệ thống chọn mẫu tin theo trạng thái; nhân viên xem lại, chỉnh sửa nếu cần
+   và xác nhận gửi hoặc hủy.
+7. Hệ thống ghi trạng thái gửi, thời điểm và nội dung gần nhất; dashboard, hàng
+   đợi và danh sách order cùng hiển thị trạng thái mới.
+
+**Nhắc việc:** Hệ thống hiển thị nhắc khi máy sắp hoàn tất, order cần chuyển
+bước, order đứng quá lâu hoặc gần giờ hẹn nhưng chưa hoàn tất. Nếu chưa xử lý,
+nhắc lại sau khoảng 10–15 phút và không lặp liên tục.
+
+**Ngoại lệ:**
+
+- Lỗi khi bắt đầu/kết thúc stage xử lý theo ngoại lệ của `UC-SQ-02` và
+  `UC-SQ-03`; không ghi nhận một trạng thái chưa được xác nhận.
+- Chỉ khi `PACKING` hoàn tất, order mới được chuyển sang `READY`.
+
+**Quy tắc thông báo theo nhóm:**
+
+- Với `groupCode = NULL`, thông báo khi chính order đạt `READY`.
+- Với group có nhiều order, chỉ gửi thông báo nhận đồ khi toàn bộ order trong
+  group đạt `READY`.
+- Nếu còn order chưa `READY`, hiển thị rõ các order còn lại và không gửi thông
+  báo hoàn tất nhóm.
+
+- Thiếu thông tin liên hệ: cho phép lưu trạng thái cần xử lý nhưng không giả vờ
+  đã gửi thành công.
+- Gửi thất bại: giữ order ở `Chưa gửi`, hiển thị lỗi và cho phép thử lại.
+
+### 8.4. UC-SQ-10 — Tìm kiếm và lọc danh sách order
+
+**Actor:** Nhân viên vận hành.
+
+**Trigger:** Nhân viên cần tìm nhanh một order trong màn hình Quản lý đơn hàng.
+
+**Luồng cơ bản:**
+
+1. Nhân viên nhập tên khách hàng hoặc mã order vào ô tìm kiếm.
+2. Hệ thống lọc danh sách theo nội dung tìm kiếm.
+3. Nhân viên chọn bộ lọc `Tất cả`, `Đang xử lý` hoặc `Hoàn tất`.
+4. Hệ thống hiển thị các order phù hợp cùng khách hàng, thời điểm tiếp nhận,
+   dịch vụ, khối lượng và trạng thái chữ.
+5. Nhân viên mở một dòng để xem UC-SQ-06.
+
+**Ngoại lệ:**
+
+- Không có kết quả: hiển thị "Không tìm thấy order phù hợp" và giữ nguyên bộ
+  lọc để nhân viên điều chỉnh.
+- Dữ liệu order đang tải hoặc lỗi: hiển thị trạng thái tương ứng, không hiển
+  thị danh sách không đầy đủ như thể đó là toàn bộ dữ liệu.
+
+Tìm kiếm và lọc chỉ thay đổi cách hiển thị, không thay đổi dữ liệu order.
+
+## 9. Reschedule khi lịch thực tế thay đổi
 
 Các trigger gồm máy bắt đầu/kết thúc trễ, máy hỏng, order mới, khách đến trễ,
 đổi giờ hẹn hoặc nhân viên xác nhận đôn order.
@@ -425,22 +561,15 @@ Các trigger gồm máy bắt đầu/kết thúc trễ, máy hỏng, order mới
 Không cộng một khoản delay cố định vào toàn bộ order vì mỗi order có thể dùng
 máy khác nhau.
 
-## 9. Thông báo và bàn giao
+## 10. Quy tắc thông báo và bàn giao
 
-`groupCode = NULL`:
-
-- Thông báo khi chính order đạt `READY`.
-
-`groupCode` có giá trị:
-
-- Chưa thông báo khi chỉ một order đạt `READY`.
-- Chỉ thông báo khi tất cả order cùng `groupCode` đạt `READY`.
-- Thời điểm sẵn sàng của nhóm là `groupETA = MAX(estimatedAt)`.
+Chi tiết thao tác cập nhật và gửi thông báo, cùng quy tắc `groupCode`, nằm trong
+`UC-SQ-07`.
 
 Màn hình handover đọc order chưa `COMPLETED`, stage hiện tại, machine, pickup,
 ETA, risk và next action. Notification preview phải áp dụng cùng quy tắc nhóm.
 
-## 10. Tiêu chí chấp nhận
+## 11. Tiêu chí chấp nhận
 
 - Không gán order `WASH` vào `DRYER` hoặc ngược lại.
 - Không gán order vượt `capacityKg`.
@@ -457,7 +586,7 @@ ETA, risk và next action. Notification preview phải áp dụng cùng quy tắ
 - Order cùng nhóm chỉ tạo một thông báo khi toàn bộ nhóm `READY`.
 - Order chỉ chuyển `READY` sau khi stage `PACKING` đã `COMPLETED`.
 
-## 11. Ngoài phạm vi prototype
+## 12. Ngoài phạm vi prototype
 
 - Điều khiển máy giặt/máy sấy thật.
 - Tự động chia một order thành nhiều order.
