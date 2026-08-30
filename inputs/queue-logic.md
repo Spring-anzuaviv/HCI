@@ -7,6 +7,7 @@ Implement hệ thống lập lịch cho cửa hàng giặt sấy để:
 - Kiểm tra `giohenlay` có khả thi không.
 - Tính lại lịch và ETA khi có thay đổi.
 - Hiển thị Smart Work Queue để nhân viên biết việc tiếp theo cần làm.
+- Hỗ trợ nhiều đơn của cùng một lần nhận đồ và thông báo khách lấy toàn bộ trong một lần.
 
 ## Quy tắc nghiệp vụ
 
@@ -49,7 +50,38 @@ Máy được chọn phải:
 
 Một máy không được chạy hai đơn trong cùng một khoảng thời gian.
 
+Nếu đồ của khách không thể xử lý chung, nhân viên tạo nhiều `DONHANG` riêng.
+
+Ví dụ:
+
+```text
+Khách mang 15kg nhưng mỗi máy tối đa 10kg:
+
+Đơn #101 → 8kg
+Đơn #102 → 7kg
+```
+
+Hoặc:
+
+```text
+Khách có đồ trắng và đồ màu:
+
+Đơn #101 → đồ trắng
+Đơn #102 → đồ màu
+```
+
+Các đơn này phải được liên kết bằng cùng một `manhom`:
+
+```text
+#101 → manhom = GROUP-001
+#102 → manhom = GROUP-001
+```
+
+Mỗi đơn được scheduling riêng nhưng được xem là cùng một nhóm khi tính thời điểm lấy đồ và thông báo khách.
+
 ## Tính lịch và ETA
+
+Khi tạo đơn, nhân viên nhập `giohenlay`. Sau khi có đầy đủ các đơn cần tạo, hệ thống phải tính schedule và ETA để kiểm tra giờ hẹn trước khi xác nhận.
 
 Thời điểm bắt đầu xét đơn:
 
@@ -105,7 +137,7 @@ DRYER 1
 giodukien = 15:30
 ```
 
-Nếu có `giohenlay`:
+Nếu đơn không thuộc nhóm:
 
 ```text
 giodukien <= giohenlay
@@ -114,6 +146,35 @@ giodukien <= giohenlay
 giodukien > giohenlay
 → không khả thi
 ```
+
+Nếu nhiều đơn có cùng `manhom`, từng đơn vẫn có `giodukien` riêng nhưng thời gian toàn bộ đồ sẵn sàng là:
+
+```text
+groupETA = MAX(giodukien của các đơn cùng manhom)
+```
+
+Ví dụ:
+
+```text
+#101 → ETA 15:30
+#102 → ETA 16:10
+
+groupETA = 16:10
+giohenlay = 16:00
+
+→ giờ hẹn không khả thi
+```
+
+Hiển thị:
+
+```text
+Giờ khách muốn lấy: 16:00
+Toàn bộ đồ dự kiến sẵn sàng: 16:10
+
+Giờ hẹn hiện tại không khả thi.
+```
+
+Không lấy trung bình ETA của các đơn trong nhóm.
 
 ## Khi lịch thực tế thay đổi
 
@@ -136,6 +197,7 @@ Ví dụ:
 
 ```text
 Washer 1:
+
 A 14:00–14:30
 B 14:30–15:00
 C 15:00–15:30
@@ -150,6 +212,32 @@ C 15:15–15:45
 ```
 
 Sau đó tiếp tục tìm lại lịch sấy của B, C và tính lại `giodukien`.
+
+Nếu một đơn thuộc `manhom` bị thay đổi ETA, phải tính lại:
+
+```text
+groupETA = MAX(giodukien của tất cả đơn cùng manhom)
+```
+
+Ví dụ:
+
+```text
+Ban đầu:
+
+#101 = 15:30
+#102 = 16:10
+
+groupETA = 16:10
+```
+
+Sau khi #101 bị trễ:
+
+```text
+#101 = 16:25
+#102 = 16:10
+
+groupETA = 16:25
+```
 
 ## Đơn mới hoặc đôn đơn
 
@@ -176,6 +264,7 @@ Với mỗi phương án:
 ```text
 - tính lại lịch các công đoạn
 - tính ETA mới
+- tính lại groupETA nếu đơn thuộc nhóm
 - kiểm tra giờ hẹn của các đơn bị ảnh hưởng
 ```
 
@@ -208,6 +297,7 @@ Lúc Washer 1 sắp trống:
 
 ```text
 Tiếp theo:
+
 Đơn #103
 Công đoạn: WASH
 Máy: Washer 1
@@ -215,6 +305,29 @@ Dự kiến bắt đầu: 14:30
 ```
 
 Hệ thống chỉ đề xuất. Nhân viên phải xác nhận khi thực sự đưa đồ vào máy.
+
+Đối với các đơn cùng `manhom`, không thông báo khách đến lấy khi chỉ một đơn hoàn thành.
+
+Ví dụ:
+
+```text
+#101 = READY
+#102 = DRYING
+
+→ chưa thông báo khách
+```
+
+Chỉ khi:
+
+```text
+#101 = READY
+#102 = READY
+
+→ toàn bộ nhóm READY
+→ thông báo khách lấy đồ
+```
+
+Đơn không có `manhom` được thông báo bình thường khi chính đơn đó `READY`.
 
 ## Database
 
@@ -236,11 +349,31 @@ Trước khi sửa:
 - thời điểm đơn sẵn sàng: gionhando
 - giờ khách muốn lấy: giohenlay nullable
 - ETA hiện tại: giodukien
+- nhóm đơn cần lấy cùng nhau: manhom nullable
 - loại máy WASHER / DRYER
 - capacity của máy
 - thời gian chạy máy
 - lịch chạy từng máy
 - trạng thái planned / running / completed nếu cần phân biệt lịch dự kiến và thực tế
+```
+
+Nếu cần, thêm:
+
+```text
+DONHANG.manhom nullable
+```
+
+Quy tắc:
+
+```text
+manhom = NULL
+→ đơn độc lập
+
+cùng manhom
+→ các đơn thuộc cùng một lần nhận đồ
+→ scheduling riêng
+→ ETA riêng
+→ lấy đồ và thông báo cùng nhau
 ```
 
 Nếu `LICHCHAYMAY` hiện tại không đủ để phân biệt lịch dự kiến với công đoạn đang chạy/thực tế, hãy chỉnh schema theo cách đơn giản nhất để hỗ trợ việc reschedule.
@@ -251,6 +384,8 @@ Nếu `LICHCHAYMAY` hiện tại không đủ để phân biệt lịch dự ki�
 findCompatibleMachines()
 findEarliestAvailableSlot()
 calculateETA()
+calculateGroupETA()
+checkDeadlineFeasibility()
 generateSchedule()
 recalculateSchedule()
 simulateInsertion()
