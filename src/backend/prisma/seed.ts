@@ -1,8 +1,11 @@
 import { prisma } from "../src/lib/prisma.js";
 import { hashPassword } from "../src/lib/auth.js";
 
+const minutesFromNow = (minutes: number) =>
+  new Date(Date.now() + minutes * 60_000);
+
 async function main() {
-  await prisma.machineRun.deleteMany();
+  await prisma.orderStage.deleteMany();
   await prisma.laundryOrder.deleteMany();
   await prisma.employeeWorkShift.deleteMany();
   await prisma.workShift.deleteMany();
@@ -19,17 +22,20 @@ async function main() {
       passwordHash: hashPassword("your-password"),
     },
   });
+
   const employees = await Promise.all(
-    ["Mai Anh", "Linh", "Hung", "Thao", "Quan", "Yen"].map((name, index) =>
-      prisma.employee.create({
-        data: {
-          storeId: store.storeId,
-          name,
-          role: index === 0 ? "MANAGER" : "STAFF",
-        },
-      }),
+    ["Mai Anh", "Linh", "Hung", "Thao", "Quan", "Yen"].map(
+      (name, index) =>
+        prisma.employee.create({
+          data: {
+            storeId: store.storeId,
+            name,
+            role: index === 0 ? "MANAGER" : "STAFF",
+          },
+        }),
     ),
   );
+
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const shifts = await Promise.all(
@@ -41,8 +47,8 @@ async function main() {
         data: {
           storeId: store.storeId,
           name: String(name),
-          startAt: new Date(today.getTime() + Number(start) * 3600000),
-          endAt: new Date(today.getTime() + Number(end) * 3600000),
+          startAt: new Date(today.getTime() + Number(start) * 3_600_000),
+          endAt: new Date(today.getTime() + Number(end) * 3_600_000),
           workDate: today,
           employees: {
             create: employees.map((employee) => ({
@@ -53,12 +59,13 @@ async function main() {
       }),
     ),
   );
+
   const machines = await Promise.all(
     [
-      ["May giat 1", "WASH", 7, 45, "RUNNING"],
-      ["May say 2", "DRY", 10, 50, "RUNNING"],
-      ["May giat 3", "WASH", 15, 55, "AVAILABLE"],
-      ["May say 4", "DRY", 12, 45, "AVAILABLE"],
+      ["May giat 1", "WASHER", 7, 45, "RUNNING"],
+      ["May say 2", "DRYER", 10, 50, "RUNNING"],
+      ["May giat 3", "WASHER", 15, 55, "AVAILABLE"],
+      ["May say 4", "DRYER", 12, 45, "AVAILABLE"],
     ].map(([name, type, capacityKg, processingMinutes, status]) =>
       prisma.machine.create({
         data: {
@@ -72,6 +79,7 @@ async function main() {
       }),
     ),
   );
+
   const customers = await Promise.all(
     [
       "Nguyen Van A",
@@ -80,64 +88,170 @@ async function main() {
       "Pham Thu D",
       "Hoang Mai E",
       "Bui Thanh F",
-      "Dinh Quang G",
-      "Truong Linh H",
-      "Le Van I",
-      "Vu Minh K",
-      "Doan Ha L",
-      "Phan Son M",
     ].map((name, index) =>
       prisma.customer.create({
-        data: { name, phone: `09000000${String(index + 1).padStart(4, "0")}` },
+        data: {
+          name,
+          phone: `090000000${String(index + 1).padStart(3, "0")}`,
+        },
       }),
     ),
   );
-  const now = Date.now();
-  const statuses = [
-    "WASHING",
-    "DRYING",
-    "READY",
-    "WAITING",
-    "FOLDING_PACKING",
-    "NOTIFIED",
-    "COMPLETED",
-    "RECEIVED",
-    "WAITING",
-    "READY",
+
+  const washer1 = machines[0];
+  const dryer1 = machines[1];
+  const washer2 = machines[2];
+  const dryer2 = machines[3];
+
+  const orders = [
+    {
+      customerId: customers[0].customerId,
+      weightKg: 4.5,
+      serviceType: "WASH_DRY",
+      status: "DRYING",
+      readyAt: minutesFromNow(-90),
+      pickupAt: minutesFromNow(120),
+      estimatedAt: minutesFromNow(35),
+      groupCode: "GROUP-001",
+      stages: [
+        {
+          machineId: washer1.machineId,
+          stage: "WASH",
+          plannedStartAt: minutesFromNow(-85),
+          plannedEndAt: minutesFromNow(-40),
+          actualStartedAt: minutesFromNow(-85),
+          actualEndedAt: minutesFromNow(-40),
+          status: "COMPLETED",
+        },
+        {
+          machineId: dryer1.machineId,
+          stage: "DRY",
+          plannedStartAt: minutesFromNow(-35),
+          plannedEndAt: minutesFromNow(15),
+          actualStartedAt: minutesFromNow(-30),
+          status: "RUNNING",
+        },
+      ],
+    },
+    {
+      customerId: customers[0].customerId,
+      weightKg: 3.5,
+      serviceType: "WASH",
+      status: "WASHING",
+      readyAt: minutesFromNow(-80),
+      pickupAt: minutesFromNow(120),
+      estimatedAt: minutesFromNow(50),
+      groupCode: "GROUP-001",
+      stages: [
+        {
+          machineId: washer2.machineId,
+          stage: "WASH",
+          plannedStartAt: minutesFromNow(-35),
+          plannedEndAt: minutesFromNow(20),
+          actualStartedAt: minutesFromNow(-30),
+          status: "RUNNING",
+        },
+      ],
+    },
+    {
+      customerId: customers[1].customerId,
+      weightKg: 6,
+      serviceType: "DRY",
+      status: "WAITING",
+      readyAt: minutesFromNow(-20),
+      pickupAt: minutesFromNow(180),
+      estimatedAt: minutesFromNow(80),
+      stages: [
+        {
+          machineId: dryer2.machineId,
+          stage: "DRY",
+          plannedStartAt: minutesFromNow(5),
+          plannedEndAt: minutesFromNow(50),
+          status: "PLANNED",
+        },
+      ],
+    },
+    {
+      customerId: customers[2].customerId,
+      weightKg: 5,
+      serviceType: "WASH_DRY",
+      status: "READY",
+      readyAt: minutesFromNow(-240),
+      pickupAt: minutesFromNow(-10),
+      estimatedAt: minutesFromNow(-25),
+      stages: [
+        {
+          machineId: washer2.machineId,
+          stage: "WASH",
+          plannedStartAt: minutesFromNow(-220),
+          plannedEndAt: minutesFromNow(-165),
+          actualStartedAt: minutesFromNow(-220),
+          actualEndedAt: minutesFromNow(-165),
+          status: "COMPLETED",
+        },
+        {
+          machineId: dryer2.machineId,
+          stage: "DRY",
+          plannedStartAt: minutesFromNow(-155),
+          plannedEndAt: minutesFromNow(-110),
+          actualStartedAt: minutesFromNow(-155),
+          actualEndedAt: minutesFromNow(-110),
+          status: "COMPLETED",
+        },
+      ],
+    },
+    {
+      customerId: customers[3].customerId,
+      weightKg: 2.5,
+      serviceType: "WASH",
+      status: "COMPLETED",
+      readyAt: minutesFromNow(-360),
+      pickupAt: minutesFromNow(-180),
+      estimatedAt: minutesFromNow(-240),
+      completedAt: minutesFromNow(-250),
+      stages: [
+        {
+          machineId: washer1.machineId,
+          stage: "WASH",
+          plannedStartAt: minutesFromNow(-345),
+          plannedEndAt: minutesFromNow(-300),
+          actualStartedAt: minutesFromNow(-345),
+          actualEndedAt: minutesFromNow(-300),
+          status: "COMPLETED",
+        },
+      ],
+    },
+    {
+      customerId: customers[4].customerId,
+      weightKg: 8,
+      serviceType: "DRY",
+      status: "RECEIVED",
+      readyAt: minutesFromNow(-5),
+      pickupAt: minutesFromNow(240),
+      estimatedAt: minutesFromNow(95),
+      stages: [],
+    },
   ];
-  for (const [index, status] of statuses.entries()) {
-    const machine = machines[index % machines.length];
-    const startedAt = new Date(now - (index + 1) * 60 * 60000);
+
+  for (const order of orders) {
     await prisma.laundryOrder.create({
       data: {
-        customerId: customers[index].customerId,
-        weightKg: 1.5 + index * 0.6,
-        serviceType:
-          index % 3 === 0 ? "COMBO" : index % 3 === 1 ? "WASH" : "DRY",
-        status,
-        pickupAt: new Date(now + (index - 2) * 60 * 60000),
-        estimatedAt: new Date(now + (index - 3) * 60 * 60000),
-        completedAt: status === "COMPLETED" ? new Date(now - 30 * 60000) : null,
-        machineRuns: {
-          create: {
-            machineId: machine.machineId,
-            stage: status,
-            startedAt,
-            endedAt:
-              status === "WASHING" || status === "DRYING"
-                ? null
-                : new Date(startedAt.getTime() + 45 * 60000),
-            status:
-              status === "WASHING" || status === "DRYING"
-                ? "RUNNING"
-                : "COMPLETED",
-          },
-        },
+        customerId: order.customerId,
+        weightKg: order.weightKg,
+        serviceType: order.serviceType,
+        status: order.status,
+        readyAt: order.readyAt,
+        pickupAt: order.pickupAt,
+        estimatedAt: order.estimatedAt,
+        groupCode: order.groupCode,
+        completedAt: order.completedAt,
+        stages: { create: order.stages },
       },
     });
   }
+
   console.log(
-    `Seed completed: store=${store.storeId}, shifts=${shifts.length}, machines=${machines.length}, customers=${customers.length}`,
+    `Seed completed: store=${store.storeId}, shifts=${shifts.length}, machines=${machines.length}, customers=${customers.length}, orders=${orders.length}`,
   );
 }
 

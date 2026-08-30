@@ -8,13 +8,13 @@ Tài liệu API phục vụ Software Product, bám theo mô hình trong db.md. D
 - Content-Type: application/json
 - Thời gian: ISO 8601 có timezone.
 - Path parameters dùng English names: storeId, orderId, machineId, machineRunId, shiftId, employeeId.
-- Field API dùng camelCase; database tables và columns dùng English names.
+- Field API dùng camelCase; database tables và columns dùng lowercase `snake_case`.
 - Response thành công dùng { data, meta }; lỗi dùng { error: { code, message } }.
 - Mã lỗi: VALIDATION_ERROR, NOT_FOUND, WORKFLOW_CONFLICT, DEADLINE_NOT_FEASIBLE, INTERNAL_ERROR.
 
 ## Authentication and middleware
 
-Đăng nhập dùng tài khoản cửa hàng lưu trong `STORE`. Phiên bản này không có API đăng ký, không có RBAC và không kiểm tra quyền theo role của nhân viên.
+Đăng nhập dùng tài khoản cửa hàng lưu trong `stores`. Phiên bản này không có API đăng ký, không có RBAC và không kiểm tra quyền theo role của nhân viên.
 
 ### POST /auth/login
 
@@ -132,12 +132,12 @@ Quy tắc của flow:
 
 | Resource | Database table | Màn hình |
 |---|---|---|
-| Store | STORE | Dashboard, cài đặt |
-| Customer | CUSTOMER | Tạo đơn, chi tiết đơn |
-| Employee/shift | EMPLOYEE, WORK_SHIFT, EMPLOYEE_WORK_SHIFT | Dashboard, cấu hình |
-| Machine | MACHINE | Dashboard, chi tiết đơn |
-| Order | LAUNDRY_ORDER | Queue, Orders, Notifications |
-| Machine run | MACHINE_RUN | Timeline, ETA, deadline check |
+| Store | stores | Dashboard, cài đặt |
+| Customer | customers | Tạo đơn, chi tiết đơn |
+| Employee/shift | employees, work_shifts, employee_work_shifts | Dashboard, cấu hình |
+| Machine | machines | Dashboard, chi tiết đơn |
+| Order | laundry_orders | Queue, Orders, Notifications |
+| Machine run | machine_runs | Timeline, ETA, deadline check |
 
 ## 3. Health
 
@@ -178,7 +178,7 @@ Response mẫu:
 }
 ~~~
 
-Các trường tổng hợp được suy ra từ LAUNDRY_ORDER và MACHINE_RUN.
+Các trường tổng hợp được suy ra từ `laundry_orders` và `machine_runs`.
 
 ## 5. Orders
 
@@ -192,7 +192,7 @@ Mỗi order nên trả customer, service, status, pickupAt, estimatedAt, priorit
 
 ### GET /orders/:orderId
 
-Lấy order, customer và các MACHINE_RUN của order.
+Lấy order, customer và các `machine_runs` của order.
 
 ### POST /stores/:storeId/orders
 
@@ -210,7 +210,7 @@ Tạo order mới.
 }
 ~~~
 
-API tạo hoặc tìm CUSTOMER, tạo LAUNDRY_ORDER với status WAITING và tính estimatedAt.
+API tạo hoặc tìm `customers`, tạo `laundry_orders` với status WAITING và tính estimatedAt.
 
 ### PATCH /orders/:orderId/status
 
@@ -315,7 +315,7 @@ Lấy machine và machine run gần nhất.
 
 ### POST /orders/:orderId/machine-runs
 
-Tạo MACHINE_RUN khi bắt đầu stage.
+Tạo `machine_runs` khi bắt đầu stage.
 
 ~~~json
 {
@@ -446,9 +446,9 @@ Vì vậy notification, expedite, handover và reminder chỉ nên dùng state t
 
 ## 13. Business rules
 
-1. Một MACHINE không có hai MACHINE_RUN đang hoạt động.
-2. Một LAUNDRY_ORDER không có hai stage chạy đồng thời.
-3. MACHINE_RUN phải phù hợp với machine type.
+1. Một `machines` không có hai `machine_runs` đang hoạt động.
+2. Một `laundry_orders` không có hai stage chạy đồng thời.
+3. `machine_runs` phải phù hợp với machine type.
 4. Status update phải trả ETA và nextAction.
 5. Deadline check phải trả result, reason và giờ đề xuất.
 6. Expedite phải trả affected orders trước khi xác nhận.

@@ -3,91 +3,109 @@
 ~~~mermaid
 erDiagram
 
-    STORE {
-        INTEGER storeId PK
+    STORES {
+        INTEGER store_id PK
         VARCHAR_100 name
         VARCHAR_100 address
         VARCHAR_255 email UK
-        VARCHAR_255 passwordHash
+        VARCHAR_255 password_hash
     }
 
-    CUSTOMER {
-        INTEGER customerId PK
+    CUSTOMERS {
+        INTEGER customer_id PK
         VARCHAR_50 name
         VARCHAR_12 phone
     }
 
-    EMPLOYEE {
-        INTEGER employeeId PK
-        INTEGER storeId FK
+    EMPLOYEES {
+        INTEGER employee_id PK
+        INTEGER store_id FK
         VARCHAR_50 name
         VARCHAR_50 role
-        TIMESTAMPTZ createdAt
+        TIMESTAMPTZ created_at
     }
 
-    WORK_SHIFT {
-        INTEGER shiftId PK
-        INTEGER storeId FK
+    WORK_SHIFTS {
+        INTEGER shift_id PK
+        INTEGER store_id FK
         VARCHAR_50 name
-        TIMESTAMPTZ startAt
-        TIMESTAMPTZ endAt
-        DATE workDate
+        TIMESTAMPTZ start_at
+        TIMESTAMPTZ end_at
+        DATE work_date
     }
 
-    EMPLOYEE_WORK_SHIFT {
-        INTEGER employeeId PK,FK
-        INTEGER shiftId PK,FK
+    EMPLOYEE_WORK_SHIFTS {
+        INTEGER employee_id PK,FK
+        INTEGER shift_id PK,FK
     }
 
-    MACHINE {
-        INTEGER machineId PK
-        INTEGER storeId FK
+    MACHINES {
+        INTEGER machine_id PK
+        INTEGER store_id FK
         VARCHAR_100 name
         VARCHAR_20 status
         VARCHAR_10 type
-        REAL capacityKg
-        INTEGER processingMinutes
+        REAL capacity_kg
+        INTEGER processing_minutes
     }
 
-    LAUNDRY_ORDER {
-        INTEGER orderId PK
-        INTEGER customerId FK
-        NUMERIC_5_2 weightKg
-        VARCHAR_50 serviceType
+    LAUNDRY_ORDERS {
+        INTEGER order_id PK
+        INTEGER customer_id FK
+        NUMERIC_5_2 weight_kg
+        VARCHAR_50 service_type
         VARCHAR_50 status
-        TIMESTAMPTZ pickupAt "NULLABLE"
-        TIMESTAMPTZ estimatedAt "NULLABLE"
-        TIMESTAMPTZ completedAt "NULLABLE"
-        TIMESTAMPTZ createdAt
+        TIMESTAMPTZ ready_at "NULLABLE"
+        TIMESTAMPTZ pickup_at "NULLABLE"
+        TIMESTAMPTZ estimated_at "NULLABLE"
+        VARCHAR_100 group_code "NULLABLE"
+        TIMESTAMPTZ completed_at "NULLABLE"
+        TIMESTAMPTZ created_at
     }
 
-    MACHINE_RUN {
-        INTEGER machineRunId PK
-        INTEGER orderId FK
-        INTEGER machineId FK
+    ORDER_STAGES {
+        INTEGER order_stage_id PK
+        INTEGER order_id FK
+        INTEGER machine_id FK "NULLABLE"
         VARCHAR_50 stage
-        TIMESTAMPTZ startedAt
-        TIMESTAMPTZ endedAt "NULLABLE"
-        VARCHAR_50 status
+        TIMESTAMPTZ planned_start_at "NULLABLE"
+        TIMESTAMPTZ planned_end_at "NULLABLE"
+        TIMESTAMPTZ actual_started_at "NULLABLE"
+        TIMESTAMPTZ actual_ended_at "NULLABLE"
+        VARCHAR_20 status
     }
 
-    STORE ||--o{ EMPLOYEE : "has"
-    STORE ||--o{ WORK_SHIFT : "has"
-    STORE ||--o{ MACHINE : "has"
+    STORES ||--o{ EMPLOYEES : "has"
+    STORES ||--o{ WORK_SHIFTS : "has"
+    STORES ||--o{ MACHINES : "has"
 
-    EMPLOYEE ||--o{ EMPLOYEE_WORK_SHIFT : "assigned to"
-    WORK_SHIFT ||--o{ EMPLOYEE_WORK_SHIFT : "includes"
+    EMPLOYEES ||--o{ EMPLOYEE_WORK_SHIFTS : "assigned to"
+    WORK_SHIFTS ||--o{ EMPLOYEE_WORK_SHIFTS : "includes"
 
-    CUSTOMER ||--o{ LAUNDRY_ORDER : "places"
+    CUSTOMERS ||--o{ LAUNDRY_ORDERS : "places"
 
-    LAUNDRY_ORDER ||--o{ MACHINE_RUN : "has"
-    MACHINE ||--o{ MACHINE_RUN : "runs"
+    LAUNDRY_ORDERS ||--o{ ORDER_STAGES : "has"
+    MACHINES ||--o{ ORDER_STAGES : "runs when applicable"
 ~~~
+
+## Quy ước đặt tên
+
+- Tên bảng và cột PostgreSQL dùng lowercase `snake_case`; tên bảng dùng số nhiều.
+- Prisma giữ model và field camelCase bằng `@@map` và `@map`.
+- API tiếp tục dùng camelCase, không thay đổi contract hiện tại.
+
+## Scheduling notes
+
+- `order_stages` là nguồn dữ liệu duy nhất cho các công đoạn của order.
+- `machine_id` là nullable để lưu các công đoạn thủ công như `SORTING`, `TRANSFER` và `PACKING`.
+- `planned_*` là lịch do scheduler đề xuất; `actual_*` là thời gian nhân viên thực tế bắt đầu/kết thúc.
+- `status` hỗ trợ `PLANNED`, `RUNNING`, `COMPLETED` và `CANCELLED`.
+- `ready_at` là thời điểm dự kiến khách giao đồ; `pickup_at` là giờ khách muốn lấy; `group_code` liên kết các order cần lấy cùng nhau.
 
 ## Authentication notes
 
-- STORE.email is required and unique.
-- STORE.passwordHash stores only a one-way password hash.
+- stores.email is required and unique.
+- stores.password_hash stores only a one-way password hash.
 - Store accounts are created by seed data or an administrative database operation.
 - There is no public registration endpoint.
 - Authentication uses the store account; RBAC is out of scope.
