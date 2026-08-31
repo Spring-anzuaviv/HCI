@@ -19,12 +19,45 @@ export async function deleteEmployee(employeeId: number, storeId: number) {
   await prisma.employee.delete({ where: { employeeId } });
   return { deleted: true };
 }
-export const listShifts = (storeId: number, date?: string) =>
-  prisma.workShift.findMany({
-    where: { storeId, ...(date ? { workDate: new Date(`${date}T00:00:00.000Z`) } : {}) },
+export async function listShifts(storeId: number, date?: string) {
+  if (date) {
+    const workDate = new Date(`${date}T00:00:00.000Z`);
+    const existing = await findShifts(storeId, workDate);
+    if (existing.length) return existing;
+
+    // Each date has its own assignments. Clone only the shift time templates,
+    // never the employees, when a new work date is opened for the first time.
+    const template = await prisma.workShift.findFirst({
+      where: { storeId },
+      orderBy: [{ workDate: "desc" }, { startAt: "asc" }],
+    });
+    if (!template) return [];
+    const templates = await prisma.workShift.findMany({ where: { storeId, workDate: template.workDate }, orderBy: { startAt: "asc" } });
+    await prisma.$transaction(templates.map(item => prisma.workShift.create({
+      data: {
+        storeId, name: item.name, workDate,
+        startAt: atDate(workDate, item.startAt),
+        endAt: atDate(workDate, item.endAt),
+      },
+    })));
+    return findShifts(storeId, workDate);
+  }
+  return findShifts(storeId);
+}
+
+function findShifts(storeId: number, workDate?: Date) {
+  return prisma.workShift.findMany({
+    where: { storeId, ...(workDate ? { workDate } : {}) },
     include: { employees: { include: { employee: true } } },
     orderBy: { startAt: "asc" },
   });
+}
+
+function atDate(date: Date, value: Date) {
+  const result = new Date(date);
+  result.setUTCHours(value.getUTCHours(), value.getUTCMinutes(), value.getUTCSeconds(), value.getUTCMilliseconds());
+  return result;
+}
 export async function assign(
   storeId: number,
   shiftId: number,

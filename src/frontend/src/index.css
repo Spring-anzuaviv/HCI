@@ -231,6 +231,28 @@ body {
 .chip.ok { background: #dcfce7; color: #15803d; }
 .chip.wt { background: #f1f5f9; color: #64748b; }
 .chip.rk { background: #fee2e2; color: var(--rd); }
+.queue-row { display: grid; grid-template-columns: 28px minmax(145px, 1.15fr) minmax(390px, 3fr) 72px; gap: 12px; align-items: center; padding: 11px 12px; border: 1.5px solid var(--bd); border-radius: 10px; cursor: pointer; transition: all .15s; }
+.queue-row:hover { border-color: var(--pm); background: #f9f7ff; }
+.queue-row.risk { border-left: 3px solid var(--rd); }
+.queue-priority { width: 24px; height: 24px; border-radius: 7px; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 800; }
+.queue-priority.rd { background: #fee2e2; color: var(--rd); }
+.queue-priority.bl { background: #dbeafe; color: #1d4ed8; }
+.queue-priority.am { background: #fef3c7; color: #92400e; }
+.queue-priority.gr { background: #f1f5f9; color: #64748b; }
+.queue-order { min-width: 0; }
+.queue-order strong, .queue-order span { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.queue-order strong { color: var(--tx); font-size: 12px; }
+.queue-order span { color: var(--ts); font-size: 10.5px; margin-top: 4px; }
+.queue-facts { display: grid; grid-template-columns: repeat(4, minmax(78px, 1fr)); gap: 8px; min-width: 0; }
+.queue-facts div { min-width: 0; }
+.queue-facts span, .queue-deadline span { display: block; color: var(--tl); font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
+.queue-facts strong { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--tx); font-size: 10.5px; margin-top: 4px; }
+.queue-facts em { color: var(--pu); font-style: normal; font-weight: 700; }
+.queue-deadline { text-align: right; }
+.queue-deadline strong { display: block; color: var(--tx); font-size: 12px; margin-top: 4px; }
+.queue-deadline.danger strong { color: var(--rd); }
+@media (max-width: 900px) { .queue-row { grid-template-columns: 28px minmax(135px, 1fr) 74px; } .queue-facts { grid-column: 2 / -1; grid-row: 2; } .queue-deadline { grid-column: 3; grid-row: 1; } }
+@media (max-width: 560px) { .queue-row { grid-template-columns: 26px 1fr; gap: 8px; } .queue-deadline { grid-column: 2; grid-row: 1; } .queue-facts { grid-column: 1 / -1; grid-template-columns: repeat(2, 1fr); gap: 9px 12px; padding-top: 4px; } .queue-facts strong { white-space: normal; line-height: 1.25; } }
 
 /* ── SECTION DIVIDER ── */
 .sdiv { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: .1em; color: var(--tl); display: flex; align-items: center; gap: 7px; margin-bottom: 9px; }

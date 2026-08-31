@@ -159,6 +159,12 @@ Nhân viên giặt ủi trực tiếp, có thể phải:
 
 Đã bổ sung tóm tắt ca tự động qua API `GET /stores/:storeId/shift-summary`, hiển thị trực tiếp trong banner Dashboard và đổi mật khẩu qua API `POST /auth/change-password`. Không lưu localStorage, không có ghi chú thủ công; frontend/backend build và frontend lint đã qua.
 
+Đã cải thiện row trong Hàng đợi bằng các trường có nhãn `Đang làm`, `Sắp làm`, `Dự kiến xong` và `Hành động tiếp theo`, sử dụng stage schedule để hiển thị thời điểm hành động và responsive theo desktop/mobile.
+
+Đã áp dụng cùng cấu trúc row cho danh sách hàng đợi rút gọn trên trang Tổng quan, bảo đảm thông tin giữa Dashboard và Hàng đợi nhất quán.
+
+Đã sửa logic phân ca theo ngày: khi mở ngày chưa có ca, backend tạo các khung ca từ mẫu gần nhất nhưng không sao chép phân công; thêm nhân viên phân vào ca của đúng ngày đang xem, còn chỉnh hồ sơ không tự đổi phân ca.
+
 ## 6. Dependency giữa các artifact
 
 1. Bằng chứng và phân tích công việc hiện tại hỗ trợ Persona và Scenario 1.

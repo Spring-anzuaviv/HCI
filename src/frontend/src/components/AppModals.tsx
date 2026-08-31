@@ -199,7 +199,7 @@ export function SettingsModal() {
 }
 
 export function EmployeeModal() {
-  const { openModal, closeM, showToast, staff, store, refreshStaff, config } = useApp();
+  const { openModal, closeM, showToast, staff, store, refreshStaff, selectedWorkDate, workShifts } = useApp();
   const isOpen = openModal === 'sm-staff' || openModal?.startsWith('sm-staff-');
   const editingId = openModal?.startsWith('sm-staff-') ? Number(openModal.split('-').pop()) : undefined;
   const editing = staff.find(item => item.id === editingId);
@@ -207,16 +207,15 @@ export function EmployeeModal() {
   const [phone, setPhone] = useState('');
   const [role, setRole] = useState('STAFF');
   const [shiftId, setShiftId] = useState(0);
-  useEffect(() => { setName(editing?.name ?? ''); setPhone(editing?.phone ?? ''); setRole(editing?.role ?? 'STAFF'); setShiftId(editing?.shiftId || config.shifts[0]?.id || 0); }, [editingId, editing?.name, editing?.phone, editing?.role, editing?.shiftId, config.shifts]);
+  useEffect(() => { setName(editing?.name ?? ''); setPhone(editing?.phone ?? ''); setRole(editing?.role ?? 'STAFF'); setShiftId(workShifts[0]?.id ?? 0); }, [editingId, editing?.name, editing?.phone, editing?.role, workShifts]);
   const save = async () => {
     if (!name.trim() || !store) { showToast('Vui lòng nhập tên nhân viên', 'red'); return; }
     try {
       const payload = { name, phone, role };
       const employee = editingId ? await updateEmployee(editingId, payload) : await createEmployee(store.storeId, payload);
-      if (!shiftId) throw new Error('Chưa có ca làm việc để phân công');
-      await assignEmployee(store.storeId, shiftId, employee.employeeId);
-      if (editingId && editing?.shiftId && editing.shiftId !== shiftId) {
-        await unassignEmployee(store.storeId, editing.shiftId, editingId);
+      if (!editingId) {
+        if (!shiftId) throw new Error(`Chưa có ca làm việc trong ngày ${selectedWorkDate}`);
+        await assignEmployee(store.storeId, shiftId, employee.employeeId);
       }
       await refreshStaff(); closeM(openModal ?? 'sm-staff'); showToast(editingId ? 'Đã cập nhật nhân viên' : 'Đã thêm nhân viên', 'grn');
     } catch (error) { showToast(error instanceof Error ? error.message : 'Không thể lưu nhân viên', 'red'); }
@@ -225,7 +224,7 @@ export function EmployeeModal() {
     <div className="modal" onClick={event => event.stopPropagation()}>
       <div className="mhd"><div className="mtitle">{editingId ? 'Cập nhật nhân viên' : 'Thêm nhân viên'}</div><button className="mxbtn" onClick={() => closeM(openModal ?? 'sm-staff')}><svg className="icon icon-sm"><use href="#i-x" /></svg></button></div>
       <div className="frow" style={{ marginBottom: 11 }}><div className="fg"><label className="flbl">Tên nhân viên</label><input className="finput" value={name} onChange={event => setName(event.target.value)} placeholder="Nguyễn Văn A" /></div><div className="fg"><label className="flbl">Số điện thoại</label><input className="finput" value={phone} onChange={event => setPhone(event.target.value)} placeholder="09xx xxx xxx" /></div></div>
-      <div className="frow" style={{ marginBottom: 18 }}><div className="fg"><label className="flbl">Vai trò</label><select className="finput" value={role} onChange={event => setRole(event.target.value)}><option value="STAFF">Nhân viên</option><option value="MANAGER">Quản lý</option></select></div><div className="fg"><label className="flbl">Phân ca</label><select className="finput" value={shiftId} onChange={event => setShiftId(Number(event.target.value))} disabled={!config.shifts.length}>{!config.shifts.length && <option value={0}>Chưa có ca làm việc</option>}{config.shifts.map(shift => <option key={shift.id} value={shift.id}>{shift.name} ({shift.start}-{shift.end})</option>)}</select></div></div>
+      <div className="frow" style={{ marginBottom: 18 }}><div className="fg"><label className="flbl">Vai trò</label><select className="finput" value={role} onChange={event => setRole(event.target.value)}><option value="STAFF">Nhân viên</option><option value="MANAGER">Quản lý</option></select></div>{!editingId && <div className="fg"><label className="flbl">Phân ca ngày {selectedWorkDate}</label><select className="finput" value={shiftId} onChange={event => setShiftId(Number(event.target.value))} disabled={!workShifts.length}>{!workShifts.length && <option value={0}>Chưa có ca làm việc</option>}{workShifts.map(shift => <option key={shift.id} value={shift.id}>{shift.name} ({shift.start}-{shift.end})</option>)}</select></div>}</div>
       <div style={{ display: 'flex', gap: 9 }}><button className="bs" onClick={() => closeM(openModal ?? 'sm-staff')} style={{ flex: 1 }}>Hủy</button><button className="bp" onClick={() => void save()} style={{ flex: 2 }}><svg className="icon icon-sm"><use href="#i-check" /></svg>Lưu nhân viên</button></div>
     </div>
   </div>;
