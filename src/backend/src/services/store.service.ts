@@ -2,6 +2,7 @@ import { prisma } from "../lib/prisma.js";
 import { ApiError } from "../lib/http.js";
 import { activeStatuses, findStoreOrders, serializeOrder } from "./order.service.js";
 import { generateSchedule, checkDeadlineFeasibility, getWorkflowStages } from "./scheduling.service.js";
+import { buildQueueSnapshot } from "./queue.service.js";
 
 export async function dashboard(storeId: number) {
   const [store, orders, machines] = await Promise.all([

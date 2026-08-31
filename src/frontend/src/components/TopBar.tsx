@@ -8,7 +8,7 @@ const FILTERS: { id: OrderFilter; label: string }[] = [
 ];
 
 export default function TopBar() {
-  const { config, openM, currentPage, setCurrentPage, orderSearch, setOrderSearch, orderFilter, setOrderFilter } = useApp();
+  const { config, openM, currentPage, setCurrentPage, orderFilter, setOrderFilter } = useApp();
 
   const shopName = config.shopName || 'WashTrack';
   const parts = shopName.trim().split(' ');

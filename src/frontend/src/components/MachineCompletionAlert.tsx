@@ -341,9 +341,11 @@ function CompletionPanel({
             <div className="completion-fault-options">
               <button className={faultChoice === 'BROKEN' ? 'selected' : ''} onClick={() => setFaultChoice('BROKEN')}>Hỏng</button>
               <button className={faultChoice === 'INACTIVE' ? 'selected' : ''} onClick={() => setFaultChoice('INACTIVE')}>Tạm ngừng</button>
-              <button className="bs" disabled={submitting} onClick={() => setFaultChoice(null)}>Hủy</button>
+            </div>
+            <div style={{ display: 'flex', gap: 7, justifyContent: 'flex-end', marginTop: 12, borderTop: '1px solid #fee2e2', paddingTop: 12 }}>
+              <button className="bs" disabled={submitting} onClick={() => setFaultChoice(null)}>Hủy thao tác</button>
               <button className="br" disabled={submitting} onClick={() => { void markFault(); }}>
-                {submitting ? 'Đang lưu...' : 'Xác nhận trạng thái máy'}
+                {submitting ? 'Đang lưu...' : 'Xác nhận trạng thái'}
               </button>
             </div>
           </div>

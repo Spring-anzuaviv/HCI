@@ -269,9 +269,15 @@ export async function startRun(orderId: number, storeId: number, input: any) {
       const nextOrderStatus = manualStatus[stageName];
       if (!nextOrderStatus)
         throw new ApiError(409, "WORKFLOW_CONFLICT", "Không xác định được trạng thái công đoạn");
+        
+      let manualDuration = 0;
+      if (stageName === "SORTING" || stageName === "PACKING") manualDuration = 5;
+      else if (stageName === "TRANSFER") manualDuration = 2;
+      const plannedEndAt = new Date(now.getTime() + manualDuration * 60_000);
+
       const updated = await tx.orderStage.updateMany({
         where: { orderStageId: stage.orderStageId, status: "PLANNED" },
-        data: { actualStartedAt: now, status: "RUNNING" },
+        data: { actualStartedAt: now, plannedEndAt, status: "RUNNING" },
       });
       if (updated.count !== 1)
         throw new ApiError(409, "WORKFLOW_CONFLICT", "Dữ liệu công đoạn đã thay đổi, vui lòng tải lại");
@@ -296,9 +302,10 @@ export async function startRun(orderId: number, storeId: number, input: any) {
     if (await tx.orderStage.findFirst({ where: { orderId, status: "RUNNING" } }))
       throw new ApiError(409, "WORKFLOW_CONFLICT", "Đơn đang có công đoạn khác RUNNING");
 
+    const plannedEndAt = new Date(now.getTime() + machine.processingMinutes * 60_000);
     const updatedStage = await tx.orderStage.updateMany({
       where: { orderStageId: stage.orderStageId, status: "PLANNED" },
-      data: { machineId, actualStartedAt: now, status: "RUNNING" },
+      data: { machineId, actualStartedAt: now, plannedEndAt, status: "RUNNING" },
     });
     const updatedOrder = await tx.laundryOrder.updateMany({
       where: { orderId, storeId, status: "WAITING" },

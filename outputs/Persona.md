@@ -71,6 +71,7 @@ Mai Anh làm việc tại cửa hàng giặt ủi có nhiều máy và nhiều �
 
 - Mai Anh phải tự so sánh thời điểm nhận đơn, giờ hẹn, mức độ gấp, trạng thái hiện tại và máy phù hợp; các thông tin này không nằm cùng một chỗ.
 - Quy tắc “đến trước làm trước, đơn gấp được đôn lên” không đủ rõ khi có nhiều đơn cùng gấp, nhiều máy trống khác loại hoặc một đơn có nguy cơ trễ hẹn.
+- Đặc biệt, Mai Anh không biết chính xác đơn nào sắp trễ và còn bao nhiêu thời gian để kịp chuẩn bị, dẫn đến việc có thể bỏ lỡ thời hạn hoặc bị động khi khách hỏi.
 - Nhân viên mới khó hiểu vì sao một đơn cần được ưu tiên, trong khi nhân viên khác có thể chọn thứ tự khác dựa trên kinh nghiệm riêng.
 - Hệ quả giả định: tốn thời gian suy nghĩ, đổi việc nhiều lần và có nguy cơ để đơn gần trễ tiếp tục chờ.
 
@@ -98,7 +99,7 @@ Mai Anh làm việc tại cửa hàng giặt ủi có nhiều máy và nhiều �
 
 ## Needs (Wishes)
 
-- **N1 — Tương ứng P1:** Một cách nhìn thống nhất giúp Mai Anh biết việc nên làm tiếp theo và lý do ưu tiên, nhưng vẫn cho phép cô chọn khác khi có tình huống thực tế.
+- **N1 — Tương ứng P1:** Một cách nhìn thống nhất giúp Mai Anh biết việc nên làm tiếp theo, lý do ưu tiên, và đặc biệt là nhận diện ngay các đơn sắp trễ cùng thời gian còn lại để kịp chuẩn bị.
 - **N2 — Tương ứng P2:** Biết mức khả thi và khoảng thời gian hoàn thành hợp lý trước khi chốt giờ hẹn với khách.
 - **N3 — Tương ứng P3:** Mỗi đơn đang dở cần có trạng thái, vị trí/công đoạn, người phụ trách, giờ hẹn, ngoại lệ và hành động tiếp theo đủ rõ để ca sau tiếp tục ngay.
 - **N4 — Tương ứng P4:** Thông tin tiến độ và thời gian dự kiến cần được truyền đạt nhất quán cho khách với ít thao tác lặp lại.
@@ -107,6 +108,7 @@ Mai Anh làm việc tại cửa hàng giặt ủi có nhiều máy và nhiều �
 ## Frustrations
 
 - Mai Anh cảm thấy **quá tải và thiếu chắc chắn** khi nhiều đơn cùng tranh mức ưu tiên nhưng cô phải tự ghép thông tin từ nhiều nơi.
+- Mai Anh cảm thấy **bị động** vì không biết đơn nào sắp trễ và còn bao nhiêu thời gian để chuẩn bị, dễ dẫn đến thiếu sót.
 - Mai Anh cảm thấy **lo lắng** khi đã hẹn giờ với khách nhưng không biết hàng chờ và tải máy có cho phép hoàn thành đúng giờ hay không.
 - Mai Anh cảm thấy **mệt vì phải nhớ và giải thích lại** toàn bộ đơn đang dở trước khi hết ca.
 - Mai Anh cảm thấy **bị gián đoạn** khi vừa vận hành máy vừa phải kiểm tra và soạn nhiều tin nhắn cập nhật cho khách.

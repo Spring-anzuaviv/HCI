@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useApp } from '../context/AppContext';
 import { pendingNotifications, notificationPreview } from '../api/notifications';
 interface NotifyCard {
@@ -19,7 +19,39 @@ export default function NotifyPage() {
   const [loading, setLoading] = useState(true);
   const [pendingCards, setPendingCards] = useState<NotifyCard[]>([]);
   const [notifiedList, setNotifiedList] = useState<NotifyCard[]>([]);
-  const [processingList] = useState<{ id: string; initials: string; name: string; status: string }[]>([]);
+  const { orders } = useApp();
+
+  const processingList = useMemo(() => {
+    return orders
+      .filter(o => {
+        const raw = o.rawStatus ?? (o.status === 'done' ? 'COMPLETED' : 'WAITING');
+        if (['COMPLETED', 'NOTIFIED', 'CANCELLED'].includes(raw)) return false;
+        if (raw === 'READY') {
+          // Nếu đã READY nhưng chưa được hiện ở mục Cần thông báo (do chờ group)
+          const inPending = pendingCards.some(pc => pc.id === o.id);
+          return !inPending;
+        }
+        return true;
+      })
+      .map(o => {
+        const words = (o.name || 'Khách').trim().split(' ');
+        const initials = words.length >= 2
+          ? (words[0][0] + words[words.length - 1][0]).toUpperCase()
+          : (o.name || 'KH').substring(0, 2).toUpperCase();
+        
+        const raw = o.rawStatus ?? (o.status === 'done' ? 'COMPLETED' : 'WAITING');
+        const displayStatus = raw === 'READY' 
+          ? 'Đã xong, chờ mẻ khác'
+          : o.service === 'combo' ? 'Giặt + Sấy' : o.service === 'wash' ? 'Chỉ giặt' : 'Chỉ sấy';
+
+        return {
+          id: o.id,
+          initials,
+          name: o.name,
+          status: displayStatus
+        };
+      });
+  }, [orders, pendingCards]);
 
   // Luồng 3 – Lấy danh sách đơn cần thông báo từ Backend
   useEffect(() => {

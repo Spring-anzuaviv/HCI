@@ -59,6 +59,7 @@ Skill này giúp Agent:
 3. **Chỉ minh họa các tính năng trong phạm vi:**
    - **Tính năng 1 — Hàng đợi công việc thông minh** (giải quyết P1, P3):
      - Đề xuất đơn tiếp theo có lý do rõ ràng; nhân viên được xác nhận hoặc đổi thứ tự.
+     - Cảnh báo rõ nguy cơ trễ hẹn của các đơn đang làm kèm thời gian còn lại để chuẩn bị.
      - Hiển thị trạng thái, vị trí, người phụ trách và việc cần làm tiếp theo.
      - Hỗ trợ xem tác động trước khi đôn đơn gấp.
      - Xem bàn giao ca trước và tạo bàn giao ca sau trên cùng hàng đợi.

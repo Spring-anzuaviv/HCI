@@ -88,7 +88,7 @@ export function findEarliestAvailableSlot(
       .map((stage) => intervalFor(stage, machine))
       .filter(Boolean)
       .sort((a: any, b: any) => a.start.getTime() - b.start.getTime());
-    let start = new Date(earliestStart);
+    let start = new Date(Math.max(earliestStart.getTime(), new Date().getTime()));
     for (const interval of intervals as any[]) {
       if (interval.end <= start) continue;
       if (minutes(start, duration) <= interval.start) break;
@@ -142,6 +142,7 @@ export function calculateETA(order: any, orderStages: any[], machines: any[], al
       );
       cursor = slot.plannedEndAt;
     } else {
+      cursor = new Date(Math.max(cursor.getTime(), now.getTime()));
       cursor = minutes(cursor, getStageDuration(stageName));
     }
     if (requiredMachineType(stageName)) lastMachineEnd = cursor;
@@ -193,8 +194,9 @@ export function generateSchedule(orders: any[], machines: any[], now = new Date(
         stage.plannedEndAt = slot.plannedEndAt;
         cursor = slot.plannedEndAt;
       } else {
-        stage.plannedStartAt = new Date(cursor);
-        stage.plannedEndAt = minutes(cursor, getStageDuration(stage.stage));
+        const start = new Date(Math.max(cursor.getTime(), now.getTime()));
+        stage.plannedStartAt = start;
+        stage.plannedEndAt = minutes(start, getStageDuration(stage.stage));
         cursor = stage.plannedEndAt;
       }
     }

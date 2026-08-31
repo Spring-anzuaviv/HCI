@@ -22,8 +22,6 @@ export const activeStatuses = new Set([
   "WASHING",
   "DRYING",
   "FOLDING_PACKING",
-  "READY",
-  "NOTIFIED",
 ]);
 export const orderInclude = {
   customer: true,
@@ -113,7 +111,7 @@ export async function createOrder(storeId: number, input: any) {
       storeId,
       weightKg: Number(input.weightKg),
       serviceType: input.serviceType,
-      status: "WAITING",
+      status: "RECEIVED",
       readyAt: input.readyAt ? new Date(input.readyAt) : new Date(),
       pickupAt: input.pickupAt ? new Date(input.pickupAt) : null,
       groupCode: input.groupCode ?? null,

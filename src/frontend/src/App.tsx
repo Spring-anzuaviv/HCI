@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, lazy, Suspense } from 'react';
 import { getCurrentStore } from './api/auth';
 import { AppProvider } from './context/AppContext';
 import SVGSprite from './components/SVGSprite';
@@ -13,9 +13,9 @@ import { AddOrderModal, SettingsModal, MachineModal, EmployeeModal, AssignEmploy
 import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
 import QueuePage from './pages/OperationsQueuePage';
-import OrdersPage from './pages/OrdersPage';
 import NotifyPage from './pages/NotifyPage';
-import StatsPage from './pages/StatsPage';
+// StatsPage ít dùng — lazy load để không block bundle chính
+const StatsPage = lazy(() => import('./pages/StatsPage'));
 
 import { useApp } from './context/AppContext';
 
@@ -30,11 +30,13 @@ function AppShell() {
       <main className="main">
         <TopBar />
         <div className="pwrap">
-          {currentPage === 'db'     && <DashboardPage />}
-          {currentPage === 'q'      && <QueuePage />}
-          {currentPage === 'orders' && <OrdersPage />}
-          {currentPage === 'n'      && <NotifyPage />}
-          {currentPage === 'stats'  && <StatsPage />}
+          {/* Dùng CSS visibility thay vì && để trang không bị unmount khi chuyển tab */}
+          <div hidden={currentPage !== 'db'}><DashboardPage /></div>
+          <div hidden={currentPage !== 'q'}><QueuePage /></div>
+          <div hidden={currentPage !== 'n'}><NotifyPage /></div>
+          <Suspense fallback={<div style={{ padding: 30, color: 'var(--ts)' }}>Đang tải...</div>}>
+            <div hidden={currentPage !== 'stats'}><StatsPage /></div>
+          </Suspense>
         </div>
       </main>
       <RightPanel />

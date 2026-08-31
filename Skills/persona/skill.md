@@ -51,6 +51,8 @@ Khung chuẩn theo mẫu môn học (HCI - FIT - HCMUS). Phải giữ đúng th�
 ```markdown
 # [Tên nhân vật đại diện]
 
+> **Persona đại diện:** [Mô tả ngắn gọn về vai trò và bối cảnh của persona]
+
 ## Basic Information
 
 | Name | ... |
@@ -61,9 +63,15 @@ Khung chuẩn theo mẫu môn học (HCI - FIT - HCMUS). Phải giữ đúng th�
 | Digital Literacy | ... |
 | Primary Device | ... |
 
+## Tags
+
+`[tag 1]` `[tag 2]` `[tag 3]`
+
 ## Background
 
 (đoạn văn mô tả bối cảnh công việc chung)
+
+> **Vấn đề cốt lõi của persona:** [Tóm tắt ngắn gọn vấn đề lớn nhất mà persona đang gặp phải]
 
 ## Goals
 

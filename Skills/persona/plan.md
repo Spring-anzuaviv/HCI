@@ -30,7 +30,7 @@ Ràng buộc bắt buộc: input phải được gắn nhãn theo **nhóm ngư�
 
 ## Output
 
-Một persona hoàn chỉnh, dạng Markdown, lưu tại `templates/persona.md`, gồm: tên nhân vật đại diện, quote tiêu biểu, demographic & bối cảnh, goals, pains, behaviors, mức độ sẵn sàng với công nghệ, nhu cầu cốt lõi, và danh sách nguồn dữ liệu đã dùng — theo đúng template quy định trong `skills/persona/skill.md`.
+Một persona hoàn chỉnh, dạng Markdown, lưu tại `outputs/Persona.md`, gồm: tên nhân vật đại diện, quote tiêu biểu, demographic & bối cảnh, goals, pains, behaviors, mức độ sẵn sàng với công nghệ, nhu cầu cốt lõi, và danh sách nguồn dữ liệu đã dùng — theo đúng template quy định trong `skills/persona/skill.md`.
 
 ## Workflow
 
@@ -39,4 +39,4 @@ Một persona hoàn chỉnh, dạng Markdown, lưu tại `templates/persona.md`,
 3. Áp dụng các quy tắc suy luận (Reasoning) và kiểm tra tính nhất quán (Validation) được định nghĩa trong `skills/persona/skill.md` để tổng hợp thành một nhân vật đại diện duy nhất.
 4. Nếu dữ liệu không đủ hoặc phát sinh mâu thuẫn, áp dụng Failure handling trong `skills/persona/skill.md` thay vì tự suy diễn không có căn cứ.
 5. Điền kết quả vào template persona chuẩn.
-6. Xuất file `persona.md` ở định dạng Markdown vào thư mục templates
+6. Xuất file `Persona.md` ở định dạng Markdown vào thư mục `outputs`

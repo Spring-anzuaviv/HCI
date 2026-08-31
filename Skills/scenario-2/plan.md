@@ -23,7 +23,7 @@ Generate Scenario 2 (hệ thống tương lai) cho đồ án HCI: mô tả tư�
 Một Scenario 2 hoàn chỉnh, dạng Markdown, gồm:
 
 - Bối cảnh (Giữ nguyên từ Scenario 1).
-- Tường thuật liền mạch ca làm việc với sự hỗ trợ của hệ thống mới, thể hiện sự cải thiện rõ rệt so với Scenario 1 đối với P1, P2, P4 (không bao gồm tính năng phát hiện nguy cơ trễ tự động vì dữ liệu thời gian máy giặt là cố định).
+- Tường thuật liền mạch ca làm việc với sự hỗ trợ của hệ thống mới, thể hiện sự cải thiện rõ rệt so với Scenario 1 đối với P1, P2, P4. Các tính năng bao gồm đề xuất ưu tiên, cảnh báo nguy cơ trễ hẹn và tính khả thi giờ nhận.
 - Bảng phân tích sự thay đổi (Từ vấn đề P1-P4 ở Scenario 1 -> Tương tác mới -> Kết quả đạt được).
 - Đánh dấu rõ các giải pháp thiết kế được áp dụng vào tường thuật.
 

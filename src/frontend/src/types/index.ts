@@ -71,6 +71,7 @@ export interface Order {
   nextAction?: string;
   priorityReason?: string;
   stages?: ApiOrderStage[];
+  rawStatus?: string;
 }
 
 export interface WorkShift extends Shift {
@@ -180,4 +181,5 @@ export interface ModalOrderParams {
   svcType: SvcType;
   isWaiting: boolean;
   readOnly?: boolean;
+  recommendedMachineId?: number | null;
 }

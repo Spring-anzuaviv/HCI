@@ -407,6 +407,66 @@ select.finput {
 .queue-status-summary > span { display: inline-flex; align-items: center; gap: 6px; padding: 7px 10px; border: 1px solid #d1fae5; border-radius: 9px; background: #f0fdf4; color: #166534; font-size: 10.5px; font-weight: 600; }
 .queue-status-summary strong { display: inline-flex; align-items: center; justify-content: center; min-width: 20px; height: 20px; padding: 0 5px; border-radius: 6px; background: #22c55e; color: #fff; font-size: 11px; }
 
+/* ── OPERATIONS QUEUE PAGE (HCI refactor) ── */
+.oq-header { display: flex; align-items: flex-start; gap: 12px; justify-content: space-between; flex-wrap: wrap; margin-bottom: 14px; }
+.oq-header-left  { display: flex; flex-direction: column; gap: 8px; }
+.oq-header-right { display: flex; align-items: center; gap: 10px; flex-shrink: 0; flex-wrap: wrap; }
+.oq-title { font-size: 17px; font-weight: 900; color: var(--tx); }
+.oq-summary { display: flex; gap: 6px; flex-wrap: wrap; }
+.oq-summary-chip { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; border: 1.5px solid transparent; }
+.oq-summary-chip.danger  { background: #fee2e2; color: #991b1b; border-color: #fecaca; }
+.oq-summary-chip.risk    { background: #fef3c7; color: #92400e; border-color: #fcd34d; }
+.oq-summary-chip.review  { background: #ffedd5; color: #9a3412; border-color: #fdba74; }
+.oq-summary-chip.ok      { background: #dcfce7; color: #15803d; border-color: #bbf7d0; }
+.oq-refreshing { display: inline-flex; align-items: center; gap: 5px; font-size: 10.5px; color: var(--ts); }
+@keyframes oq-spin { to { transform: rotate(360deg); } }
+.oq-spin { animation: oq-spin 1s linear infinite; }
+
+/* Stage groups */
+.oq-stage-group { }
+.oq-stage-header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-bottom: 4px; }
+.oq-stage-title { display: flex; align-items: center; gap: 8px; font-size: 12.5px; font-weight: 800; }
+.oq-stage-dot { display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 8px; font-size: 14px; flex-shrink: 0; }
+.oq-stage-count { display: inline-flex; align-items: center; justify-content: center; min-width: 22px; height: 22px; padding: 0 6px; border-radius: 20px; font-size: 11px; font-weight: 800; }
+
+
+/* Zone A – cần chú ý */
+.oq-zone-a-card { border-top: 3px solid var(--pu); }
+.oq-zone-attention { border-top: 3px solid var(--rd); background: #fff9f9; }
+.oq-zone-label { display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 800; color: var(--ts); text-transform: uppercase; letter-spacing: .06em; }
+.oq-zone-label.danger { color: var(--rd); }
+.oq-row-attention { background: #fff5f5; }
+.oq-row-attention:hover { background: #fee2e2; border-color: var(--rd); }
+.oq-danger-text { color: var(--rd); font-weight: 800; }
+
+/* Recommendation cards */
+.oq-recs { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
+.oq-rec-card { display: flex; align-items: center; gap: 14px; padding: 14px 15px; background: linear-gradient(135deg,#f0ebff,#ede9fe); border-radius: 12px; border: 1.5px solid #c4b5fd; }
+.oq-rec-card.risk { background: linear-gradient(135deg,#fff1f2,#ffe4e6); border-color: #fca5a5; }
+.oq-rec-id  { font-size: 32px; font-weight: 900; color: var(--pu); line-height: 1; flex-shrink: 0; }
+.oq-rec-card.risk .oq-rec-id { color: var(--rd); }
+.oq-rec-body { flex: 1; min-width: 0; }
+.oq-rec-name { font-size: 15px; font-weight: 800; color: var(--tx); }
+.oq-rec-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 5px; }
+.oq-rec-reasons { display: flex; flex-direction: column; gap: 2px; margin-top: 6px; }
+.oq-rec-reasons span { display: inline-flex; align-items: center; gap: 4px; color: var(--pu); font-size: 10.5px; font-weight: 600; }
+.oq-rec-btn { min-height: 40px; padding: 0 16px; white-space: nowrap; flex-shrink: 0; }
+
+/* Queue row cải thiện: min-height 48px để dễ touch */
+.oq-row { min-height: 48px; }
+.oq-row:focus-visible { outline: 3px solid rgba(124,58,237,.45); outline-offset: 2px; }
+
+@media (max-width: 900px) {
+  .oq-rec-card { flex-wrap: wrap; }
+  .oq-rec-btn { width: 100%; justify-content: center; }
+  .oq-header { flex-direction: column; gap: 8px; }
+}
+@media (max-width: 560px) {
+  .oq-rec-id { font-size: 26px; }
+  .oq-rec-name { font-size: 13px; }
+}
+
+
 /* ── UC-SQ-02: MACHINE COMPLETION ── */
 .completion-overlay {
   position: fixed; inset: 0; z-index: 180; display: flex; align-items: center; justify-content: center;

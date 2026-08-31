@@ -40,8 +40,8 @@ export async function preview(
   return {
     orderId,
     channel,
-    recipient: order.customer.phone,
-      content: `Chào ${order.customer.name}, các đơn trong nhóm ${order.groupCode ?? `L-${orderId}`} đã hoàn tất và sẵn sàng để nhận.`,
+    recipient: order.customer?.phone ?? "",
+      content: `Chào ${order.customer?.name ?? "bạn"}, các đơn trong nhóm ${order.groupCode ?? `L-${orderId}`} đã hoàn tất và sẵn sàng để nhận.`,
   };
 }
 export async function handover(storeId: number) {

@@ -35,7 +35,10 @@ interface AppContextType {
   setOrderFilter: React.Dispatch<React.SetStateAction<OrderFilter>>;
   store: StoreSession | null;
   queueSnapshot: QueueSnapshot | null;
+  /** true chỉ lần đầu chưa có data — dùng để hiện skeleton */
   operationsLoading: boolean;
+  /** true khi đang background-refresh (đã có data cũ) */
+  queueRefreshing: boolean;
   operationsError: string;
   refreshOperations: () => Promise<void>;
   refreshOrders: () => Promise<void>;
@@ -77,6 +80,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [shiftSummary, setShiftSummary] = useState<ShiftSummary | null>(null);
   const [queueSnapshot, setQueueSnapshot] = useState<QueueSnapshot | null>(null);
   const [operationsLoading, setOperationsLoading] = useState(true);
+  const [queueRefreshing, setQueueRefreshing] = useState(false);
   const [operationsError, setOperationsError] = useState('');
   const [toasts, setToasts] = useState<ToastItem[]>([]);
   const [openModal, setOpenModal] = useState<string | null>(null);
@@ -95,7 +99,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const refreshOperations = useCallback(async () => {
     if (!store) return;
-    setOperationsLoading(true);
+    // Nếu đã có data thì chỉ hiện indicator nhỏ, không che toàn trang
+    if (queueSnapshot) {
+      setQueueRefreshing(true);
+    } else {
+      setOperationsLoading(true);
+    }
     setOperationsError('');
     try {
       const [data, machineData, queueData] = await Promise.all([
@@ -107,23 +116,29 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       setMachines(machineData.map(mapApiMachine));
       setQueueSnapshot(queueData);
     } catch (error) {
-      setQueueSnapshot(null);
+      if (!queueSnapshot) setQueueSnapshot(null);
       setOperationsError(error instanceof Error ? error.message : 'Không thể tải trạng thái vận hành');
     } finally {
       setOperationsLoading(false);
+      setQueueRefreshing(false);
     }
-  }, [store]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [store, queueSnapshot]);
   const refreshStaff = useCallback(async () => {
     if (!store) return;
-    const [employeeData, shiftData] = await Promise.all([listEmployees(store.storeId), listShifts(store.storeId, selectedWorkDate)]);
-    const mappedShifts = shiftData.map((shift: any) => ({ id: shift.shiftId, name: shift.name, start: new Date(shift.startAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }), end: new Date(shift.endAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }), employees: shift.employees?.map((item: any) => ({ id: item.employee.employeeId, name: item.employee.name, phone: item.employee.phone ?? '', role: item.employee.role, shiftId: shift.shiftId, ava: item.employee.name.split(' ').map((part: string) => part[0]).join('').slice(-2).toUpperCase() })) ?? [] }));
-    setWorkShifts(mappedShifts);
-    setConfig(previous => ({ ...previous, shifts: mappedShifts.map(shift => ({ id: shift.id, name: shift.name, start: shift.start, end: shift.end })) }));
-    setStaff(employeeData.map((employee: any) => ({ id: employee.employeeId, name: employee.name, phone: employee.phone ?? '', role: employee.role, shiftId: mappedShifts.find(shift => shift.employees.some((item: { id: number }) => item.id === employee.employeeId))?.id ?? 0, ava: employee.name.split(' ').map((part: string) => part[0]).join('').slice(-2).toUpperCase() })));
+    try {
+      const [employeeData, shiftData] = await Promise.all([listEmployees(store.storeId), listShifts(store.storeId, selectedWorkDate)]);
+      const mappedShifts = shiftData.map((shift: any) => ({ id: shift.shiftId, name: shift.name, start: new Date(shift.startAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }), end: new Date(shift.endAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }), employees: shift.employees?.map((item: any) => ({ id: item.employee.employeeId, name: item.employee.name, phone: item.employee.phone ?? '', role: item.employee.role, shiftId: shift.shiftId, ava: item.employee.name.split(' ').map((part: string) => part[0]).join('').slice(-2).toUpperCase() })) ?? [] }));
+      setWorkShifts(mappedShifts);
+      setConfig(previous => ({ ...previous, shifts: mappedShifts.map(shift => ({ id: shift.id, name: shift.name, start: shift.start, end: shift.end })) }));
+      setStaff(employeeData.map((employee: any) => ({ id: employee.employeeId, name: employee.name, phone: employee.phone ?? '', role: employee.role, shiftId: mappedShifts.find(shift => shift.employees.some((item: { id: number }) => item.id === employee.employeeId))?.id ?? 0, ava: employee.name.split(' ').map((part: string) => part[0]).join('').slice(-2).toUpperCase() })));
+    } catch (err) {
+      console.warn('[refreshStaff] Lỗi khi tải danh sách nhân viên:', err);
+    }
   }, [store, selectedWorkDate]);
   const refreshShiftSummary = useCallback(async () => {
     if (!store) return;
-    setShiftSummary(await getShiftSummary(store.storeId));
+    try { setShiftSummary(await getShiftSummary(store.storeId)); } catch (err) { console.warn('[refreshShiftSummary]', err); }
   }, [store]);
 
   const refreshOrders = refreshOperations;
@@ -139,7 +154,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => { if (store) void refreshStaff(); }, [store, refreshStaff]);
   useEffect(() => { if (store) void refreshShiftSummary(); }, [store, refreshShiftSummary]);
 
-  // UC-SQ-02: chỉ polling projection máy từ database để phát hiện mẻ vừa xong.
+  // Polling máy mỗi 60s để phát hiện mẻ vừa xong — queue chỉ refresh khi có hành động.
   useEffect(() => {
     if (!store) return;
     const pollMachines = async () => {
@@ -151,8 +166,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         setOperationsError(error instanceof Error ? error.message : 'Không thể cập nhật trạng thái máy');
       }
     };
-    const intervalId = window.setInterval(() => { void pollMachines(); }, 15_000);
-    return () => window.clearInterval(intervalId);
+    const machineInterval = window.setInterval(() => { void pollMachines(); }, 60_000);
+    return () => { window.clearInterval(machineInterval); };
   }, [store]);
 
   return (
@@ -161,7 +176,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       machines, setMachines,
       staff, setStaff,
       config, setConfig,
-      orders, setOrders, store, refreshOrders, refreshStaff, selectedWorkDate, setSelectedWorkDate, workShifts, shiftSummary, refreshShiftSummary, orderSearch, setOrderSearch, orderFilter, setOrderFilter, queueSnapshot, operationsLoading, operationsError, refreshOperations,
+      orders, setOrders, store, refreshOrders, refreshStaff, selectedWorkDate, setSelectedWorkDate, workShifts, shiftSummary, refreshShiftSummary, orderSearch, setOrderSearch, orderFilter, setOrderFilter, queueSnapshot, operationsLoading, queueRefreshing, operationsError, refreshOperations,
       toasts, showToast,
       openModal, setOpenModal, openM, closeM,
       orderModalParams, setOrderModalParams,
@@ -180,11 +195,12 @@ function mapApiOrder(order: any): Order {
     receivedAt: new Date(order.createdAt).toLocaleString('vi-VN'), service, serviceType: order.serviceType,
     kg: order.weightKg, deadline: order.pickupAt ? new Date(order.pickupAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) : '',
     deadlineFull: order.pickupAt ? new Date(order.pickupAt).toLocaleString('vi-VN') : '', status,
-    atRisk: order.riskLevel === 'HIGH' || order.riskLevel === 'MEDIUM', isWaiting: order.status === 'WAITING',
+    atRisk: order.riskLevel === 'AT_RISK' || order.riskLevel === 'NOT_FEASIBLE', isWaiting: order.status === 'WAITING',
     chipLabel: order.currentMachine ? `${order.currentMachine.name} · ${order.currentStage ?? ''} · Dự kiến xong: ${eta}` : undefined,
     machine: order.currentMachine?.name, readyAt: order.readyAt, pickupAt: order.pickupAt, estimatedAt: order.estimatedAt,
     groupCode: order.groupCode, riskLevel: order.riskLevel, currentStage: order.currentStage,
      currentMachine: order.currentMachine, nextAction: order.nextAction, priorityReason: order.priorityReason, stages: order.stages, groupETA: order.groupETA,
+     rawStatus: order.status,
   };
 }
 

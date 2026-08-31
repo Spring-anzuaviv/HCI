@@ -1,11 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any, react-hooks/set-state-in-effect */
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useApp } from '../context/AppContext';
 import { apiGet, apiPost } from '../api/client';
 import { changePassword, logout } from '../api/auth';
 import { createMachine, deleteMachine, updateMachine } from '../api/machines';
 import { createEmployee, updateEmployee, assignEmployee, unassignEmployee } from '../api/staff';
 import { updateStoreName } from '../api/store';
+import { startRun, completeRun, checkExpedite, confirmExpedite } from '../api/orders';
 
 // ─── Modal Thêm đơn hàng ───
 export function AddOrderModal() {
@@ -287,28 +288,119 @@ export function EmployeeModal() {
   const [phone, setPhone] = useState('');
   const [role, setRole] = useState('STAFF');
   const [shiftId, setShiftId] = useState(0);
-  useEffect(() => { setName(editing?.name ?? ''); setPhone(editing?.phone ?? ''); setRole(editing?.role ?? 'STAFF'); setShiftId(workShifts[0]?.id ?? 0); }, [editingId, editing?.name, editing?.phone, editing?.role, workShifts]);
+  const [saving, setSaving] = useState(false);
+  const savingRef = useRef(false);
+
+  useEffect(() => {
+    setName(editing?.name ?? '');
+    setPhone(editing?.phone ?? '');
+    setRole(editing?.role ?? 'STAFF');
+    setShiftId(workShifts[0]?.id ?? 0);
+    setSaving(false);
+    savingRef.current = false;
+  }, [editingId, editing?.name, editing?.phone, editing?.role, workShifts, isOpen]);
+
   const save = async () => {
-    if (!name.trim() || !store) { showToast('Vui lòng nhập tên nhân viên', 'red'); return; }
+    if (savingRef.current) return;
+    if (!name.trim()) { showToast('Vui lòng nhập tên nhân viên', 'red'); return; }
+    if (!store) { showToast('Phiên đăng nhập hết hạn, vui lòng đăng nhập lại', 'red'); return; }
+    savingRef.current = true;
+    setSaving(true);
     try {
-      const payload = { name, phone, role };
-      const employee = editingId ? await updateEmployee(editingId, payload) : await createEmployee(store.storeId, payload);
-      if (!editingId) {
-        if (!shiftId) throw new Error(`Chưa có ca làm việc trong ngày ${selectedWorkDate}`);
-        await assignEmployee(store.storeId, shiftId, employee.employeeId);
+      const payload = { name: name.trim(), phone: phone.trim(), role };
+      if (editingId) {
+        await updateEmployee(editingId, payload);
+        await refreshStaff();
+        showToast('Đã cập nhật nhân viên', 'grn');
+      } else {
+        const employee = await createEmployee(store.storeId, payload);
+        // Gán ca nếu có ca — nếu không có ca thì vẫn tạo nhân viên thành công
+        if (shiftId && employee?.employeeId) {
+          try {
+            await assignEmployee(store.storeId, shiftId, employee.employeeId);
+          } catch (assignErr) {
+            // Nhân viên đã tạo thành công — chỉ cảnh báo về lỗi gán ca
+            showToast(`Đã thêm nhân viên nhưng không gán được ca: ${assignErr instanceof Error ? assignErr.message : 'Lỗi không xác định'}`, 'am');
+            await refreshStaff();
+            closeM(openModal ?? 'sm-staff');
+            return;
+          }
+        }
+        await refreshStaff();
+        showToast('Đã thêm nhân viên' + (shiftId ? ' và gán vào ca' : ''), 'grn');
       }
-      await refreshStaff(); closeM(openModal ?? 'sm-staff'); showToast(editingId ? 'Đã cập nhật nhân viên' : 'Đã thêm nhân viên', 'grn');
-    } catch (error) { showToast(error instanceof Error ? error.message : 'Không thể lưu nhân viên', 'red'); }
+      closeM(openModal ?? 'sm-staff');
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : 'Không thể lưu nhân viên';
+      showToast(msg, 'red');
+    } finally {
+      setSaving(false);
+      savingRef.current = false;
+    }
   };
-  return <div className={`mov${isOpen ? ' open' : ''}`} onClick={() => closeM(openModal ?? 'sm-staff')}>
-    <div className="modal" onClick={event => event.stopPropagation()}>
-      <div className="mhd"><div className="mtitle">{editingId ? 'Cập nhật nhân viên' : 'Thêm nhân viên'}</div><button className="mxbtn" onClick={() => closeM(openModal ?? 'sm-staff')}><svg className="icon icon-sm"><use href="#i-x" /></svg></button></div>
-      <div className="frow" style={{ marginBottom: 11 }}><div className="fg"><label className="flbl">Tên nhân viên</label><input className="finput" value={name} onChange={event => setName(event.target.value)} placeholder="Nguyễn Văn A" /></div><div className="fg"><label className="flbl">Số điện thoại</label><input className="finput" value={phone} onChange={event => setPhone(event.target.value)} placeholder="09xx xxx xxx" /></div></div>
-      <div className="frow" style={{ marginBottom: 18 }}><div className="fg"><label className="flbl">Vai trò</label><select className="finput" value={role} onChange={event => setRole(event.target.value)}><option value="STAFF">Nhân viên</option><option value="MANAGER">Quản lý</option></select></div>{!editingId && <div className="fg"><label className="flbl">Phân ca ngày {selectedWorkDate}</label><select className="finput" value={shiftId} onChange={event => setShiftId(Number(event.target.value))} disabled={!workShifts.length}>{!workShifts.length && <option value={0}>Chưa có ca làm việc</option>}{workShifts.map(shift => <option key={shift.id} value={shift.id}>{shift.name} ({shift.start}-{shift.end})</option>)}</select></div>}</div>
-      <div style={{ display: 'flex', gap: 9 }}><button className="bs" onClick={() => closeM(openModal ?? 'sm-staff')} style={{ flex: 1 }}>Hủy</button><button className="bp" onClick={() => void save()} style={{ flex: 2 }}><svg className="icon icon-sm"><use href="#i-check" /></svg>Lưu nhân viên</button></div>
+
+  return (
+    <div className={`mov${isOpen ? ' open' : ''}`} onClick={() => closeM(openModal ?? 'sm-staff')}>
+      <div className="modal" onClick={event => event.stopPropagation()}>
+        <div className="mhd">
+          <div className="mtitle">{editingId ? 'Cập nhật nhân viên' : 'Thêm nhân viên'}</div>
+          <button className="mxbtn" onClick={() => closeM(openModal ?? 'sm-staff')}>
+            <svg className="icon icon-sm"><use href="#i-x" /></svg>
+          </button>
+        </div>
+
+        <div className="frow" style={{ marginBottom: 11 }}>
+          <div className="fg">
+            <label className="flbl">Tên nhân viên <span style={{ color: 'var(--rd)' }}>*</span></label>
+            <input className="finput" value={name} onChange={e => setName(e.target.value)}
+              placeholder="Nguyễn Văn A" disabled={saving} autoFocus />
+          </div>
+          <div className="fg">
+            <label className="flbl">Số điện thoại</label>
+            <input className="finput" value={phone} onChange={e => setPhone(e.target.value)}
+              placeholder="09xx xxx xxx" disabled={saving} />
+          </div>
+        </div>
+
+        <div className="frow" style={{ marginBottom: 18 }}>
+          <div className="fg">
+            <label className="flbl">Vai trò</label>
+            <select className="finput" value={role} onChange={e => setRole(e.target.value)} disabled={saving}>
+              <option value="STAFF">Nhân viên</option>
+              <option value="MANAGER">Quản lý</option>
+            </select>
+          </div>
+          {!editingId && (
+            <div className="fg">
+              <label className="flbl">Phân ca ngày {selectedWorkDate}</label>
+              <select className="finput" value={shiftId}
+                onChange={e => setShiftId(Number(e.target.value))}
+                disabled={!workShifts.length || saving}>
+                <option value={0}>— Không gán ca ngay —</option>
+                {workShifts.map(shift => (
+                  <option key={shift.id} value={shift.id}>{shift.name} ({shift.start}–{shift.end})</option>
+                ))}
+              </select>
+            </div>
+          )}
+        </div>
+
+        <div style={{ display: 'flex', gap: 9 }}>
+          <button className="bs" onClick={() => closeM(openModal ?? 'sm-staff')}
+            style={{ flex: 1 }} disabled={saving}>Hủy</button>
+          <button className="bp" onClick={() => void save()}
+            style={{ flex: 2 }} disabled={saving}>
+            {saving
+              ? <><svg className="icon icon-sm oq-spin"><use href="#i-loader" /></svg> Đang lưu...</>
+              : <><svg className="icon icon-sm"><use href="#i-check" /></svg> {editingId ? 'Cập nhật' : 'Lưu nhân viên'}</>
+            }
+          </button>
+        </div>
+      </div>
     </div>
-  </div>;
+  );
 }
+
 
 export function AssignEmployeeModal() {
   const { openModal, closeM, showToast, staff, workShifts, store, refreshStaff } = useApp();
@@ -429,35 +521,153 @@ export function MachineModal() {
 }
 
 // ─── Modal Chi tiết đơn hàng ───
+function safeFormatTime(val: any, fallback = 'Chưa xác định') {
+  if (!val) return fallback;
+  try {
+    const d = new Date(val);
+    if (isNaN(d.getTime())) return fallback;
+    return d.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+  } catch (e) { return fallback; }
+}
+
 export function OrderDetailModal() {
-  const { openModal, closeM, showToast, orderModalParams, machines, orders } = useApp();
+  const { openModal, closeM, showToast, orderModalParams, machines, orders, store, refreshOperations, setCurrentPage } = useApp();
   const isOpen = openModal === 'om';
   const p = orderModalParams;
   const [detail, setDetail] = useState<any>(null);
   const [detailError, setDetailError] = useState('');
+  
+  const [selectedMachineId, setSelectedMachineId] = useState('');
+  const [actionLoading, setActionLoading] = useState(false);
+  // Ref guard: chặn double-submit ngay cả khi state chưa kịp render
+  const submitting = useRef(false);
+  const [showExpedite, setShowExpedite] = useState(false);
+  const [expediteTime, setExpediteTime] = useState('');
+  const [expediteReason, setExpediteReason] = useState('');
+  const [expediteCheck, setExpediteCheck] = useState<any>(null);
 
   // Clear stale detail when a different order is opened.
+  // AbortController để huỷ fetch khi modal đóng trước khi response về.
   useEffect(() => {
+    const ctrl = new AbortController();
     setDetail(null); setDetailError('');
-    if (p?.orderId) apiGet<any>(`/orders/${p.orderId}`).then(setDetail).catch(error => setDetailError(error instanceof Error ? error.message : 'Không thể tải chi tiết đơn'));
-  }, [p?.orderId]);
+    setSelectedMachineId(''); setExpediteCheck(null); setShowExpedite(false); setExpediteReason('');
+    if (p?.orderId) {
+      apiGet<any>(`/orders/${p.orderId}`, { signal: ctrl.signal })
+        .then(d => { setDetail(d); })
+        .catch(err => {
+          if (err?.name === 'AbortError') return; // bỏ qua khi huỷ chủ động
+          setDetailError(err instanceof Error ? err.message : 'Không thể tải chi tiết đơn');
+        });
+    }
+    return () => ctrl.abort();
+  }, [p?.orderId, isOpen]);
+
+  const order = detail ?? (p?.orderId ? orders.find(item => item.orderId === p.orderId) : undefined);
+
+  const actualSvc = order?.serviceType === 'WASH_DRY' ? 'combo' : order?.serviceType === 'DRY' ? 'dry' : order?.serviceType === 'WASH' ? 'wash' : p?.svcType;
+  const svcLabel = actualSvc === 'combo' ? 'Giặt + Sấy' : actualSvc === 'wash' ? 'Chỉ Giặt' : 'Chỉ Sấy';
+  // Tên bước — dùng danh từ, không dùng trạng thái động (tránh nhầm với trạng thái đang chạy)
+  let stages: string[] = [];
+  let stageKeys: string[] = [];
+  if (actualSvc === 'combo') { stages = ['Phân loại', 'Giặt', 'Chuyển đồ', 'Sấy', 'Đóng gói']; stageKeys = ['SORTING', 'WASH', 'TRANSFER', 'DRY', 'PACKING']; }
+  else if (actualSvc === 'wash') { stages = ['Phân loại', 'Giặt', 'Đóng gói']; stageKeys = ['SORTING', 'WASH', 'PACKING']; }
+  else { stages = ['Phân loại', 'Sấy', 'Đóng gói']; stageKeys = ['SORTING', 'DRY', 'PACKING']; }
+
+  const stageList = order?.stages ?? [];
+  const allCompleted = stageList.length > 0 && stageList.every((s: any) => s.status === 'COMPLETED');
+  const isCompleted = order?.status === 'done' || order?.status === 'COMPLETED' || allCompleted;
+
+  // Tìm giai đoạn hiện tại bằng key match (không dùng index) — đảm bảo đúng dù thứ tự stageList khác stageKeys.
+  const firstIncomplete = stageList.find((s: any) => s.status !== 'COMPLETED');
+  const nextStageKey = firstIncomplete
+    ? (stageKeys.includes(firstIncomplete.stage) ? firstIncomplete.stage : null)
+    : null;
+  const cur = nextStageKey ? stageKeys.indexOf(nextStageKey) : stageList.length;
+  const requiredType = nextStageKey === 'WASH' ? 'WASHER' : nextStageKey === 'DRY' ? 'DRYER' : null;
+  const availMachines = requiredType ? machines.filter(m => m.type === (requiredType === 'WASHER' ? 'wash' : 'dry') && m.st === 'trong') : [];
+
+  useEffect(() => {
+    if (availMachines.length > 0 && !selectedMachineId) {
+      if (p?.recommendedMachineId && availMachines.some(m => m.id === p?.recommendedMachineId)) {
+        setSelectedMachineId(String(p.recommendedMachineId));
+      } else {
+        setSelectedMachineId(String(availMachines[0].id));
+      }
+    }
+  }, [availMachines, p?.recommendedMachineId, selectedMachineId, isOpen]);
 
   if (!p) return null;
 
-  const order = detail ?? (p.orderId ? orders.find(item => item.orderId === p.orderId) : undefined);
+  const handleStart = async () => {
+    if (submitting.current) return; // chặn double-click
+    if (requiredType && !selectedMachineId) { showToast('Vui lòng chọn máy', 'red'); return; }
+    if (!p?.orderId || !store) return;
+    submitting.current = true;
+    try {
+      setActionLoading(true);
+      await startRun(p.orderId, nextStageKey ?? '', Number(selectedMachineId) || 0);
+      showToast(`Đã xếp ${p.name} vào xử lý`, 'grn');
+      closeM('om');
+      void refreshOperations();
+    } catch (error) {
+      showToast(error instanceof Error ? error.message : 'Lỗi khi bắt đầu', 'red');
+    } finally {
+      setActionLoading(false);
+      submitting.current = false;
+    }
+  };
 
-  const actualSvc = order?.serviceType === 'WASH_DRY' ? 'combo' : order?.serviceType === 'DRY' ? 'dry' : order?.serviceType === 'WASH' ? 'wash' : p.svcType;
-  const svcLabel = actualSvc === 'combo' ? 'Giặt + Sấy' : actualSvc === 'wash' ? 'Chỉ Giặt' : 'Chỉ Sấy';
-  let stages: string[] = [];
-  let stageKeys: string[] = [];
-  if (actualSvc === 'combo') { stages = ['Phân loại', 'Đang giặt', 'Chuyển đồ', 'Đang sấy', 'Đóng gói']; stageKeys = ['SORTING', 'WASH', 'TRANSFER', 'DRY', 'PACKING']; }
-  else if (actualSvc === 'wash') { stages = ['Phân loại', 'Đang giặt', 'Đóng gói']; stageKeys = ['SORTING', 'WASH', 'PACKING']; }
-  else { stages = ['Phân loại', 'Đang sấy', 'Đóng gói']; stageKeys = ['SORTING', 'DRY', 'PACKING']; }
+  const handleComplete = async () => {
+    if (submitting.current) return; // chặn double-click
+    const runningStage = stageList.find((s: any) => s.status === 'RUNNING');
+    if (!runningStage) return;
+    submitting.current = true;
+    try {
+      setActionLoading(true);
+      await completeRun(runningStage.orderStageId);
+      showToast(`Đã hoàn tất công đoạn cho ${p.name}`, 'grn');
+      closeM('om');
+      void refreshOperations();
+      if (runningStage.stage === 'PACKING') {
+        setCurrentPage('n');
+      }
+    } catch (error) {
+      showToast(error instanceof Error ? error.message : 'Lỗi khi hoàn tất', 'red');
+    } finally {
+      setActionLoading(false);
+      submitting.current = false;
+    }
+  };
 
-  const stageList = order?.stages ?? [];
-  const cur = Math.max(0, stageList.findIndex((stage: any) => stage.status !== 'COMPLETED'));
+  const handleCheckExpedite = async () => {
+    if (!expediteTime || !p?.orderId || !store) return;
+    try {
+      setActionLoading(true);
+      const pickupDate = new Date();
+      const [h, m] = expediteTime.split(':').map(Number);
+      pickupDate.setHours(h, m, 0, 0);
+      const res = await checkExpedite(p.orderId, store.storeId, pickupDate.toISOString());
+      setExpediteCheck(res);
+    } catch (error) {
+      showToast(error instanceof Error ? error.message : 'Lỗi kiểm tra giờ', 'red');
+    } finally { setActionLoading(false); }
+  };
 
-  const availMachines = machines;
+  const handleConfirmExpedite = async () => {
+    if (!expediteReason || !expediteCheck || !p?.orderId || !store) {
+      showToast('Vui lòng nhập lý do', 'red'); return;
+    }
+    try {
+      setActionLoading(true);
+      await confirmExpedite(p.orderId, store.storeId, expediteCheck.newPickupAt, expediteReason, expediteCheck.simulationToken);
+      showToast('Đã đôn đơn thành công', 'grn');
+      closeM('om');
+      void refreshOperations();
+    } catch (error) {
+      showToast(error instanceof Error ? error.message : 'Lỗi đôn đơn', 'red');
+    } finally { setActionLoading(false); }
+  };
 
   return (
     <div className={`mov${isOpen ? ' open' : ''}`} id="om" onClick={() => closeM('om')}>
@@ -476,11 +686,11 @@ export function OrderDetailModal() {
             <div style={{ fontSize: '11.5px', color: 'var(--ts)', marginTop: 3 }}>{order?.customer?.phone ?? p.phone ?? 'Chưa có số điện thoại'}</div>
           </div>
           <div style={{ marginLeft: 'auto', textAlign: 'right' }}>
-            <div style={{ fontSize: 20, fontWeight: 900, color: order?.riskLevel === 'HIGH' || p.atRisk ? '#ef4444' : '#1e1b4b' }}>{order?.pickupAt ? new Date(order.pickupAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) : p.deadline || 'Chưa hẹn'}</div>
+            <div style={{ fontSize: 20, fontWeight: 900, color: order?.riskLevel === 'HIGH' || p.atRisk ? '#ef4444' : '#1e1b4b' }}>{safeFormatTime(order?.pickupAt, p.deadline || 'Chưa hẹn')}</div>
             <div style={{ fontSize: '10.5px', color: 'var(--tl)' }}>Giờ hẹn lấy</div>
           </div>
         </div>
-        {order?.groupCode && <div className="order-group-eta"><span>Mẻ này dự kiến xong</span><strong>{order.estimatedAt ? new Date(order.estimatedAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) : 'Chưa xác định'}</strong><span>Cả nhóm dự kiến xong</span><strong>{order.groupETA ? new Date(order.groupETA).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) : 'Chưa xác định'}</strong></div>}
+        {order?.groupCode && <div className="order-group-eta"><span>Mẻ này dự kiến xong</span><strong>{safeFormatTime(order.estimatedAt)}</strong><span>Cả nhóm dự kiến xong</span><strong>{safeFormatTime(order.groupETA)}</strong></div>}
 
         {/* Progress steps */}
         <div style={{ display: 'flex', margin: '14px 0' }}>
@@ -488,7 +698,7 @@ export function OrderDetailModal() {
             const done = i < cur;
             const act = i === cur;
             const stage = stageList.find((item: any) => item.stage === stageKeys[i]);
-            const plannedTime = stage?.plannedStartAt ? new Date(stage.plannedStartAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) : '--:--';
+            const plannedTime = safeFormatTime(stage?.plannedStartAt, '--:--');
             return (
               <div key={s} style={{ flex: 1, textAlign: 'center', position: 'relative' }}>
                 <div style={{ width: 26, height: 26, borderRadius: '50%', margin: '0 auto', zIndex: 1, position: 'relative', background: done || act ? '#7c3aed' : '#e2e8f0', color: done || act ? '#fff' : '#9ca3af', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700 }}>
@@ -505,52 +715,120 @@ export function OrderDetailModal() {
         </div>
 
         {/* Risk warning */}
-          {(order?.riskLevel === 'HIGH' || order?.riskLevel === 'MEDIUM' || p.atRisk) && (
+          {(order?.riskLevel === 'AT_RISK' || order?.riskLevel === 'NOT_FEASIBLE' || p.atRisk) && (
           <div style={{ background: '#fee2e2', borderRadius: 9, padding: '11px 13px', margin: '11px 0', borderLeft: '3px solid var(--rd)' }}>
             <div style={{ fontSize: '11.5px', fontWeight: 700, color: 'var(--rd)', marginBottom: 3 }}>Cảnh báo trễ hẹn</div>
-            <div style={{ fontSize: '11.5px', color: '#9ca3af' }}>Dự kiến xong {order?.estimatedAt ? new Date(order.estimatedAt).toLocaleString('vi-VN') : 'chưa xác định'} · Hẹn {p.deadline || 'chưa có'}</div>
+            <div style={{ fontSize: '11.5px', color: '#9ca3af' }}>Dự kiến xong {safeFormatTime(order?.estimatedAt)} · Hẹn {p.deadline || 'chưa có'}</div>
           </div>
         )}
 
         <div style={{ fontSize: '11.5px', color: 'var(--ts)', padding: '9px 0', borderTop: '1.5px solid #f1f5f9' }}>
-          {detailError || (detail ? <><strong>Dịch vụ:</strong> {svcLabel} {order.weightKg}kg &nbsp;·&nbsp; <strong>Trạng thái:</strong> {order.status}</> : 'Đang tải thông tin chi tiết...')}
+          {detailError || (detail ? (
+            <>
+              <strong>Dịch vụ:</strong> {svcLabel} {order?.weightKg ?? '--'}kg
+              &nbsp;·&nbsp;
+              <strong>Trạng thái:</strong> {({
+                RECEIVED:       'Tiếp nhận',
+                WAITING:        'Chờ máy',
+                WASHING:        'Đang giặt',
+                DRYING:         'Đang sấy',
+                FOLDING_PACKING:'Đang đóng gói',
+                READY:          'Sẵn sàng lấy',
+                NOTIFIED:       'Đã báo khách',
+                COMPLETED:      'Hoàn tất',
+              } as Record<string,string>)[order?.status ?? ''] ?? order?.status ?? 'Chưa xác định'}
+            </>
+          ) : 'Đang tải thông tin chi tiết...')}
         </div>
 
         {detail?.nextAction && <div style={{ background: '#f8fafc', borderRadius: 8, padding: '9px 11px', fontSize: 12 }}><strong>Làm gì tiếp theo:</strong> {detail.nextAction}</div>}
 
+        {showExpedite && (
+          <div style={{ background: '#f8fafc', borderRadius: 9, padding: 14, margin: '11px 0', border: '1px solid #e2e8f0' }}>
+            <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 8, color: '#1e293b' }}>Đôn đơn lên trước</div>
+            
+            {!expediteCheck ? (
+              <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                <input className="finput" type="time" value={expediteTime} onChange={e => setExpediteTime(e.target.value)} style={{ width: 120 }} />
+                <button className="bp" onClick={handleCheckExpedite} disabled={actionLoading}>Kiểm tra giờ mới</button>
+              </div>
+            ) : (
+              <div>
+                <div style={{ fontSize: 12, marginBottom: 10, color: '#475569' }}>
+                  <strong>Kết quả:</strong> {expediteCheck.reason}
+                  <br/>
+                  <strong>Tác động:</strong> {expediteCheck.summary.affectedOrders} đơn bị ảnh hưởng (Trễ: {expediteCheck.summary.notFeasibleOrders}, Cảnh báo: {expediteCheck.summary.atRiskOrders})
+                </div>
+                <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 10 }}>
+                  <input className="finput" type="text" value={expediteReason} onChange={e => setExpediteReason(e.target.value)} placeholder="Nhập lý do đôn đơn..." style={{ flex: 1 }} />
+                </div>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <button className="bs" onClick={() => { setExpediteCheck(null); setExpediteTime(''); setExpediteReason(''); }} disabled={actionLoading}>Hủy</button>
+                  <button className="br" onClick={handleConfirmExpedite} disabled={actionLoading || !expediteReason}>Xác nhận đôn đơn</button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Action buttons */}
-        <div style={{ display: 'flex', gap: 9, marginTop: 18, justifyContent: 'flex-end' }}>
-          {p.readOnly ? (
+        <div style={{ display: 'flex', gap: 9, marginTop: 18, justifyContent: 'flex-end', flexWrap: 'wrap' }}>
+          {isCompleted ? (
+            <button className="bs" onClick={() => closeM('om')}>Đóng</button>
+          ) : stageList[cur]?.status === 'PLANNED' ? (
             <>
-              <span style={{ marginRight: 'auto', alignSelf: 'center', fontSize: 11, color: 'var(--ts)' }}>Chế độ xem không thay đổi dữ liệu.</span>
-              <button className="bs" onClick={() => closeM('om')}>Đóng</button>
-            </>
-          ) : p.isWaiting ? (
-            <>
-              <button className="bs" onClick={() => closeM('om')}>Đóng</button>
-              <select className="finput" style={{ width: 160, padding: '7px 10px', height: 35 }}>
-                {availMachines.map(m => (
-                  <option key={m.id} value={m.id}>
-                    {m.name} {m.st !== 'trong' ? '(Đang bận)' : '(Trống)'}
-                  </option>
-                ))}
-                {availMachines.length === 0 && <option disabled>Không có máy phù hợp</option>}
-              </select>
-              <button className="bp" onClick={() => { closeM('om'); showToast(`Đã xếp ${p.name} vào máy`, 'grn'); }}>
-                <svg className="icon icon-sm"><use href="#i-check" /></svg>
-                Xử lý ngay
+              <button className="bs" onClick={() => closeM('om')} disabled={actionLoading}>Đóng</button>
+              
+              {requiredType && (
+                <select
+                  className="finput"
+                  style={{ width: 160, padding: '7px 10px', height: 35, opacity: actionLoading ? 0.5 : 1 }}
+                  value={selectedMachineId}
+                  onChange={e => setSelectedMachineId(e.target.value)}
+                  disabled={actionLoading}
+                >
+                  {availMachines.map(m => (
+                    <option key={m.id} value={m.id}>
+                      {m.name} {m.st !== 'trong' ? '(Đang bận)' : m.id === p?.recommendedMachineId ? '(Đề xuất)' : '(Trống)'}
+                    </option>
+                  ))}
+                  {availMachines.length === 0 && <option disabled value="">Không có máy trống</option>}
+                </select>
+              )}
+              
+              <button
+                className="bp"
+                onClick={handleStart}
+                disabled={actionLoading || (!!requiredType && !selectedMachineId)}
+                style={{ minWidth: 120 }}
+              >
+                {actionLoading
+                  ? <><svg className="icon icon-sm oq-spin"><use href="#i-loader" /></svg> Đang gửi...</>
+                  : <><svg className="icon icon-sm"><use href="#i-check" /></svg> Xử lý ngay</>
+                }
               </button>
             </>
           ) : (
             <>
-              <button className="bs" onClick={() => closeM('om')}>Đóng</button>
-              <button className="br">
-                <svg className="icon icon-sm"><use href="#i-zap" /></svg>
-                Đôn đơn lên trước
-              </button>
-              <button className="bp" onClick={() => { closeM('om'); showToast(`Đã hoàn tất công đoạn cho ${p.name}`, 'grn'); }}>
-                <svg className="icon icon-sm"><use href="#i-check" /></svg>
-                Hoàn tất công đoạn
+              <button className="bs" onClick={() => closeM('om')} disabled={actionLoading}>Đóng</button>
+              
+              {!showExpedite && (
+                <button className="br" onClick={() => setShowExpedite(true)} disabled={actionLoading}>
+                  <svg className="icon icon-sm"><use href="#i-zap" /></svg>
+                  Đôn đơn lên trước
+                </button>
+              )}
+              
+              <button
+                className="bp"
+                onClick={handleComplete}
+                disabled={actionLoading}
+                style={{ minWidth: 140 }}
+              >
+                {actionLoading
+                  ? <><svg className="icon icon-sm oq-spin"><use href="#i-loader" /></svg> Đang gửi...</>
+                  : <><svg className="icon icon-sm"><use href="#i-check" /></svg> Hoàn tất công đoạn</>
+                }
               </button>
             </>
           )}
