@@ -20,3 +20,7 @@ export const logout = (_req: any, res: any) => {
   res.clearCookie("accessToken", { httpOnly: true, secure: env.cookieSecure, sameSite: "lax", path: "/" });
   ok(res, { loggedOut: true });
 };
+export const changePassword = asyncRoute(async (req, res) => {
+  validateBody(req.body, ["currentPassword", "newPassword"]);
+  ok(res, await service.changePassword(requireStore(req), String(req.body.currentPassword), String(req.body.newPassword)));
+});

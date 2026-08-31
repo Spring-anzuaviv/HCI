@@ -62,3 +62,67 @@ export async function checkDeadline(storeId: number, input: { pickupAt: string; 
     reason: result.result === "FEASIBLE" ? "Đủ thời gian xử lý" : "Cần kiểm tra lại lịch máy và giờ hẹn",
   };
 }
+
+export async function stats(storeId: number) {
+  const [orders, machines] = await Promise.all([
+    prisma.laundryOrder.findMany({ where: { storeId } }),
+    prisma.machine.findMany({ where: { storeId }, include: { stages: true } }),
+  ]);
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const todayOrders = orders.filter(order => order.createdAt >= today);
+  const services = ["WASH_DRY", "WASH", "DRY"].map(type => {
+    const count = todayOrders.filter(order => order.serviceType === type).length;
+    return { type, count };
+  });
+  const total = services.reduce((sum, item) => sum + item.count, 0);
+  const completedToday = todayOrders.filter(order => order.status === "COMPLETED").length;
+  const lateOrders = orders.filter(order => order.pickupAt && order.estimatedAt && order.estimatedAt > order.pickupAt).length;
+  const machineStages = machines.flatMap(machine => machine.stages.filter(stage => stage.status === "RUNNING" || stage.status === "COMPLETED"));
+  return {
+    completedToday,
+    lateOrders,
+    machineEfficiency: machines.length ? Math.round((machineStages.length / Math.max(1, machines.length * 8)) * 100) : 0,
+    weekChart: ["T2", "T3", "T4", "T5", "T6", "T7", "CN"].map((label, index) => ({ label, val: index === 0 ? todayOrders.length : 0, bottom: 28, highlight: index === 0 })),
+    services: services.map(item => ({ color: item.type === "WASH_DRY" ? "var(--pu)" : item.type === "WASH" ? "var(--bl)" : "var(--am)", label: item.type === "WASH_DRY" ? "Giặt + Sấy" : item.type === "WASH" ? "Chỉ Giặt" : "Sấy khô", pct: `${total ? Math.round(item.count / total * 100) : 0}%` })),
+  };
+}
+
+export async function shiftSummary(storeId: number) {
+  const [orders, machines] = await Promise.all([
+    findStoreOrders(storeId),
+    prisma.machine.findMany({ where: { storeId } }),
+  ]);
+  const data = orders.map(serializeOrder);
+  const active = data.filter((order: any) => activeStatuses.has(order.status));
+  return {
+    generatedAt: new Date(),
+    totals: {
+      orders: data.length,
+      completed: data.filter((order: any) => order.status === "COMPLETED").length,
+      active: active.length,
+      atRisk: active.filter((order: any) => order.riskLevel !== "LOW").length,
+      waiting: active.filter((order: any) => order.status === "WAITING").length,
+    },
+    machines: {
+      running: machines.filter((machine) => machine.status === "RUNNING").length,
+      available: machines.filter((machine) => machine.status === "AVAILABLE").length,
+      total: machines.length,
+    },
+    attention: active
+      .filter((order: any) => order.riskLevel !== "LOW" || order.status === "WAITING")
+      .slice(0, 5)
+      .map((order: any) => ({
+        orderId: order.orderId,
+        customerName: order.customer.name,
+        status: order.status,
+        riskLevel: order.riskLevel,
+        nextAction: order.nextAction,
+        pickupAt: order.pickupAt,
+      })),
+  };
+}
+
+export async function updateName(storeId: number, name: string) {
+  if (!name.trim()) throw new ApiError(400, "VALIDATION_ERROR", "Tên cửa hàng không được để trống");
+  return prisma.store.update({ where: { storeId }, data: { name: name.trim() }, select: { storeId: true, name: true } });
+}

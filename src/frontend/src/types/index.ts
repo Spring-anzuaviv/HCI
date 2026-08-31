@@ -21,6 +21,7 @@ export interface Staff {
   phone: string;
   shiftId: number;
   ava: string;
+  role?: string;
 }
 
 export interface Shift {
@@ -58,6 +59,10 @@ export interface Order {
   nextAction?: string;
   priorityReason?: string;
   stages?: ApiOrderStage[];
+}
+
+export interface WorkShift extends Shift {
+  employees: Staff[];
 }
 
 export interface ApiOrderStage {

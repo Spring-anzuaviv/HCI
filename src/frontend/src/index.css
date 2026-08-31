@@ -294,6 +294,25 @@ select.finput {
 .mov.open { opacity: 1; pointer-events: all; }
 .modal { background: #fff; border-radius: 18px; padding: 26px 28px; width: 470px; max-width: 90vw; transform: translateY(18px); transition: transform .25s; max-height: 80vh; overflow-y: auto; }
 .mov.open .modal { transform: translateY(0); }
+.hero-handover { background: rgba(255,255,255,.38); border: 1px solid rgba(30,27,75,.12); border-radius: 9px; color: #312e81; font-size: 10.5px; line-height: 1.45; margin-top: 10px; max-width: 560px; padding: 7px 10px; }
+.password-fields { display: grid; gap: 8px; margin-top: 8px; }
+.summary-caption { color: var(--ts); font-size: 10.5px; margin-top: 4px; }
+.summary-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 4px 0 13px; }
+.summary-grid > div { background: #f8fafc; border-radius: 10px; padding: 10px 8px; text-align: center; }
+.summary-grid strong, .summary-grid span { display: block; }
+.summary-grid strong { color: var(--tx); font-size: 20px; }
+.summary-grid span { color: var(--ts); font-size: 10px; margin-top: 3px; }
+.summary-grid .summary-risk strong { color: var(--rd); }
+.summary-machines { background: #f5f3ff; border-radius: 9px; color: #5b21b6; font-size: 11.5px; padding: 11px; }
+.summary-heading { color: var(--tx); font-size: 12px; margin: 18px 0 8px; }
+.summary-list { display: grid; gap: 6px; }
+.summary-item { background: #f8fafc; border-left: 3px solid var(--am); border-radius: 7px; display: flex; flex-direction: column; gap: 3px; padding: 8px 10px; }
+.summary-item strong { color: var(--tx); font-size: 11.5px; }
+.summary-item span, .summary-updated, .summary-empty { color: var(--ts); font-size: 10.5px; }
+.summary-updated { margin-top: 13px; }
+.summary-actions { display: flex; gap: 9px; justify-content: flex-end; margin-top: 18px; }
+.summary-empty { background: #f8fafc; border-radius: 8px; padding: 14px; text-align: center; }
+@media (max-width: 520px) { .summary-grid { grid-template-columns: repeat(2, 1fr); } .summary-actions { flex-wrap: wrap; } }
 .mhd { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
 .mtitle { font-size: 16px; font-weight: 800; color: var(--tx); }
 .mxbtn  { width: 30px; height: 30px; border-radius: 8px; background: #f1f5f9; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--ts); }

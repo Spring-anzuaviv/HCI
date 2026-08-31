@@ -155,6 +155,10 @@ Nhân viên giặt ủi trực tiếp, có thể phải:
 
 Đã nối prototype React với backend cho đăng nhập bằng JWT trong HttpOnly cookie, tải order/machine sau xác thực, tạo order và kiểm tra deadline, xem chi tiết/timeline order, tìm kiếm và lọc order. Bộ lọc và preview order dùng chung trên các tab Tổng quan, Hàng đợi và Đơn hàng. Frontend/backend build và frontend lint đã qua; walkthrough với database thật còn phụ thuộc biến môi trường PostgreSQL.
 
+Đã bổ sung CRUD nhân viên/máy móc, phân ca, tính lại dữ liệu schedule sau thay đổi máy, và nối Notify/Stats qua API có cookie authentication. Migration thêm số điện thoại nhân viên cần chạy trước khi dùng các API quản trị.
+
+Đã bổ sung tóm tắt ca tự động qua API `GET /stores/:storeId/shift-summary`, hiển thị trực tiếp trong banner Dashboard và đổi mật khẩu qua API `POST /auth/change-password`. Không lưu localStorage, không có ghi chú thủ công; frontend/backend build và frontend lint đã qua.
+
 ## 6. Dependency giữa các artifact
 
 1. Bằng chứng và phân tích công việc hiện tại hỗ trợ Persona và Scenario 1.

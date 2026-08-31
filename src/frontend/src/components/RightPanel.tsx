@@ -39,31 +39,34 @@ function MachineCard({ machine, onEdit }: { machine: Machine; onEdit: (id: numbe
 
 // ─── Staff Row ───
 function StaffSection() {
-  const { staff, config, openM } = useApp();
+  const { workShifts, selectedWorkDate, setSelectedWorkDate, openM } = useApp();
 
   return (
     <div>
       <div className="frow" style={{ alignItems: 'center', marginBottom: 12, justifyContent: 'space-between', gap: 5 }}>
-        <div className="rpt" style={{ marginBottom: 0 }}>Nhân viên</div>
+        <div className="rpt" style={{ marginBottom: 0 }}>Nhân viên trong ca</div>
+        <input className="finput" type="date" value={selectedWorkDate} onChange={event => setSelectedWorkDate(event.target.value)} style={{ width: 125, height: 30, fontSize: 11 }} />
         <button className="bs" style={{ padding: '4px 8px', fontSize: '10.5px' }} onClick={() => openM('sm-staff')}>
           <svg className="icon icon-sm" style={{ color: 'var(--pu)' }}><use href="#i-plus" /></svg>
           Thêm NV
         </button>
       </div>
       <div id="staff-container" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-        {config.shifts.map(shift => {
-          const staffInShift = staff.filter(s => s.shiftId === shift.id);
+        {workShifts.map(shift => {
+          const staffInShift = shift.employees;
           return (
             <div key={shift.id}>
-              <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--ts)', marginBottom: 6 }}>
-                {shift.name} ({shift.start} - {shift.end})
+               <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--ts)', marginBottom: 6, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                 <span>{shift.name} ({shift.start} - {shift.end})</span>
+                 <button className="bs" style={{ padding: '3px 6px', fontSize: 9 }} onClick={() => openM(`sm-assign-${shift.id}`)}>+ Phân ca</button>
               </div>
               <div className="strow">
                 {staffInShift.length === 0
                   ? <div style={{ fontSize: 11, color: '#a1a1aa', fontStyle: 'italic' }}>Chưa có nhân viên</div>
-                  : staffInShift.map(s => (
-                    <div key={s.id} className="stav" title={s.name} style={{ background: 'var(--pu)', color: '#fff' }}>
+                   : staffInShift.map(s => (
+                    <div key={s.id} className="stav" title={`${s.name} - Nhấn để sửa`} onClick={() => openM(`sm-staff-${s.id}`)} style={{ background: 'var(--pu)', color: '#fff', position: 'relative' }}>
                       {s.ava}
+                      <button aria-label={`Xóa ${s.name} khỏi ca`} onClick={event => { event.stopPropagation(); openM(`sm-remove-${shift.id}-${s.id}`); }} style={{ position: 'absolute', right: -5, top: -5, width: 16, height: 16, border: 0, borderRadius: '50%', background: 'var(--rd)', color: '#fff', fontSize: 11, lineHeight: '16px', padding: 0, cursor: 'pointer' }}>×</button>
                     </div>
                   ))
                 }
@@ -71,6 +74,7 @@ function StaffSection() {
             </div>
           );
         })}
+        {workShifts.length === 0 && <div style={{ fontSize: 11, color: 'var(--ts)' }}>Không có ca trong ngày này</div>}
       </div>
     </div>
   );

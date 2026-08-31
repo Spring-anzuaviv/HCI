@@ -1,6 +1,7 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
-
+import { pendingNotifications, notificationPreview } from '../api/notifications';
 interface NotifyCard {
   id: string;
   initials: string;
@@ -12,15 +13,13 @@ interface NotifyCard {
   bgColor: string;
 }
 
-const BACKEND = 'http://localhost:4000/api';
-
 export default function NotifyPage() {
-  const { showToast } = useApp();
+  const { showToast, store } = useApp();
 
   const [loading, setLoading] = useState(true);
   const [pendingCards, setPendingCards] = useState<NotifyCard[]>([]);
   const [notifiedList, setNotifiedList] = useState<NotifyCard[]>([]);
-  const [processingList, setProcessingList] = useState<any[]>([]);
+  const [processingList] = useState<{ id: string; initials: string; name: string; status: string }[]>([]);
 
   // Luồng 3 – Lấy danh sách đơn cần thông báo từ Backend
   useEffect(() => {
@@ -28,14 +27,8 @@ export default function NotifyPage() {
       try {
         setLoading(true);
 
-        const storeId = localStorage.getItem('storeId') || '1';
-        const res = await fetch(`${BACKEND}/stores/${storeId}/notifications/pending`, {
-          headers: { 'Authorization': `Bearer ${localStorage.getItem('token') ?? ''}` }
-        });
-
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const json = await res.json();
-        const orders: any[] = json.data ?? json; // hỗ trợ cả { data: [] } và []
+        if (!store) return;
+        const orders: any[] = await pendingNotifications(store.storeId);
 
         // Map dữ liệu từ Backend sang NotifyCard
         const cards: NotifyCard[] = orders.map((o: any) => {
@@ -74,27 +67,17 @@ export default function NotifyPage() {
     };
 
     fetchPending();
-  }, []);
+  }, [store, showToast]);
 
   // Bấm nút Gửi Zalo
   const sendNotify = async (card: NotifyCard) => {
     try {
       // 1. Gọi API /preview để lấy nội dung tin nhắn mẫu
-      const res = await fetch(`${BACKEND}/orders/${card.id}/notifications/preview`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token') ?? ''}`,
-        },
-        body: JSON.stringify({ channel: 'ZALO' }),
-      });
-
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const json = await res.json();
-      const content: string = (json.data ?? json).content ?? `Chào ${card.name}, đồ của bạn đã sẵn sàng, vui lòng đến nhận!`;
+      const preview = await notificationPreview(Number(card.id));
+      const content: string = preview.content ?? `Chào ${card.name}, đồ của bạn đã sẵn sàng, vui lòng đến nhận!`;
 
       // 2. Copy nội dung vào clipboard
-      try { await navigator.clipboard.writeText(content); } catch (_) { /* ignore */ }
+      try { await navigator.clipboard.writeText(content); } catch { /* clipboard unavailable */ }
 
       // 3. Mở Zalo qua link zalo.me
       const phoneClean = card.phone.replace(/\s/g, '');

@@ -32,7 +32,7 @@ const HeroSVG = () => (
 );
 
 export default function DashboardPage() {
-  const { setCurrentPage, openM, orders, setOrderModalParams, orderSearch, orderFilter } = useApp();
+  const { setCurrentPage, openM, orders, setOrderModalParams, orderSearch, orderFilter, shiftSummary } = useApp();
   const [shiftInfo, setShiftInfo] = useState({ name: '', timeRange: '', timeLeft: '', day: '' });
 
   // Tính thông tin ca làm việc
@@ -94,19 +94,17 @@ export default function DashboardPage() {
               {shiftInfo.name
                 ? `${shiftInfo.name} đang hoạt động · ${shiftInfo.timeRange} ${shiftInfo.day}`
                 : `Ngoài giờ làm việc · ${shiftInfo.day}`}
-            </span><br />
-            Giặt Sấy Như Ý · 3 máy đang chạy
+            </span>
           </p>
           <div className="hero-meta">
             <span className="hm">
               <svg className="icon icon-sm"><use href="#i-clock" /></svg>
               <span id="hero-time-left">{shiftInfo.timeLeft}</span>
             </span>
-            <span className="hm">
-              <svg className="icon icon-sm"><use href="#i-alert" /></svg>
-              {stats.risk} đơn nguy cơ trễ
-            </span>
           </div>
+          {shiftSummary && <div className="hero-handover">
+            <strong>Tóm tắt ca:</strong> {shiftSummary.totals.active} đang xử lý · {shiftSummary.totals.completed} hoàn tất · {shiftSummary.totals.atRisk} nguy cơ trễ
+          </div>}
         </div>
         <div className="hero-img"><HeroSVG /></div>
       </div>
@@ -195,7 +193,7 @@ export default function DashboardPage() {
                 </div>
                 <div className="otime" style={{ textAlign: 'right' }}>
                   <div>{order.deadline || 'Chưa hẹn'}</div>
-                  {order.estimatedAt && <div style={{ fontSize: '9.5px', marginTop: 2 }}>ETA {new Date(order.estimatedAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}</div>}
+                  {order.estimatedAt && <div style={{ fontSize: '9.5px', marginTop: 2 }}>Dự kiến hoàn thành lúc {new Date(order.estimatedAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}</div>}
                 </div>
               </div>
             ))}

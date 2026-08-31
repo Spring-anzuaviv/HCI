@@ -2,7 +2,10 @@
 import { useEffect, useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { apiGet, apiPost } from '../api/client';
-import { logout } from '../api/auth';
+import { changePassword, logout } from '../api/auth';
+import { createMachine, deleteMachine, updateMachine } from '../api/machines';
+import { createEmployee, updateEmployee, assignEmployee, unassignEmployee } from '../api/staff';
+import { updateStoreName } from '../api/store';
 
 // ─── Modal Thêm đơn hàng ───
 export function AddOrderModal() {
@@ -125,13 +128,26 @@ export function AddOrderModal() {
 
 // ─── Modal Cài đặt ───
 export function SettingsModal() {
-  const { openModal, closeM, showToast, config, setConfig } = useApp();
+  const { openModal, closeM, showToast, config, setConfig, store } = useApp();
   const isOpen = openModal === 'sm';
 
   const [shopName, setShopName] = useState(config.shopName);
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  useEffect(() => {
+    if (isOpen) { setShopName(config.shopName); setCurrentPassword(''); setNewPassword(''); setConfirmPassword(''); }
+  }, [isOpen, config.shopName]);
 
-  const saveSettings = () => {
-    setConfig(prev => ({ ...prev, shopName }));
+  const saveSettings = async () => {
+    if (currentPassword || newPassword || confirmPassword) {
+      if (!currentPassword || !newPassword || newPassword !== confirmPassword) { showToast('Vui lòng kiểm tra thông tin đổi mật khẩu', 'red'); return; }
+      if (newPassword.length < 6) { showToast('Mật khẩu mới phải có ít nhất 6 ký tự', 'red'); return; }
+      try { await changePassword(currentPassword, newPassword); } catch (error) { showToast(error instanceof Error ? error.message : 'Không thể đổi mật khẩu', 'red'); return; }
+    }
+    if (!shopName.trim() || !store) { showToast('Tên cửa hàng không được để trống', 'red'); return; }
+    try { await updateStoreName(store.storeId, shopName); } catch (error) { showToast(error instanceof Error ? error.message : 'Không thể lưu tên cửa hàng', 'red'); return; }
+    setConfig(prev => ({ ...prev, shopName: shopName.trim() }));
     closeM('sm');
     showToast('Đã lưu cấu hình cài đặt', 'grn');
   };
@@ -158,7 +174,11 @@ export function SettingsModal() {
 
         <div style={{ marginBottom: 18 }}>
           <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: '#64748b', marginBottom: 4 }}>Bảo mật</label>
-          <button className="bs" style={{ width: '100%', justifyContent: 'center' }}>Đổi mật khẩu</button>
+          <div className="password-fields">
+            <input className="finput" type="password" value={currentPassword} onChange={e => setCurrentPassword(e.target.value)} placeholder="Mật khẩu hiện tại" />
+            <input className="finput" type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} placeholder="Mật khẩu mới (tối thiểu 6 ký tự)" />
+            <input className="finput" type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} placeholder="Nhập lại mật khẩu mới" />
+          </div>
         </div>
 
         <div style={{ display: 'flex', gap: 9, justifyContent: 'space-between' }}>
@@ -178,33 +198,110 @@ export function SettingsModal() {
   );
 }
 
+export function EmployeeModal() {
+  const { openModal, closeM, showToast, staff, store, refreshStaff, config } = useApp();
+  const isOpen = openModal === 'sm-staff' || openModal?.startsWith('sm-staff-');
+  const editingId = openModal?.startsWith('sm-staff-') ? Number(openModal.split('-').pop()) : undefined;
+  const editing = staff.find(item => item.id === editingId);
+  const [name, setName] = useState('');
+  const [phone, setPhone] = useState('');
+  const [role, setRole] = useState('STAFF');
+  const [shiftId, setShiftId] = useState(0);
+  useEffect(() => { setName(editing?.name ?? ''); setPhone(editing?.phone ?? ''); setRole(editing?.role ?? 'STAFF'); setShiftId(editing?.shiftId || config.shifts[0]?.id || 0); }, [editingId, editing?.name, editing?.phone, editing?.role, editing?.shiftId, config.shifts]);
+  const save = async () => {
+    if (!name.trim() || !store) { showToast('Vui lòng nhập tên nhân viên', 'red'); return; }
+    try {
+      const payload = { name, phone, role };
+      const employee = editingId ? await updateEmployee(editingId, payload) : await createEmployee(store.storeId, payload);
+      if (!shiftId) throw new Error('Chưa có ca làm việc để phân công');
+      await assignEmployee(store.storeId, shiftId, employee.employeeId);
+      if (editingId && editing?.shiftId && editing.shiftId !== shiftId) {
+        await unassignEmployee(store.storeId, editing.shiftId, editingId);
+      }
+      await refreshStaff(); closeM(openModal ?? 'sm-staff'); showToast(editingId ? 'Đã cập nhật nhân viên' : 'Đã thêm nhân viên', 'grn');
+    } catch (error) { showToast(error instanceof Error ? error.message : 'Không thể lưu nhân viên', 'red'); }
+  };
+  return <div className={`mov${isOpen ? ' open' : ''}`} onClick={() => closeM(openModal ?? 'sm-staff')}>
+    <div className="modal" onClick={event => event.stopPropagation()}>
+      <div className="mhd"><div className="mtitle">{editingId ? 'Cập nhật nhân viên' : 'Thêm nhân viên'}</div><button className="mxbtn" onClick={() => closeM(openModal ?? 'sm-staff')}><svg className="icon icon-sm"><use href="#i-x" /></svg></button></div>
+      <div className="frow" style={{ marginBottom: 11 }}><div className="fg"><label className="flbl">Tên nhân viên</label><input className="finput" value={name} onChange={event => setName(event.target.value)} placeholder="Nguyễn Văn A" /></div><div className="fg"><label className="flbl">Số điện thoại</label><input className="finput" value={phone} onChange={event => setPhone(event.target.value)} placeholder="09xx xxx xxx" /></div></div>
+      <div className="frow" style={{ marginBottom: 18 }}><div className="fg"><label className="flbl">Vai trò</label><select className="finput" value={role} onChange={event => setRole(event.target.value)}><option value="STAFF">Nhân viên</option><option value="MANAGER">Quản lý</option></select></div><div className="fg"><label className="flbl">Phân ca</label><select className="finput" value={shiftId} onChange={event => setShiftId(Number(event.target.value))} disabled={!config.shifts.length}>{!config.shifts.length && <option value={0}>Chưa có ca làm việc</option>}{config.shifts.map(shift => <option key={shift.id} value={shift.id}>{shift.name} ({shift.start}-{shift.end})</option>)}</select></div></div>
+      <div style={{ display: 'flex', gap: 9 }}><button className="bs" onClick={() => closeM(openModal ?? 'sm-staff')} style={{ flex: 1 }}>Hủy</button><button className="bp" onClick={() => void save()} style={{ flex: 2 }}><svg className="icon icon-sm"><use href="#i-check" /></svg>Lưu nhân viên</button></div>
+    </div>
+  </div>;
+}
+
+export function AssignEmployeeModal() {
+  const { openModal, closeM, showToast, staff, workShifts, store, refreshStaff } = useApp();
+  const shiftId = openModal?.startsWith('sm-assign-') ? Number(openModal.split('-').pop()) : 0;
+  const shift = workShifts.find(item => item.id === shiftId);
+  const assigned = new Set(shift?.employees.map(employee => employee.id));
+  const available = staff.filter(employee => !assigned.has(employee.id));
+  const [employeeId, setEmployeeId] = useState(0);
+  const isOpen = Boolean(shift);
+  // Reset the selection when the selected day/shift data changes.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { setEmployeeId(available[0]?.id ?? 0); }, [shiftId, staff.length, shift?.employees.length]);
+  const assign = async () => {
+    if (!store || !shiftId || !employeeId) { showToast('Chưa chọn nhân viên hoặc ca làm việc', 'red'); return; }
+    try { await assignEmployee(store.storeId, shiftId, employeeId); await refreshStaff(); closeM(openModal ?? 'sm-assign'); showToast('Đã phân nhân viên vào ca', 'grn'); } catch (error) { showToast(error instanceof Error ? error.message : 'Không thể phân ca', 'red'); }
+  };
+  return <div className={`mov${isOpen ? ' open' : ''}`} onClick={() => closeM(openModal ?? 'sm-assign')}>
+    <div className="modal" onClick={event => event.stopPropagation()}>
+      <div className="mhd"><div className="mtitle">Phân nhân viên vào {shift?.name}</div><button className="mxbtn" onClick={() => closeM(openModal ?? 'sm-assign')}><svg className="icon icon-sm"><use href="#i-x" /></svg></button></div>
+      <label className="flbl">Nhân viên có sẵn</label>
+      <select className="finput" value={employeeId} onChange={event => setEmployeeId(Number(event.target.value))} disabled={!available.length}>{!available.length && <option value={0}>Tất cả nhân viên đã được phân ca</option>}{available.map(employee => <option key={employee.id} value={employee.id}>{employee.name} · {employee.phone || 'Chưa có SĐT'}</option>)}</select>
+      <div style={{ display: 'flex', gap: 9, marginTop: 18 }}><button className="bs" onClick={() => closeM(openModal ?? 'sm-assign')} style={{ flex: 1 }}>Hủy</button><button className="bp" onClick={() => void assign()} disabled={!available.length} style={{ flex: 2 }}>Phân vào ca</button></div>
+    </div>
+  </div>;
+}
+
+export function RemoveEmployeeModal() {
+  const { openModal, closeM, showToast, store, refreshStaff } = useApp();
+  const parts = openModal?.startsWith('sm-remove-') ? openModal.split('-').slice(2).map(Number) : [];
+  const [shiftId, employeeId] = parts;
+  const isOpen = Boolean(shiftId && employeeId);
+  const remove = async () => { if (!store) return; try { await unassignEmployee(store.storeId, shiftId, employeeId); await refreshStaff(); closeM(openModal ?? 'sm-remove'); showToast('Đã xóa nhân viên khỏi ca hôm đó', 'grn'); } catch (error) { showToast(error instanceof Error ? error.message : 'Không thể xóa khỏi ca', 'red'); } };
+  return <div className={`mov${isOpen ? ' open' : ''}`} onClick={() => closeM(openModal ?? 'sm-remove')}><div className="modal" onClick={event => event.stopPropagation()}><div className="mhd"><div className="mtitle">Xóa nhân viên khỏi ca?</div><button className="mxbtn" onClick={() => closeM(openModal ?? 'sm-remove')}><svg className="icon icon-sm"><use href="#i-x" /></svg></button></div><p style={{ fontSize: 13, color: 'var(--ts)' }}>Chỉ xóa phân ca của ngày đang xem. Hồ sơ nhân viên vẫn được giữ lại.</p><div style={{ display: 'flex', gap: 9, marginTop: 18, justifyContent: 'flex-end' }}><button className="bs" onClick={() => closeM(openModal ?? 'sm-remove')}>Hủy</button><button className="br" onClick={() => void remove()}>Xóa khỏi ca</button></div></div></div>;
+}
+
 // ─── Modal Thêm máy ───
 export function MachineModal() {
-  const { openModal, closeM, showToast, machines, setMachines } = useApp();
-  const isOpen = openModal === 'sm-machine';
+  const { openModal, closeM, showToast, machines, store, refreshOrders } = useApp();
+  const isOpen = openModal === 'sm-machine' || openModal?.startsWith('sm-machine-');
+  const editingId = openModal?.startsWith('sm-machine-') ? Number(openModal.split('-').pop()) : undefined;
+  const editing = machines.find(machine => machine.id === editingId);
 
   const [name, setName] = useState('');
   const [type, setType] = useState<'wash' | 'dry' | ''>('');
   const [machKg, setMachKg] = useState('');
   const [machTime, setMachTime] = useState('');
+  useEffect(() => { setName(editing?.name ?? ''); setType(editing?.type ?? ''); setMachKg(editing ? String(editing.kg) : ''); setMachTime(editing ? String(editing.time) : ''); }, [editingId, editing]);
 
-  const saveMachine = () => {
+  const saveMachine = async () => {
     if (!type || !machKg || !machTime) {
       showToast('Vui lòng chọn loại máy và nhập số kg, phút', 'red');
       return;
     }
-    const newId = machines.length ? Math.max(...machines.map(m => m.id)) + 1 : 1;
-    setMachines(prev => [...prev, { id: newId, name: name || `Máy ${newId}`, type: type as 'wash' | 'dry', kg: +machKg, time: +machTime, st: 'trong', user: '', timeLeft: 0 }]);
-    closeM('sm-machine');
-    showToast('Đã lưu máy móc', 'grn');
-    setName(''); setType(''); setMachKg(''); setMachTime('');
+    if (!store) return;
+    try {
+      const payload = { name: name || `Máy ${machines.length + 1}`, type: type === 'wash' ? 'WASHER' : 'DRYER', capacityKg: +machKg, processingMinutes: +machTime, status: editing && editing.st !== 'trong' ? 'RUNNING' : 'AVAILABLE' };
+      if (editingId) await updateMachine(editingId, payload); else await createMachine(store.storeId, payload);
+      await refreshOrders(); closeM(openModal ?? 'sm-machine'); showToast(editingId ? 'Đã cập nhật máy móc' : 'Đã thêm máy móc', 'grn');
+      setName(''); setType(''); setMachKg(''); setMachTime('');
+    } catch (error) { showToast(error instanceof Error ? error.message : 'Không thể lưu máy', 'red'); }
+  };
+  const remove = async () => {
+    if (!editingId) return;
+    try { await deleteMachine(editingId); await refreshOrders(); closeM(openModal ?? 'sm-machine'); showToast('Đã xóa máy', 'grn'); }
+    catch (error) { showToast(error instanceof Error ? error.message : 'Không thể xóa máy', 'red'); }
   };
 
   return (
     <div className={`mov${isOpen ? ' open' : ''}`} id="sm-machine" onClick={() => closeM('sm-machine')}>
       <div className="modal" onClick={e => e.stopPropagation()}>
         <div className="mhd">
-          <div className="mtitle">Thêm máy</div>
+          <div className="mtitle">{editingId ? 'Cập nhật máy' : 'Thêm máy'}</div>
           <button className="mxbtn" onClick={() => closeM('sm-machine')}>
             <svg className="icon icon-sm"><use href="#i-x" /></svg>
           </button>
@@ -213,13 +310,13 @@ export function MachineModal() {
         <div className="frow" style={{ marginBottom: 11 }}>
           <div className="fg" style={{ width: '100%' }}>
             <label className="flbl">Tên máy</label>
-            <input className="finput" type="text" value={name} onChange={e => setName(e.target.value)} placeholder={`Máy ${machines.length + 1}`} maxLength={10} />
+            <input className="finput" type="text" value={name} onChange={e => setName(e.target.value)} placeholder={editing?.name ?? `Máy ${machines.length + 1}`} maxLength={100} />
           </div>
         </div>
         <div className="frow" style={{ marginBottom: 11 }}>
           <div className="fg" style={{ width: '100%' }}>
             <label className="flbl">Loại máy</label>
-            <select className="finput" value={type} onChange={e => setType(e.target.value as 'wash' | 'dry')}>
+            <select className="finput" value={type || (editing?.type ?? '')} onChange={e => setType(e.target.value as 'wash' | 'dry')}>
               <option value="" disabled hidden>Chọn loại máy</option>
               <option value="wash">Máy Giặt</option>
               <option value="dry">Máy Sấy</option>
@@ -229,16 +326,17 @@ export function MachineModal() {
         <div className="frow" style={{ marginBottom: 18 }}>
           <div className="fg">
             <label className="flbl">Khối lượng (kg)</label>
-            <input className="finput" type="number" value={machKg} onChange={e => setMachKg(e.target.value)} placeholder="VD: 7" />
+            <input className="finput" type="number" value={machKg} onChange={e => setMachKg(e.target.value)} placeholder={editing ? String(editing.kg) : 'VD: 7'} />
           </div>
           <div className="fg">
             <label className="flbl">Thời gian xử lý (phút)</label>
-            <input className="finput" type="number" value={machTime} onChange={e => setMachTime(e.target.value)} placeholder="VD: 30" />
+            <input className="finput" type="number" value={machTime} onChange={e => setMachTime(e.target.value)} placeholder={editing ? String(editing.time) : 'VD: 30'} />
           </div>
         </div>
 
         <div style={{ display: 'flex', gap: 9 }}>
-          <button className="bs" onClick={() => closeM('sm-machine')} style={{ flex: 1 }}>Hủy</button>
+          {editingId && <button className="br" onClick={() => void remove()}>Xóa</button>}
+          <button className="bs" onClick={() => closeM(openModal ?? 'sm-machine')} style={{ flex: 1 }}>Hủy</button>
           <button className="bp" onClick={saveMachine} style={{ flex: 2 }}>
             <svg className="icon icon-sm"><use href="#i-check" /></svg>
             Lưu cài đặt

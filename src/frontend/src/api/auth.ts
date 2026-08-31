@@ -12,3 +12,5 @@ export const login = (email: string, password: string) =>
 
 export const getCurrentStore = () => apiGet<StoreSession>('/auth/me');
 export const logout = () => apiPost<{ loggedOut: boolean }>('/auth/logout', {});
+export const changePassword = (currentPassword: string, newPassword: string) =>
+  apiPost<{ changed: boolean }>('/auth/change-password', { currentPassword, newPassword });

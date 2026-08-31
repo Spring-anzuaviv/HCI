@@ -41,6 +41,33 @@ export async function detail(machineId: number, storeId: number) {
   return machine;
 }
 
+const machineInput = (input: any) => ({ name: String(input.name).trim(), type: String(input.type).toUpperCase(), capacityKg: Number(input.capacityKg), processingMinutes: Number(input.processingMinutes), status: String(input.status ?? "AVAILABLE").toUpperCase() });
+function validateMachine(input: any) {
+  const data = machineInput(input);
+  if (!data.name || !["WASHER", "DRYER"].includes(data.type) || data.capacityKg <= 0 || data.processingMinutes <= 0 || !["AVAILABLE", "RUNNING", "BROKEN", "INACTIVE"].includes(data.status)) throw new ApiError(400, "VALIDATION_ERROR", "Thông tin máy không hợp lệ");
+  return data;
+}
+export async function create(storeId: number, input: any) {
+  return prisma.machine.create({ data: { storeId, ...validateMachine(input) } });
+}
+export async function update(machineId: number, storeId: number, input: any) {
+  const machine = await prisma.machine.findFirst({ where: { machineId, storeId } });
+  if (!machine) throw new ApiError(404, "NOT_FOUND", "Không tìm thấy máy");
+  const data = validateMachine({ ...machine, ...input });
+  if (machine.status === "RUNNING" && data.status !== "RUNNING") throw new ApiError(409, "WORKFLOW_CONFLICT", "Không thể đổi trạng thái máy đang chạy");
+  const result = await prisma.machine.update({ where: { machineId }, data });
+  await refreshStoreSchedule(storeId);
+  return result;
+}
+export async function remove(machineId: number, storeId: number) {
+  const machine = await prisma.machine.findFirst({ where: { machineId, storeId }, include: { stages: { where: { status: { in: ["RUNNING", "PLANNED"] } } } } });
+  if (!machine) throw new ApiError(404, "NOT_FOUND", "Không tìm thấy máy");
+  if (machine.stages.length) throw new ApiError(409, "WORKFLOW_CONFLICT", "Không thể xóa máy đang có lịch xử lý");
+  await prisma.machine.delete({ where: { machineId } });
+  await refreshStoreSchedule(storeId);
+  return { deleted: true };
+}
+
 export async function startRun(orderId: number, storeId: number, input: any) {
   const order = await findOrderForStore(orderId, storeId);
   const stageName = String(input.stage);

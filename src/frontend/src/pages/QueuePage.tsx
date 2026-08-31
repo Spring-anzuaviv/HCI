@@ -129,7 +129,7 @@ export default function QueuePage() {
               </div>
                 <div className="otime" style={{ textAlign: 'right' }}>
                   <div>{order.deadline || 'Chưa hẹn'}</div>
-                  {order.estimatedAt && <div style={{ fontSize: '9.5px', marginTop: 2 }}>ETA {new Date(order.estimatedAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}</div>}
+                  {order.estimatedAt && <div style={{ fontSize: '9.5px', marginTop: 2 }}>Dự kiến hoàn thành lúc {new Date(order.estimatedAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}</div>}
                 </div>
             </div>
           ))}

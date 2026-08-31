@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-
-const BACKEND = 'http://localhost:4000/api';
+import { useApp } from '../context/AppContext';
+import { getStats } from '../api/stats';
 
 interface StatsData {
   completedToday: number;
@@ -32,6 +32,7 @@ const FALLBACK: StatsData = {
 };
 
 export default function StatsPage() {
+  const { store } = useApp();
   const [stats, setStats] = useState<StatsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -43,18 +44,9 @@ export default function StatsPage() {
         setLoading(true);
         setError(null);
 
-        // Gọi API thống kê từ Backend
-        const storeId = localStorage.getItem('storeId') || '1';
-        const res = await fetch(`${BACKEND}/stores/${storeId}/stats`, {
-          headers: { 'Authorization': `Bearer ${localStorage.getItem('token') ?? ''}` }
-        });
-
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const json = await res.json();
-        const data = json.data ?? json;
-        setStats(data);
-      } catch (err: any) {
-        console.error('[Luồng 4] Lỗi khi tải thống kê:', err);
+        if (!store) return;
+        setStats(await getStats(store.storeId));
+      } catch {
         setError('Không kết nối được Backend. Kiểm tra server có đang chạy không.');
         setStats(null);
       } finally {
@@ -63,7 +55,7 @@ export default function StatsPage() {
     };
 
     fetchStats();
-  }, []);
+  }, [store]);
 
   const data = stats ?? FALLBACK;
 
