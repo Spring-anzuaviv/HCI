@@ -8,20 +8,21 @@ export async function list(storeId: number) {
     where: { storeId },
     include: {
       stages: {
-        where: { status: "RUNNING" },
+        where: { status: { not: "COMPLETED" } },
         include: { order: true },
         orderBy: { actualStartedAt: "desc" },
       },
     },
   });
   return machines.map((machine) => {
-    const current = machine.stages[0];
+    const current = machine.stages.find((stage) => stage.status === "RUNNING") ?? machine.stages[0];
     const elapsed = current?.actualStartedAt
       ? Math.floor((Date.now() - current.actualStartedAt.getTime()) / 60000)
       : 0;
     return {
       ...machine,
       timeLeft: current ? Math.max(0, machine.processingMinutes - elapsed) : 0,
+      locked: machine.stages.length > 0,
     };
   });
 }
@@ -39,6 +40,38 @@ export async function detail(machineId: number, storeId: number) {
   });
   if (!machine) throw new ApiError(404, "NOT_FOUND", "Không tìm thấy máy");
   return machine;
+}
+
+const machineInput = (input: any) => ({ name: String(input.name).trim(), type: String(input.type).toUpperCase(), capacityKg: Number(input.capacityKg), processingMinutes: Number(input.processingMinutes), status: String(input.status ?? "AVAILABLE").toUpperCase() });
+function validateMachine(input: any) {
+  const data = machineInput(input);
+  if (!data.name || !["WASHER", "DRYER"].includes(data.type) || data.capacityKg <= 0 || data.processingMinutes <= 0 || !["AVAILABLE", "RUNNING", "BROKEN", "INACTIVE"].includes(data.status)) throw new ApiError(400, "VALIDATION_ERROR", "Thông tin máy không hợp lệ");
+  return data;
+}
+export async function create(storeId: number, input: any) {
+  const result = await prisma.machine.create({ data: { storeId, ...validateMachine(input) } });
+  await refreshStoreSchedule(storeId);
+  return result;
+}
+export async function update(machineId: number, storeId: number, input: any) {
+  const machine = await prisma.machine.findFirst({ where: { machineId, storeId }, include: { stages: { where: { status: { not: "COMPLETED" } }, select: { status: true } } } });
+  if (!machine) throw new ApiError(404, "NOT_FOUND", "Không tìm thấy máy");
+  const data = validateMachine({ ...machine, ...input });
+  if (machine.stages.length > 0 && (data.name !== machine.name || data.type !== machine.type || data.capacityKg !== Number(machine.capacityKg) || data.processingMinutes !== machine.processingMinutes))
+    throw new ApiError(409, "WORKFLOW_CONFLICT", "Máy đang gắn với order chưa hoàn thành; chỉ được cập nhật trạng thái");
+  if (machine.status === "RUNNING" && !["RUNNING", "BROKEN"].includes(data.status)) throw new ApiError(409, "WORKFLOW_CONFLICT", "Máy đang chạy chỉ có thể chuyển sang trạng thái Hỏng");
+  if (machine.stages.some((stage) => stage.status === "RUNNING") && data.status === "AVAILABLE") throw new ApiError(409, "WORKFLOW_CONFLICT", "Không thể chuyển máy sang Sẵn sàng khi order vẫn đang chạy");
+  const result = await prisma.machine.update({ where: { machineId }, data });
+  await refreshStoreSchedule(storeId);
+  return result;
+}
+export async function remove(machineId: number, storeId: number) {
+  const machine = await prisma.machine.findFirst({ where: { machineId, storeId }, include: { stages: { where: { status: { in: ["RUNNING", "PLANNED"] } } } } });
+  if (!machine) throw new ApiError(404, "NOT_FOUND", "Không tìm thấy máy");
+  if (machine.stages.length) throw new ApiError(409, "WORKFLOW_CONFLICT", "Không thể xóa máy đang có lịch xử lý");
+  await prisma.machine.delete({ where: { machineId } });
+  await refreshStoreSchedule(storeId);
+  return { deleted: true };
 }
 
 export async function startRun(orderId: number, storeId: number, input: any) {

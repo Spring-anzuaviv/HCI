@@ -7,17 +7,13 @@ import {
   ApiError,
 } from "../lib/http.js";
 import * as service from "../services/order.service.js";
-export const get = asyncRoute(async (req, res) =>
-  ok(
-    res,
-    service.serializeOrder(
-      await service.findOrderForStore(
-        parseId(req.params.orderId, "orderId"),
-        requireStore(req),
-      ),
-    ),
-  ),
-);
+export const get = asyncRoute(async (req, res) => {
+  const storeId = requireStore(req);
+  const orderId = parseId(req.params.orderId, "orderId");
+  await service.findOrderForStore(orderId, storeId);
+  const order = service.serializeOrders(await service.findStoreOrders(storeId)).find((item: any) => item.orderId === orderId);
+  ok(res, order);
+});
 export const create = asyncRoute(async (req, res) => {
   const storeId = requireStore(req);
   if (parseId(req.params.storeId, "storeId") !== storeId)
@@ -75,7 +71,7 @@ export const list = asyncRoute(async (req, res) => {
     });
   const page = Math.max(1, Number(req.query.page ?? 1)),
     limit = Math.min(100, Math.max(1, Number(req.query.limit ?? 20)));
-  const data = orders.map(service.serializeOrder);
+  const data = service.serializeOrders(orders);
   ok(res, data.slice((page - 1) * limit, page * limit), {
     page,
     limit,

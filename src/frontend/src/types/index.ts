@@ -1,7 +1,7 @@
 // ─── Kiểu dữ liệu chung cho toàn bộ app ───
 
 export type SvcType = 'wash' | 'dry' | 'combo';
-export type MachineStatus = 'trong' | 'wash' | 'dry';
+export type MachineStatus = 'trong' | 'wash' | 'dry' | 'hong' | 'ngung';
 export type OrderStatus = 'pending' | 'done';
 
 export interface Machine {
@@ -13,6 +13,8 @@ export interface Machine {
   st: MachineStatus;
   user: string;
   timeLeft: number; // phút còn lại
+  status?: 'AVAILABLE' | 'RUNNING' | 'BROKEN' | 'INACTIVE';
+  locked?: boolean;
 }
 
 export interface Staff {
@@ -21,6 +23,7 @@ export interface Staff {
   phone: string;
   shiftId: number;
   ava: string;
+  role?: string;
 }
 
 export interface Shift {
@@ -51,6 +54,7 @@ export interface Order {
   readyAt?: string | null;
   pickupAt?: string | null;
   estimatedAt?: string | null;
+  groupETA?: string | null;
   groupCode?: string | null;
   riskLevel?: 'LOW' | 'MEDIUM' | 'HIGH' | 'UNKNOWN';
   currentStage?: string;
@@ -58,6 +62,10 @@ export interface Order {
   nextAction?: string;
   priorityReason?: string;
   stages?: ApiOrderStage[];
+}
+
+export interface WorkShift extends Shift {
+  employees: Staff[];
 }
 
 export interface ApiOrderStage {

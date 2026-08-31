@@ -1,7 +1,50 @@
 import { useApp } from '../context/AppContext';
-import type { ModalOrderParams } from '../types';
+import type { ModalOrderParams, Order } from '../types';
 import { filterOrders } from '../utils/orderSearch';
 import OrderFilterBar from '../components/OrderFilterBar';
+
+const STAGE_LABELS: Record<string, string> = {
+  RECEIVED: 'Tiếp nhận', SORTING: 'Phân loại', WASHING: 'Đang giặt', WASH: 'Đang giặt',
+  TRANSFER: 'Chuyển đồ', DRYING: 'Đang sấy', DRY: 'Đang sấy', FOLDING_PACKING: 'Gấp & đóng gói',
+  PACKING: 'Đóng gói', READY: 'Chờ thông báo', NOTIFIED: 'Chờ bàn giao', COMPLETED: 'Hoàn tất',
+};
+
+function stageLabel(stage?: string | null) {
+  return stage ? STAGE_LABELS[stage] ?? stage : 'Chưa xác định';
+}
+
+function formatTime(value?: string | null) {
+  return value ? new Date(value).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) : 'Chưa có';
+}
+
+export function QueueOrderRow({ order, onOpen }: { order: Order; onOpen: (order: Order) => void }) {
+  const stages = order.stages ?? [];
+  const currentIndex = stages.findIndex(stage => stage.status === 'RUNNING');
+  const firstOpenIndex = stages.findIndex(stage => stage.status !== 'COMPLETED');
+  const activeIndex = currentIndex >= 0 ? currentIndex : firstOpenIndex;
+  const currentStage = order.isWaiting && currentIndex < 0 ? 'Chờ máy' : stageLabel(stages[activeIndex]?.stage ?? order.currentStage);
+  const nextStage = stages.slice(Math.max(activeIndex + 1, 0)).find(stage => stage.status !== 'COMPLETED');
+  const nextAction = order.isWaiting && !nextStage ? 'Chọn máy phù hợp' : order.nextAction ?? stageLabel(nextStage?.stage);
+  const nextActionTime = nextStage?.plannedStartAt ?? stages[activeIndex]?.plannedStartAt;
+  const serviceLabel = order.service === 'combo' ? 'Giặt + Sấy' : order.service === 'wash' ? 'Chỉ giặt' : 'Chỉ sấy';
+
+  return <div className={`queue-row${order.atRisk ? ' risk' : ''}`} onClick={() => onOpen(order)}>
+    <div className={`queue-priority ${order.atRisk ? 'rd' : order.priority === 1 ? 'bl' : order.priority === 2 ? 'am' : 'gr'}`}>
+      {order.atRisk ? '!' : order.priority ?? ''}
+    </div>
+    <div className="queue-order">
+      <strong>#{order.id} · {order.name}</strong>
+      <span>{serviceLabel} · {order.kg}kg</span>
+    </div>
+    <div className="queue-facts">
+      <div><span>Đang làm</span><strong>{currentStage}{order.currentMachine?.name ? ` · ${order.currentMachine.name}` : ''}</strong></div>
+      <div><span>Sắp làm</span><strong>{stageLabel(nextStage?.stage) === 'Chưa xác định' ? 'Không còn' : stageLabel(nextStage?.stage)}</strong></div>
+      <div><span>Dự kiến xong</span><strong>{order.groupCode ? <><small className="queue-eta-line">Mẻ này: {formatTime(order.estimatedAt)}</small><small className="queue-eta-line queue-group-eta">Cả nhóm: {formatTime(order.groupETA ?? order.estimatedAt)}</small></> : formatTime(order.estimatedAt)}</strong></div>
+      <div><span>Hành động tiếp theo</span><strong>{nextAction} <em>{formatTime(nextActionTime)}</em></strong></div>
+    </div>
+    <div className={`queue-deadline${order.atRisk ? ' danger' : ''}`}><span>Hẹn lấy</span><strong>{order.deadline || 'Chưa hẹn'}</strong></div>
+  </div>;
+}
 
 export default function QueuePage() {
   const { orders, openM, setOrderModalParams, orderSearch, orderFilter } = useApp();
@@ -10,6 +53,7 @@ export default function QueuePage() {
     setOrderModalParams(params);
     openM('om');
   };
+  const openOrderForRow = (order: Order) => openOrderModal({ orderId: order.orderId, name: order.name, phone: order.phone, deadline: order.deadline, atRisk: order.atRisk, svcType: order.service, isWaiting: order.isWaiting });
 
   const visibleOrders = filterOrders(orders, orderSearch, orderFilter);
   const riskOrders = visibleOrders.filter(o => o.atRisk && o.status === 'pending');
@@ -78,20 +122,7 @@ export default function QueuePage() {
             </div>
           </div>
           <div className="olist">
-            {riskOrders.map(order => (
-               <div key={order.id} className="orow risk" onClick={() => openOrderModal({ orderId: order.orderId, name: order.name, phone: order.phone, deadline: order.deadline, atRisk: true, svcType: order.service, isWaiting: order.isWaiting })}>
-                <div className="opri rd">!</div>
-                <div style={{ flex: 1 }}>
-                  <div className="oname">{order.name}</div>
-                  <div style={{ fontSize: '10.5px', color: 'var(--ts)', marginTop: 2 }}>
-                    Chờ máy · {order.service === 'combo' ? 'Giặt + Sấy' : order.service === 'wash' ? 'Chỉ Giặt' : 'Chỉ Sấy'}
-                  </div>
-                </div>
-                <div style={{ textAlign: 'right' }}>
-                  <div style={{ fontSize: '11.5px', fontWeight: 700, color: 'var(--rd)' }}>Hẹn {order.deadline}</div>
-                </div>
-              </div>
-            ))}
+             {riskOrders.map(order => <QueueOrderRow key={order.id} order={order} onOpen={openOrderForRow} />)}
           </div>
         </div>
       )}
@@ -105,34 +136,7 @@ export default function QueuePage() {
           </div>
         </div>
         <div className="olist">
-          {allPending.map(order => (
-            <div
-              key={order.id}
-              className={`orow${order.atRisk ? ' risk' : ''}`}
-               onClick={() => openOrderModal({ orderId: order.orderId, name: order.name, phone: order.phone, deadline: order.deadline, atRisk: order.atRisk, svcType: order.service, isWaiting: order.isWaiting })}
-            >
-              <div className={`opri ${order.atRisk ? 'rd' : order.chipLabel === 'Gửi thông báo' ? 'am' : order.priority === 1 ? 'bl' : order.priority === 2 ? 'am' : 'gr'}`}>
-                {order.chipLabel === 'Gửi thông báo'
-                  ? <svg className="icon icon-sm"><use href="#i-alert" /></svg>
-                  : order.priority ?? ''}
-              </div>
-                <div style={{ flex: 1 }}>
-                  <div className="oname">#{order.id} · {order.name}</div>
-                  <div style={{ fontSize: '10.5px', color: 'var(--ts)', marginTop: 3 }}>
-                    {order.phone} · {order.kg}kg · {order.service === 'combo' ? 'Giặt + Sấy' : order.service === 'wash' ? 'Chỉ Giặt' : 'Chỉ Sấy'} · {order.nextAction ?? (order.isWaiting ? 'Chờ máy' : 'Đang xử lý')}
-                  </div>
-                  <div style={{ display: 'flex', gap: 5, marginTop: 5, flexWrap: 'wrap' }}>
-                  {order.chipLabel && <span className="chip" style={order.chipStyle}>{order.chipLabel}</span>}
-                  {order.atRisk && <span className="chip rk">Nguy cơ trễ</span>}
-                  {!order.chipLabel && order.isWaiting && <span className="chip wt">Chờ máy</span>}
-                </div>
-              </div>
-                <div className="otime" style={{ textAlign: 'right' }}>
-                  <div>{order.deadline || 'Chưa hẹn'}</div>
-                  {order.estimatedAt && <div style={{ fontSize: '9.5px', marginTop: 2 }}>ETA {new Date(order.estimatedAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}</div>}
-                </div>
-            </div>
-          ))}
+           {allPending.map(order => <QueueOrderRow key={order.id} order={order} onOpen={openOrderForRow} />)}
         </div>
       </div>
     </div>

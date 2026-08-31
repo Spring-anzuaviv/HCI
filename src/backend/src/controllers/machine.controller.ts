@@ -22,6 +22,14 @@ export const detail = asyncRoute(async (req, res) =>
     ),
   ),
 );
+export const create = asyncRoute(async (req, res) => {
+  const storeId = requireStore(req);
+  if (storeId !== parseId(req.params.storeId, "storeId")) throw new ApiError(404, "NOT_FOUND", "Không tìm thấy cửa hàng");
+  validateBody(req.body, ["name", "type", "capacityKg", "processingMinutes"]);
+  ok(res, await service.create(storeId, req.body));
+});
+export const update = asyncRoute(async (req, res) => ok(res, await service.update(parseId(req.params.machineId, "machineId"), requireStore(req), req.body)));
+export const remove = asyncRoute(async (req, res) => ok(res, await service.remove(parseId(req.params.machineId, "machineId"), requireStore(req))));
 export const startRun = asyncRoute(async (req, res) => {
   const input = { ...req.body, stage: String(req.params.stage).toUpperCase() };
   ok(

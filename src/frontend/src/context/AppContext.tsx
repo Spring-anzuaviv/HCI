@@ -1,9 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any, react-hooks/set-state-in-effect, react-refresh/only-export-components */
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
-import type { Machine, Staff, Config, Order, Page, ModalOrderParams, OrderFilter } from '../types';
+import type { Machine, Staff, Config, Order, Page, ModalOrderParams, OrderFilter, WorkShift } from '../types';
 import { MOCK_MACHINES, MOCK_STAFF, MOCK_CONFIG } from '../data/mockData';
 import { apiGet } from '../api/client';
 import type { StoreSession } from '../api/auth';
+import { listEmployees, listShifts } from '../api/staff';
+import { getShiftSummary, type ShiftSummary } from '../api/summary';
 
 // ─── Toast ───
 export interface ToastItem {
@@ -33,6 +35,12 @@ interface AppContextType {
   setOrderFilter: React.Dispatch<React.SetStateAction<OrderFilter>>;
   store: StoreSession | null;
   refreshOrders: () => Promise<void>;
+  refreshStaff: () => Promise<void>;
+  selectedWorkDate: string;
+  setSelectedWorkDate: React.Dispatch<React.SetStateAction<string>>;
+  workShifts: WorkShift[];
+  shiftSummary: ShiftSummary | null;
+  refreshShiftSummary: () => Promise<void>;
 
   // Toasts
   toasts: ToastItem[];
@@ -60,6 +68,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [orderSearch, setOrderSearch] = useState('');
   const [orderFilter, setOrderFilter] = useState<OrderFilter>('all');
   const [store, setStore] = useState<StoreSession | null>(null);
+  const [selectedWorkDate, setSelectedWorkDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const [workShifts, setWorkShifts] = useState<WorkShift[]>([]);
+  const [shiftSummary, setShiftSummary] = useState<ShiftSummary | null>(null);
   const [toasts, setToasts] = useState<ToastItem[]>([]);
   const [openModal, setOpenModal] = useState<string | null>(null);
   const [orderModalParams, setOrderModalParams] = useState<ModalOrderParams | null>(null);
@@ -84,6 +95,18 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setOrders(data.map(mapApiOrder));
     setMachines(machineData.map(mapApiMachine));
   }, [store]);
+  const refreshStaff = useCallback(async () => {
+    if (!store) return;
+    const [employeeData, shiftData] = await Promise.all([listEmployees(store.storeId), listShifts(store.storeId, selectedWorkDate)]);
+    const mappedShifts = shiftData.map((shift: any) => ({ id: shift.shiftId, name: shift.name, start: new Date(shift.startAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }), end: new Date(shift.endAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }), employees: shift.employees?.map((item: any) => ({ id: item.employee.employeeId, name: item.employee.name, phone: item.employee.phone ?? '', role: item.employee.role, shiftId: shift.shiftId, ava: item.employee.name.split(' ').map((part: string) => part[0]).join('').slice(-2).toUpperCase() })) ?? [] }));
+    setWorkShifts(mappedShifts);
+    setConfig(previous => ({ ...previous, shifts: mappedShifts.map(shift => ({ id: shift.id, name: shift.name, start: shift.start, end: shift.end })) }));
+    setStaff(employeeData.map((employee: any) => ({ id: employee.employeeId, name: employee.name, phone: employee.phone ?? '', role: employee.role, shiftId: mappedShifts.find(shift => shift.employees.some((item: { id: number }) => item.id === employee.employeeId))?.id ?? 0, ava: employee.name.split(' ').map((part: string) => part[0]).join('').slice(-2).toUpperCase() })));
+  }, [store, selectedWorkDate]);
+  const refreshShiftSummary = useCallback(async () => {
+    if (!store) return;
+    setShiftSummary(await getShiftSummary(store.storeId));
+  }, [store]);
 
   // The provider is mounted only after App has confirmed the cookie session.
   useEffect(() => {
@@ -93,6 +116,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (store) void refreshOrders();
   }, [store, refreshOrders]);
+  useEffect(() => { if (store) void refreshStaff(); }, [store, refreshStaff]);
+  useEffect(() => { if (store) void refreshShiftSummary(); }, [store, refreshShiftSummary]);
 
   return (
     <AppContext.Provider value={{
@@ -100,7 +125,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       machines, setMachines,
       staff, setStaff,
       config, setConfig,
-      orders, setOrders, store, refreshOrders, orderSearch, setOrderSearch, orderFilter, setOrderFilter,
+       orders, setOrders, store, refreshOrders, refreshStaff, selectedWorkDate, setSelectedWorkDate, workShifts, shiftSummary, refreshShiftSummary, orderSearch, setOrderSearch, orderFilter, setOrderFilter,
       toasts, showToast,
       openModal, setOpenModal, openM, closeM,
       orderModalParams, setOrderModalParams,
@@ -123,7 +148,7 @@ function mapApiOrder(order: any): Order {
     chipLabel: order.currentMachine ? `${order.currentMachine.name} · ${order.currentStage ?? ''} · Dự kiến xong: ${eta}` : undefined,
     machine: order.currentMachine?.name, readyAt: order.readyAt, pickupAt: order.pickupAt, estimatedAt: order.estimatedAt,
     groupCode: order.groupCode, riskLevel: order.riskLevel, currentStage: order.currentStage,
-    currentMachine: order.currentMachine, nextAction: order.nextAction, priorityReason: order.priorityReason, stages: order.stages,
+     currentMachine: order.currentMachine, nextAction: order.nextAction, priorityReason: order.priorityReason, stages: order.stages, groupETA: order.groupETA,
   };
 }
 
@@ -132,7 +157,7 @@ function mapApiMachine(machine: any): Machine {
   const activeStage = machine.stages?.[0];
   return {
     id: machine.machineId, name: machine.name, type, kg: machine.capacityKg, time: machine.processingMinutes,
-    st: machine.status === 'RUNNING' ? type : 'trong', user: activeStage?.order?.customer?.name ?? '',
+    st: machine.status === 'RUNNING' ? type : machine.status === 'BROKEN' ? 'hong' : machine.status === 'INACTIVE' ? 'ngung' : 'trong', status: machine.status, locked: machine.locked, user: activeStage?.order?.customer?.name ?? '',
     timeLeft: machine.timeLeft ?? 0,
   };
 }

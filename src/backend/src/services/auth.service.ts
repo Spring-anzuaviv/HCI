@@ -1,5 +1,5 @@
 import { prisma } from "../lib/prisma.js";
-import { verifyPassword, signToken } from "../lib/auth.js";
+import { hashPassword, verifyPassword, signToken } from "../lib/auth.js";
 import { ApiError } from "../lib/http.js";
 
 export async function login(email: string, password: string) {
@@ -27,4 +27,14 @@ export async function currentStore(storeId: number) {
   });
   if (!store) throw new ApiError(404, "NOT_FOUND", "Không tìm thấy cửa hàng");
   return store;
+}
+
+export async function changePassword(storeId: number, currentPassword: string, newPassword: string) {
+  const store = await prisma.store.findUnique({ where: { storeId } });
+  if (!store || !verifyPassword(currentPassword, store.passwordHash))
+    throw new ApiError(400, "VALIDATION_ERROR", "Mật khẩu hiện tại không đúng");
+  if (newPassword.length < 6)
+    throw new ApiError(400, "VALIDATION_ERROR", "Mật khẩu mới phải có ít nhất 6 ký tự");
+  await prisma.store.update({ where: { storeId }, data: { passwordHash: hashPassword(newPassword) } });
+  return { changed: true };
 }

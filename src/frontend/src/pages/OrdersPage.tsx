@@ -58,7 +58,7 @@ export default function OrdersPage() {
               <th>Dịch vụ</th>
               <th>Khối lượng</th>
               <th>Trạng thái</th>
-              <th>ETA</th>
+              <th>Dự kiến hoàn thành</th>
               <th style={{ textAlign: 'right' }}></th>
             </tr>
           </thead>

@@ -30,6 +30,7 @@ async function main() {
           data: {
             storeId: store.storeId,
             name,
+            phone: `09000000${String(index + 1).padStart(2, "02")}`,
             role: index === 0 ? "MANAGER" : "STAFF",
           },
         }),

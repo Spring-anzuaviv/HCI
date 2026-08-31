@@ -7,7 +7,7 @@ import Sidebar from './components/Sidebar';
 import TopBar from './components/TopBar';
 import RightPanel from './components/RightPanel';
 import { ToastContainer } from './components/Modals';
-import { AddOrderModal, SettingsModal, MachineModal, OrderDetailModal } from './components/AppModals';
+import { AddOrderModal, SettingsModal, MachineModal, EmployeeModal, AssignEmployeeModal, RemoveEmployeeModal, OrderDetailModal } from './components/AppModals';
 
 import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
@@ -42,6 +42,9 @@ function AppShell() {
       <AddOrderModal />
       <SettingsModal />
       <MachineModal />
+      <EmployeeModal />
+      <AssignEmployeeModal />
+      <RemoveEmployeeModal />
       <OrderDetailModal />
 
       {/* Toasts */}

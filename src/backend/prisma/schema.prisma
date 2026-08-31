@@ -39,6 +39,7 @@ model Employee {
   employeeId Int                 @id @default(autoincrement()) @map("employee_id")
   storeId    Int                 @map("store_id")
   name       String              @db.VarChar(50)
+  phone      String              @default("") @db.VarChar(12)
   role       String              @db.VarChar(50)
   createdAt  DateTime            @default(now()) @map("created_at")
   store      Store               @relation(fields: [storeId], references: [storeId], onDelete: Cascade)

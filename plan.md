@@ -155,6 +155,38 @@ Nhân viên giặt ủi trực tiếp, có thể phải:
 
 Đã nối prototype React với backend cho đăng nhập bằng JWT trong HttpOnly cookie, tải order/machine sau xác thực, tạo order và kiểm tra deadline, xem chi tiết/timeline order, tìm kiếm và lọc order. Bộ lọc và preview order dùng chung trên các tab Tổng quan, Hàng đợi và Đơn hàng. Frontend/backend build và frontend lint đã qua; walkthrough với database thật còn phụ thuộc biến môi trường PostgreSQL.
 
+Đã bổ sung CRUD nhân viên/máy móc, phân ca, tính lại dữ liệu schedule sau thay đổi máy, và nối Notify/Stats qua API có cookie authentication. Migration thêm số điện thoại nhân viên cần chạy trước khi dùng các API quản trị.
+
+Đã bổ sung tóm tắt ca tự động qua API `GET /stores/:storeId/shift-summary`, hiển thị trực tiếp trong banner Dashboard và đổi mật khẩu qua API `POST /auth/change-password`. Không lưu localStorage, không có ghi chú thủ công; frontend/backend build và frontend lint đã qua.
+
+Đã cải thiện row trong Hàng đợi bằng các trường có nhãn `Đang làm`, `Sắp làm`, `Dự kiến xong` và `Hành động tiếp theo`, sử dụng stage schedule để hiển thị thời điểm hành động và responsive theo desktop/mobile.
+
+Đã áp dụng cùng cấu trúc row cho danh sách hàng đợi rút gọn trên trang Tổng quan, bảo đảm thông tin giữa Dashboard và Hàng đợi nhất quán.
+
+Đã sửa logic phân ca theo ngày: khi mở ngày chưa có ca, backend tạo các khung ca từ mẫu gần nhất nhưng không sao chép phân công; thêm nhân viên phân vào ca của đúng ngày đang xem, còn chỉnh hồ sơ không tự đổi phân ca.
+
+Đã bổ sung luồng tách đơn trong modal thêm đơn: chia khối lượng thành nhiều mẻ, kiểm tra tổng khối lượng, tạo tuần tự các đơn con cùng `groupCode` để giữ logic ETA/thông báo theo nhóm.
+
+Mỗi mẻ trong luồng tách đơn hiện có thể chọn dịch vụ riêng (`Giặt + Sấy`, `Chỉ giặt`, `Chỉ sấy`) và payload tạo đơn gửi đúng dịch vụ của từng mẻ.
+
+Mỗi mẻ cũng có ghi chú riêng; ô chọn dịch vụ đã giới hạn độ rộng phù hợp và tự điều chỉnh trên màn hình nhỏ.
+
+Đã bổ sung `groupETA` cho các đơn cùng nhóm để hiển thị thời gian hoàn tất cả nhóm, đồng thời tăng chiều cao select dịch vụ trong luồng tách mẻ lên 40px.
+
+Đã chặn tạo đơn ở frontend khi giờ hẹn đã qua, nằm ngoài giờ ca hoặc kiểm tra lịch trả về `AT_RISK`/`NOT_FEASIBLE`; với đơn tách mẻ, kiểm tra được thực hiện cho từng mẻ trước khi tạo. Thanh tiến trình chi tiết đơn hiển thị thời gian dự kiến trên từng mốc stage.
+
+Kết quả tạo đơn và chi tiết order hiện hiển thị riêng ETA của từng mẻ và ETA hoàn tất toàn nhóm; API chi tiết order cũng tính lại `groupETA` từ các order cùng `groupCode`.
+
+Form tách đơn hiện hiển thị ETA từng mẻ và ETA hoàn tất nhóm ngay trong lúc nhập, tự cập nhật khi đổi khối lượng, dịch vụ hoặc giờ hẹn.
+
+Đã hoàn thiện chỉnh sửa máy giặt/máy sấy: cập nhật tên, loại, sức chứa, thời gian xử lý và trạng thái; thêm/xóa/chỉnh sửa máy đều gọi tính lại schedule để hàng chờ nhận ETA và phân máy mới nhất. Máy đang chạy không thể đổi loại hoặc chuyển sang trạng thái không hoạt động.
+
+Đã cập nhật quy tắc khóa máy: nếu còn stage/order chưa hoàn thành, frontend khóa tên, loại, sức chứa và thời gian xử lý; backend chỉ cho đổi trạng thái. Mọi thay đổi trạng thái gọi tính lại schedule và tải lại hàng chờ; máy đang chạy chỉ được chuyển sang `Hỏng`, không được chuyển thẳng sang `Sẵn sàng`.
+
+Đã sửa lỗi `P2028` khi tính lại hàng chờ trên cửa hàng có nhiều stage/order: transaction cập nhật schedule được giữ nguyên tính nguyên tử và tăng timeout lên 30 giây, tránh hết hạn giữa chừng.
+
+Đã tách phần ETA nhóm thành hai dòng rõ ràng trong row: `Mẻ này` và `Cả nhóm`, tránh việc thời gian bị gộp hoặc khó nhận biết.
+
 ## 6. Dependency giữa các artifact
 
 1. Bằng chứng và phân tích công việc hiện tại hỗ trợ Persona và Scenario 1.
