@@ -1,28 +1,113 @@
 import { prisma } from "../lib/prisma.js";
 import { ApiError } from "../lib/http.js";
-import { findOrderForStore, refreshStoreSchedule } from "./order.service.js";
-import { requiredMachineType } from "./scheduling.service.js";
+import {
+  findOrderForStore,
+  findStoreOrders,
+  refreshStoreSchedule,
+} from "./order.service.js";
+import { buildQueueSnapshot } from "./queue.service.js";
+import { getWorkflowStages, requiredMachineType } from "./scheduling.service.js";
+import {
+  calculateCompletionTiming,
+  canReleaseMachine,
+  expectedOrderStatusForRunningStage,
+  nextOrderStatusAfterStage,
+} from "./machine-workflow.js";
+
+export function calculateTimeLeft(
+  processingMinutes: number,
+  actualStartedAt: Date | null | undefined,
+  now = new Date(),
+) {
+  return calculateCompletionTiming(processingMinutes, actualStartedAt, now)
+    .timeLeft;
+}
 
 export async function list(storeId: number) {
+  const now = new Date();
   const machines = await prisma.machine.findMany({
     where: { storeId },
     include: {
       stages: {
-        where: { status: { not: "COMPLETED" } },
-        include: { order: true },
-        orderBy: { actualStartedAt: "desc" },
+        where: { status: { in: ["RUNNING", "PLANNED"] } },
+        include: { order: { include: { customer: true } } },
+        orderBy: [{ plannedStartAt: "asc" }, { orderStageId: "asc" }],
       },
     },
+    orderBy: { machineId: "asc" },
   });
   return machines.map((machine) => {
-    const current = machine.stages.find((stage) => stage.status === "RUNNING") ?? machine.stages[0];
-    const elapsed = current?.actualStartedAt
-      ? Math.floor((Date.now() - current.actualStartedAt.getTime()) / 60000)
-      : 0;
+    const runningStages = machine.stages.filter((stage) => stage.status === "RUNNING");
+    const current = runningStages
+      .sort((left, right) =>
+        (right.actualStartedAt?.getTime() ?? 0) - (left.actualStartedAt?.getTime() ?? 0),
+      )[0] ?? null;
+    const nextPlannedStage = machine.stages
+      .filter((stage) => stage.status === "PLANNED")
+      .sort((left, right) =>
+        (left.plannedStartAt?.getTime() ?? Number.POSITIVE_INFINITY) -
+          (right.plannedStartAt?.getTime() ?? Number.POSITIVE_INFINITY) ||
+        left.orderStageId - right.orderStageId,
+      )[0] ?? null;
+    const reviewReasons: string[] = [];
+    if (runningStages.length > 1) reviewReasons.push("Máy có nhiều công đoạn RUNNING");
+    if (machine.status === "RUNNING" && !current)
+      reviewReasons.push("Máy báo RUNNING nhưng không có công đoạn đang chạy");
+    if (machine.status === "AVAILABLE" && current)
+      reviewReasons.push("Máy báo AVAILABLE nhưng vẫn có công đoạn đang chạy");
+    if (["BROKEN", "INACTIVE"].includes(machine.status) && current)
+      reviewReasons.push("Máy đã ngừng hoạt động nhưng vẫn có công đoạn RUNNING");
+    if (current && !current.actualStartedAt)
+      reviewReasons.push("Công đoạn RUNNING thiếu actualStartedAt");
+    const expectedOrderStatus = current
+      ? expectedOrderStatusForRunningStage(current.stage)
+      : null;
+    if (
+      current &&
+      (!expectedOrderStatus || current.order.status !== expectedOrderStatus)
+    ) {
+      reviewReasons.push(
+        `Công đoạn ${current.stage} đang RUNNING nhưng trạng thái đơn là ${current.order.status}`,
+      );
+    }
+    const timing = calculateCompletionTiming(
+      machine.processingMinutes,
+      current?.actualStartedAt,
+      now,
+    );
+    const completionBlockedReasons = current
+      ? [
+          ...(runningStages.length > 1
+            ? ["Máy có nhiều công đoạn RUNNING"]
+            : []),
+          ...(!["WASH", "DRY"].includes(current.stage)
+            ? [`Công đoạn ${current.stage} không phải công đoạn máy`]
+            : []),
+          ...(machine.status !== "RUNNING"
+            ? [`Máy đang ở trạng thái ${machine.status}, không phải RUNNING`]
+            : []),
+          ...(!current.actualStartedAt
+            ? ["Công đoạn RUNNING thiếu thời gian bắt đầu thực tế"]
+            : []),
+          ...(!expectedOrderStatus || current.order.status !== expectedOrderStatus
+            ? ["Trạng thái đơn và công đoạn đang chạy chưa đồng bộ"]
+            : []),
+        ]
+      : [];
     return {
       ...machine,
-      timeLeft: current ? Math.max(0, machine.processingMinutes - elapsed) : 0,
+      currentStage: current,
+      nextPlannedStage,
+      finishAt: timing.finishAt,
+      timeLeft: timing.timeLeft,
+      completionDue: Boolean(current && timing.completionDue),
+      completionActionAllowed:
+        Boolean(current && timing.completionDue) &&
+        completionBlockedReasons.length === 0,
+      completionBlockedReason: completionBlockedReasons[0] ?? null,
       locked: machine.stages.length > 0,
+      operationalState: reviewReasons.length > 0 ? "NEEDS_REVIEW" : "NORMAL",
+      reviewReasons,
     };
   });
 }
@@ -74,7 +159,7 @@ export async function remove(machineId: number, storeId: number) {
   return { deleted: true };
 }
 
-export async function startRun(orderId: number, storeId: number, input: any) {
+async function legacyStartRun(orderId: number, storeId: number, input: any) {
   const order = await findOrderForStore(orderId, storeId);
   const stageName = String(input.stage);
   const stage = order.stages.find((item: any) => item.stage === stageName);
@@ -141,40 +226,239 @@ export async function startRun(orderId: number, storeId: number, input: any) {
   return result;
 }
 
-export async function completeRun(orderStageId: number, storeId: number, endedAt?: string) {
-  const stage = await prisma.orderStage.findFirst({
-    where: { orderStageId, order: { storeId } },
-    include: { order: true, machine: true },
-  });
-  if (!stage) throw new ApiError(404, "NOT_FOUND", "Không tìm thấy stage máy");
-  if (stage.status !== "RUNNING")
-    throw new ApiError(409, "WORKFLOW_CONFLICT", "Stage máy chưa ở trạng thái đang chạy");
+void legacyStartRun;
+
+export async function startRun(orderId: number, storeId: number, input: any) {
+  const stageName = String(input.stage ?? "").trim().toUpperCase();
+  if (!stageName)
+    throw new ApiError(400, "VALIDATION_ERROR", "Thiếu công đoạn cần bắt đầu");
+  const machineId = Number(input.machineId);
+  const now = new Date();
+
   const result = await prisma.$transaction(async (tx) => {
-    const result = await tx.orderStage.update({
-      where: { orderStageId },
-      data: {
-        actualEndedAt: endedAt ? new Date(endedAt) : new Date(),
-        status: "COMPLETED",
-      },
+    const order = await tx.laundryOrder.findFirst({
+      where: { orderId, storeId },
+      include: { stages: true },
     });
-    const nextStatus = stage.stage === "PACKING"
-      ? "READY"
-      : stage.stage === "SORTING" || stage.stage === "TRANSFER"
-        ? "WAITING"
-        : stage.stage === "WASH" && stage.order.serviceType === "WASH_DRY"
-          ? "WAITING"
-          : "FOLDING_PACKING";
-    await tx.laundryOrder.update({
-      where: { orderId: stage.orderId },
-      data: { status: nextStatus },
-    });
-    if (stage.machineId)
-      await tx.machine.update({
-        where: { machineId: stage.machineId },
-        data: { status: "AVAILABLE" },
+    if (!order) throw new ApiError(404, "NOT_FOUND", "Không tìm thấy đơn hàng");
+    const stage = order.stages.find((item) => item.stage === stageName);
+    if (!stage || stage.status !== "PLANNED")
+      throw new ApiError(409, "WORKFLOW_CONFLICT", "Công đoạn không còn sẵn sàng để bắt đầu");
+
+    const workflow = getWorkflowStages(order.serviceType);
+    const stageIndex = workflow.indexOf(stageName);
+    if (stageIndex < 0)
+      throw new ApiError(409, "WORKFLOW_CONFLICT", "Công đoạn không thuộc workflow của dịch vụ");
+    const incompletePrevious = workflow.slice(0, stageIndex).filter(
+      (name) => order.stages.find((item) => item.stage === name)?.status !== "COMPLETED",
+    );
+    if (incompletePrevious.length > 0)
+      throw new ApiError(
+        409,
+        "WORKFLOW_CONFLICT",
+        `Công đoạn trước chưa hoàn tất: ${incompletePrevious.join(", ")}`,
+      );
+
+    const machineType = requiredMachineType(stageName);
+    if (!machineType) {
+      const manualStatus: Record<string, string> = {
+        SORTING: "RECEIVED",
+        TRANSFER: "WAITING",
+        PACKING: "FOLDING_PACKING",
+      };
+      const nextOrderStatus = manualStatus[stageName];
+      if (!nextOrderStatus)
+        throw new ApiError(409, "WORKFLOW_CONFLICT", "Không xác định được trạng thái công đoạn");
+      const updated = await tx.orderStage.updateMany({
+        where: { orderStageId: stage.orderStageId, status: "PLANNED" },
+        data: { actualStartedAt: now, status: "RUNNING" },
       });
-    return result;
-  });
+      if (updated.count !== 1)
+        throw new ApiError(409, "WORKFLOW_CONFLICT", "Dữ liệu công đoạn đã thay đổi, vui lòng tải lại");
+      await tx.laundryOrder.update({ where: { orderId }, data: { status: nextOrderStatus } });
+      return tx.orderStage.findUniqueOrThrow({ where: { orderStageId: stage.orderStageId } });
+    }
+
+    if (!Number.isInteger(machineId) || machineId <= 0)
+      throw new ApiError(400, "VALIDATION_ERROR", "Thiếu máy cần bắt đầu");
+    if (order.status !== "WAITING")
+      throw new ApiError(409, "WORKFLOW_CONFLICT", "Đơn không còn ở trạng thái WAITING");
+    const machine = await tx.machine.findFirst({ where: { machineId, storeId } });
+    if (!machine) throw new ApiError(404, "NOT_FOUND", "Không tìm thấy máy");
+    if (machine.type !== machineType)
+      throw new ApiError(409, "WORKFLOW_CONFLICT", "Loại máy không phù hợp với công đoạn");
+    if (Number(order.weightKg) > machine.capacityKg)
+      throw new ApiError(409, "WORKFLOW_CONFLICT", "Khối lượng đơn vượt sức chứa máy");
+    if (machine.status !== "AVAILABLE")
+      throw new ApiError(409, "WORKFLOW_CONFLICT", "Máy không còn ở trạng thái AVAILABLE");
+    if (await tx.orderStage.findFirst({ where: { machineId, status: "RUNNING" } }))
+      throw new ApiError(409, "WORKFLOW_CONFLICT", "Máy đang có mẻ chưa hoàn tất");
+    if (await tx.orderStage.findFirst({ where: { orderId, status: "RUNNING" } }))
+      throw new ApiError(409, "WORKFLOW_CONFLICT", "Đơn đang có công đoạn khác RUNNING");
+
+    const updatedStage = await tx.orderStage.updateMany({
+      where: { orderStageId: stage.orderStageId, status: "PLANNED" },
+      data: { machineId, actualStartedAt: now, status: "RUNNING" },
+    });
+    const updatedOrder = await tx.laundryOrder.updateMany({
+      where: { orderId, storeId, status: "WAITING" },
+      data: { status: stageName === "WASH" ? "WASHING" : "DRYING" },
+    });
+    const updatedMachine = await tx.machine.updateMany({
+      where: { machineId, storeId, status: "AVAILABLE" },
+      data: { status: "RUNNING" },
+    });
+    if (updatedStage.count !== 1 || updatedOrder.count !== 1 || updatedMachine.count !== 1)
+      throw new ApiError(409, "WORKFLOW_CONFLICT", "Dữ liệu vận hành đã thay đổi, vui lòng tải lại");
+    return tx.orderStage.findUniqueOrThrow({
+      where: { orderStageId: stage.orderStageId },
+      include: { order: true, machine: true },
+    });
+  }, { isolationLevel: "Serializable" });
   await refreshStoreSchedule(storeId);
   return result;
+}
+
+export async function completeRun(orderStageId: number, storeId: number) {
+  const now = new Date();
+  const stage = await prisma.orderStage.findUnique({
+    where: { orderStageId },
+    include: { machine: true },
+  });
+  if (!stage) throw new ApiError(404, "NOT_FOUND", "Không tìm thấy stage máy");
+  const order = await prisma.laundryOrder.findUnique({
+    where: { orderId: stage.orderId },
+  });
+  if (!order)
+    throw new ApiError(
+      409,
+      "SYNC_ERROR",
+      "Không tìm thấy đơn hàng của công đoạn đang chạy",
+    );
+  if (order.storeId !== storeId)
+    throw new ApiError(404, "NOT_FOUND", "Không tìm thấy stage máy");
+  if (stage.status !== "RUNNING")
+    throw new ApiError(409, "WORKFLOW_CONFLICT", "Stage máy chưa ở trạng thái đang chạy");
+  const expectedOrderStatus = expectedOrderStatusForRunningStage(stage.stage);
+  if (!expectedOrderStatus || order.status !== expectedOrderStatus)
+    throw new ApiError(
+      409,
+      "SYNC_ERROR",
+      `Trạng thái đơn ${order.status} không khớp với công đoạn ${stage.stage} đang RUNNING`,
+    );
+
+  const machineType = requiredMachineType(stage.stage);
+  if (machineType) {
+    if (!stage.machine || !stage.actualStartedAt)
+      throw new ApiError(
+        409,
+        "SYNC_ERROR",
+        "Công đoạn máy đang chạy thiếu máy hoặc thời gian bắt đầu",
+      );
+    if (!["RUNNING", "BROKEN", "INACTIVE"].includes(stage.machine.status))
+      throw new ApiError(
+        409,
+        "SYNC_ERROR",
+        `Máy đang ở trạng thái ${stage.machine.status} nhưng công đoạn vẫn RUNNING`,
+      );
+    const timing = calculateCompletionTiming(
+      stage.machine.processingMinutes,
+      stage.actualStartedAt,
+      now,
+    );
+    if (!timing.completionDue)
+      throw new ApiError(
+        409,
+        "MACHINE_NOT_FINISHED",
+        `Máy chưa hoàn tất, còn khoảng ${timing.timeLeft ?? 0} phút`,
+      );
+  }
+
+  const nextStatus = nextOrderStatusAfterStage(
+    stage.stage,
+    order.serviceType,
+  );
+  if (!nextStatus)
+    throw new ApiError(
+      409,
+      "WORKFLOW_CONFLICT",
+      `Không xác định được trạng thái sau công đoạn ${stage.stage}`,
+    );
+
+  const result = await prisma.$transaction(async (tx) => {
+    const updated = await tx.orderStage.updateMany({
+      where: { orderStageId, status: "RUNNING" },
+      data: { actualEndedAt: now, status: "COMPLETED" },
+    });
+    if (updated.count !== 1)
+      throw new ApiError(
+        409,
+        "WORKFLOW_CONFLICT",
+        "Công đoạn đã được xử lý bởi một phiên làm việc khác",
+      );
+    const updatedOrder = await tx.laundryOrder.updateMany({
+      where: { orderId: stage.orderId, status: expectedOrderStatus },
+      data: { status: nextStatus },
+    });
+    if (updatedOrder.count !== 1)
+      throw new ApiError(
+        409,
+        "SYNC_ERROR",
+        "Trạng thái đơn đã thay đổi trong lúc hoàn tất công đoạn",
+      );
+    if (stage.machineId && stage.machine && canReleaseMachine(stage.machine.status))
+      await tx.machine.updateMany({
+        where: {
+          machineId: stage.machineId,
+          status: { notIn: ["BROKEN", "INACTIVE"] },
+        },
+        data: { status: "AVAILABLE" },
+      });
+    return tx.orderStage.findUniqueOrThrow({
+      where: { orderStageId },
+      include: { order: true, machine: true },
+    });
+  });
+  await refreshStoreSchedule(storeId);
+  const [orders, machines, updatedMachine] = await Promise.all([
+    findStoreOrders(storeId),
+    prisma.machine.findMany({ where: { storeId } }),
+    stage.machineId
+      ? prisma.machine.findFirst({ where: { machineId: stage.machineId, storeId } })
+      : Promise.resolve(null),
+  ]);
+  const queue = buildQueueSnapshot(orders, machines, [], now);
+  const recommendation = stage.machineId
+    ? queue.recommendations.find((item) => item.machineId === stage.machineId) ?? null
+    : queue.recommendation;
+  return {
+    completedStage: result,
+    orderStatus: nextStatus,
+    machine: updatedMachine,
+    recommendation,
+  };
+}
+
+export async function markOutOfService(
+  machineId: number,
+  storeId: number,
+  status: string,
+) {
+  if (!["BROKEN", "INACTIVE"].includes(status))
+    throw new ApiError(
+      400,
+      "VALIDATION_ERROR",
+      "Trạng thái máy chỉ có thể là BROKEN hoặc INACTIVE",
+    );
+  const machine = await prisma.machine.findFirst({
+    where: { machineId, storeId },
+  });
+  if (!machine) throw new ApiError(404, "NOT_FOUND", "Không tìm thấy máy");
+
+  const updated = await prisma.machine.update({
+    where: { machineId },
+    data: { status },
+  });
+  await refreshStoreSchedule(storeId);
+  return updated;
 }

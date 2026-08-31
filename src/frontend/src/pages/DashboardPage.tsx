@@ -33,7 +33,7 @@ const HeroSVG = () => (
 );
 
 export default function DashboardPage() {
-  const { setCurrentPage, openM, orders, setOrderModalParams, orderSearch, orderFilter, shiftSummary } = useApp();
+  const { setCurrentPage, openM, orders, setOrderModalParams, orderSearch, orderFilter, shiftSummary, queueSnapshot, operationsLoading } = useApp();
   const [shiftInfo, setShiftInfo] = useState({ name: '', timeRange: '', timeLeft: '', day: '' });
 
   // Tính thông tin ca làm việc
@@ -66,14 +66,21 @@ export default function DashboardPage() {
   }, []);
 
   const openOrderModal = (params: ModalOrderParams) => {
-    setOrderModalParams(params);
+    setOrderModalParams({ ...params, readOnly: true });
     openM('om');
   };
 
   const visibleOrders = filterOrders(orders, orderSearch, orderFilter);
-  const pendingOrders = visibleOrders.filter(o => o.status === 'pending');
-  const riskOrders = visibleOrders.filter(o => o.atRisk && o.status === 'pending');
-  const suggestedOrder = pendingOrders[0];
+  const visibleIds = new Set(visibleOrders.map(order => order.orderId));
+  const pendingOrders = (queueSnapshot?.items ?? [])
+    .filter(item => visibleIds.has(item.orderId))
+    .map(item => orders.find(order => order.orderId === item.orderId))
+    .filter((order): order is NonNullable<typeof order> => Boolean(order));
+  const riskOrders = (queueSnapshot?.items ?? [])
+    .filter(item => visibleIds.has(item.orderId) && (item.riskLevel === 'AT_RISK' || item.riskLevel === 'NOT_FEASIBLE'));
+  const suggestedOrder = queueSnapshot?.recommendation
+    ? orders.find(order => order.orderId === queueSnapshot.recommendation?.orderId)
+    : undefined;
 
   const stats = {
     today: orders.filter(o => o.status === 'pending').length + orders.filter(o => o.status === 'done').length,
@@ -145,7 +152,7 @@ export default function DashboardPage() {
           </div>
 
           {/* Đề xuất xử lý tiếp */}
-           {suggestedOrder ? <div className="sugg">
+           {operationsLoading ? <div style={{ color: 'var(--ts)', fontSize: 12, padding: 10 }}>Đang tải đề xuất từ schedule hiện tại...</div> : suggestedOrder ? <div className="sugg">
             <div className="sugg-lbl">
               <svg className="icon icon-sm"><use href="#i-cpu" /></svg> Đề xuất xử lý tiếp
             </div>
@@ -156,7 +163,7 @@ export default function DashboardPage() {
                  <div className="sugg-meta">{suggestedOrder.kg}kg · Hẹn {suggestedOrder.deadline || 'chưa có'} · {suggestedOrder.isWaiting ? 'Chờ máy' : 'Đang xử lý'}</div>
               </div>
                 <button className="bp" onClick={() => openOrderModal({ orderId: suggestedOrder.orderId, name: suggestedOrder.name, phone: suggestedOrder.phone, deadline: suggestedOrder.deadline, atRisk: suggestedOrder.atRisk, svcType: suggestedOrder.service, isWaiting: suggestedOrder.isWaiting })}>
-                Xử lý ngay <svg className="icon icon-sm"><use href="#i-arrow-right" /></svg>
+                Xem đơn <svg className="icon icon-sm"><use href="#i-arrow-right" /></svg>
               </button>
             </div></div> : <div style={{ color: 'var(--ts)', fontSize: 12, padding: 10 }}>Không có order phù hợp với bộ lọc hiện tại</div>}
            {/* Order list (top 5) */}

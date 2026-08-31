@@ -4,15 +4,28 @@ import type { Machine } from '../types';
 // ─── Machine Card ───
 function MachineCard({ machine, onEdit }: { machine: Machine; onEdit: (id: number) => void }) {
   const isIdle = machine.st === 'trong';
-  const isUnavailable = machine.st === 'hong' || machine.st === 'ngung';
+  const needsReview = machine.operationalState === 'NEEDS_REVIEW';
+  const unavailable = machine.st === 'broken' || machine.st === 'inactive';
   const label = machine.type === 'wash' ? 'Giặt' : 'Sấy';
-
-  const colorClass = isUnavailable ? 'gy' : isIdle ? 'gy' : machine.type === 'wash' ? 'bl' : 'am';
+  const colorClass = isIdle || needsReview || unavailable ? 'gy' : machine.type === 'wash' ? 'bl' : 'am';
+  const statusLabel = needsReview
+    ? 'Cần kiểm tra'
+    : machine.st === 'broken'
+      ? 'Đang hỏng'
+      : machine.st === 'inactive'
+        ? 'Tạm ngưng'
+        : isIdle
+          ? 'Trống'
+          : machine.user || `Đang ${label.toLowerCase()}`;
 
   return (
     <div
       className={`mc ${colorClass}${!isIdle ? ' on' : ''}`}
       onClick={() => onEdit(machine.id)}
+      onKeyDown={event => { if (event.key === 'Enter' || event.key === ' ') onEdit(machine.id); }}
+      role="button"
+      tabIndex={0}
+      aria-label={`${machine.name}, ${statusLabel}`}
       style={{ position: 'relative', cursor: 'pointer' }}
     >
       <div style={{ position: 'absolute', top: 8, right: 8, background: 'rgba(0,0,0,0.06)', fontSize: 10, padding: '2px 6px', borderRadius: 6, fontWeight: 700, color: isIdle ? '#64748b' : '#fff' }}>
@@ -23,15 +36,13 @@ function MachineCard({ machine, onEdit }: { machine: Machine; onEdit: (id: numbe
       </div>
       <div className="mc-name">{machine.name}</div>
       <div className="mc-st" style={{ fontSize: 12, fontWeight: 600, marginTop: 2 }}>
-        {isUnavailable ? (
-          <>{machine.st === 'hong' ? 'Hỏng' : 'Ngừng hoạt động'}<br /><span style={{ fontSize: 10, fontWeight: 400, opacity: 0.6 }}>--</span></>
-        ) : isIdle ? (
-          <>Trống<br /><span style={{ fontSize: 10, fontWeight: 400, opacity: 0.6 }}>--</span></>
+        {isIdle || needsReview || unavailable ? (
+          <>{statusLabel}<br /><span style={{ fontSize: 10, fontWeight: 400, opacity: 0.7 }}>{machine.reviewReasons?.[0] ?? (isIdle && machine.nextPlannedStage ? `Tiếp: #${machine.nextPlannedStage.order?.orderId ?? ''} ${machine.nextPlannedStage.stage}` : '--')}</span></>
         ) : (
           <>
-            {machine.user}<br />
+            {statusLabel}<br />
             <span style={{ fontSize: 10, fontWeight: 500, opacity: 0.85 }}>
-              {machine.timeLeft}p · {machine.type === 'wash' ? 'Giặt' : 'Sấy'}
+              {machine.timeLeft ?? '--'}p · {machine.currentStage?.stage ?? label}
             </span>
           </>
         )}
@@ -85,9 +96,9 @@ function StaffSection() {
 
 // ─── Right Panel ───
 export default function RightPanel() {
-  const { machines, openM } = useApp();
+  const { machines, openM, queueSnapshot, operationsLoading } = useApp();
 
-  const waitingCount = 4; // TODO: tính từ orders
+  const waitingCount = queueSnapshot?.summary.statusCounts.WAITING ?? 0;
 
   return (
     <aside className="rp">
@@ -106,7 +117,7 @@ export default function RightPanel() {
           ))}
         </div>
         <div id="queue-count-text" style={{ fontSize: 12, color: 'var(--ts)', marginTop: 8, textAlign: 'left' }}>
-          {waitingCount} đơn đang chờ trong hàng đợi
+          {operationsLoading ? 'Đang tải trạng thái vận hành...' : `${waitingCount} đơn đang chờ trong hàng đợi`}
         </div>
       </div>
 

@@ -1,7 +1,14 @@
 import { useApp } from '../context/AppContext';
+import type { OrderFilter } from '../types';
+
+const FILTERS: { id: OrderFilter; label: string }[] = [
+  { id: 'all', label: 'Tất cả' },
+  { id: 'pending', label: 'Đang xử lý' },
+  { id: 'done', label: 'Hoàn tất' },
+];
 
 export default function TopBar() {
-  const { config, openM, setCurrentPage, orderSearch, setOrderSearch } = useApp();
+  const { config, openM, currentPage, setCurrentPage, orderSearch, setOrderSearch, orderFilter, setOrderFilter } = useApp();
 
   const shopName = config.shopName || 'WashTrack';
   const parts = shopName.trim().split(' ');
@@ -18,9 +25,34 @@ export default function TopBar() {
           placeholder="Tìm kiếm đơn hàng, khách hàng…"
           value={orderSearch}
           onChange={e => setOrderSearch(e.target.value)}
-          onFocus={() => setCurrentPage('orders')}
+          onFocus={() => {
+            if (currentPage !== 'q' && currentPage !== 'orders') setCurrentPage('orders');
+          }}
         />
       </div>
+
+      {(currentPage === 'q' || currentPage === 'orders') && (
+        <div style={{ display: 'flex', gap: 6 }}>
+          {FILTERS.map(item => (
+            <button
+              key={item.id}
+              className="bs"
+              onClick={() => setOrderFilter(item.id)}
+              style={{
+                borderRadius: 100,
+                padding: '7px 16px',
+                fontSize: 13,
+                fontWeight: 600,
+                background: orderFilter === item.id ? 'var(--pu)' : '#fff',
+                color: orderFilter === item.id ? '#fff' : 'var(--ts)',
+                borderColor: orderFilter === item.id ? 'var(--pu)' : '#e2e8f0',
+              }}
+            >
+              {item.label}
+            </button>
+          ))}
+        </div>
+      )}
 
       <div className="tbr">
         <button className="bp" onClick={() => openM('am')} style={{ marginRight: 5, padding: '8px 12px' }}>

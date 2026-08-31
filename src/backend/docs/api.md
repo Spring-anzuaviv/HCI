@@ -210,21 +210,53 @@ API Order Stage bên dưới.
 
 ### GET `/stores/:storeId/queue`
 
-Đọc schedule hiện tại và trả danh sách order được đề xuất, gồm:
+Đọc schedule hiện tại và trả snapshot vận hành chỉ đọc. Endpoint không gọi
+reschedule và không thay đổi database.
+
+Response gồm:
+
+```text
+generatedAt
+recommendation nullable
+recommendations[]
+items[]
+attentionItems[]
+summary
+```
+
+Mỗi queue item gồm:
 
 ```text
 rank
 orderId
+customer
+status
+currentStage
 nextStage
 machineId
+machineName
 plannedStartAt
 plannedEndAt
 estimatedAt
-groupETA
 riskLevel
-priorityReason
+slackMinutes
+missingFields[]
+priorityReasons[]
 nextAction
+operationalState
+reviewReasons[]
+canStart
 ```
+
+`riskLevel` nhận `FEASIBLE`, `AT_RISK`, `NOT_FEASIBLE` hoặc `UNKNOWN`.
+Nếu thiếu `pickupAt`/`estimatedAt`, `missingFields` nêu rõ field còn thiếu.
+
+Nếu có `OrderStage.status = RUNNING` nhưng `LaundryOrder.status` không khớp,
+item có `operationalState = NEEDS_REVIEW`, `canStart = false` và không được dùng
+để tạo recommendation.
+
+`recommendations` chỉ chứa planned stage hiện tại đủ điều kiện cho từng máy
+`AVAILABLE`. `recommendation` là item có rank cao nhất trong danh sách này.
 
 Thứ tự đề xuất:
 
@@ -298,11 +330,34 @@ groupETA = MAX(estimatedAt của toàn bộ order trong group)
 
 ### GET `/stores/:storeId/machines`
 
-Trả machine, status, stage đang chạy và `timeLeft`.
+Trả machine, status, `currentStage`, `nextPlannedStage`, `operationalState`,
+`timeLeft`, `finishAt`, `completionDue`, `completionActionAllowed` và
+`completionBlockedReason`. Với máy đang chạy:
+
+```text
+elapsed = now - currentStage.actualStartedAt
+timeLeft = MAX(0, machine.processingMinutes - elapsed)
+```
+
+Máy báo `RUNNING` nhưng không có running stage, máy báo `AVAILABLE` trong khi
+vẫn có running stage, hoặc trạng thái đơn không khớp stage đang chạy được đánh
+dấu `NEEDS_REVIEW`. `completionDue` phản ánh chu trình đã đủ thời gian;
+`completionActionAllowed=false` ngăn thay đổi dữ liệu khi phát hiện sai lệch.
 
 ### GET `/machines/:machineId`
 
 Trả machine và stage gần nhất.
+
+### PATCH `/machines/:machineId/status`
+
+Đánh dấu lỗi vật lý trong UC-SQ-02. Chỉ nhận `BROKEN` hoặc `INACTIVE`:
+
+```json
+{ "status": "BROKEN" }
+```
+
+Stage đang chạy vẫn giữ `RUNNING`; endpoint không giải phóng máy thành
+`AVAILABLE`.
 
 ### POST `/orders/:orderId/stages/:stage/start`
 
@@ -331,16 +386,22 @@ Backend kiểm tra:
 
 ### PATCH `/order-stages/:orderStageId/complete`
 
-Hoàn tất stage:
+Hoàn tất stage. Request không cần body thời gian; backend luôn dùng thời gian
+server. Với stage máy, backend kiểm tra
+`actualStartedAt + processingMinutes <= now`, trạng thái đơn phải khớp stage và
+stage vẫn còn `RUNNING` trong transaction.
 
-```json
-{
-  "endedAt": "2026-08-15T14:45:00+07:00"
-}
-```
+Backend cập nhật `actualEndedAt`, chuyển stage thành `COMPLETED`, cập nhật order
+status và chỉ chuyển máy thành `AVAILABLE` nếu máy chưa là `BROKEN` hoặc
+`INACTIVE`. Sau đó backend gọi `refreshStoreSchedule` và trả recommendation
+UC-SQ-03 cho máy vừa trống nếu có.
 
-Backend cập nhật `actualEndedAt`, chuyển stage thành `COMPLETED`, cập nhật
-order status và refresh planned schedule.
+Ánh xạ trạng thái đơn:
+
+- `WASH` của dịch vụ `WASH` → `FOLDING_PACKING`;
+- `WASH` của dịch vụ `WASH_DRY` → `WAITING`;
+- `DRY` → `FOLDING_PACKING`;
+- `PACKING` → `READY`.
 
 ## 10. Expedite
 

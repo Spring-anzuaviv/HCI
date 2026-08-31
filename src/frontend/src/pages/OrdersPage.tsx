@@ -1,7 +1,6 @@
 import { useApp } from '../context/AppContext';
 import type { ModalOrderParams } from '../types';
 import { filterOrders } from '../utils/orderSearch';
-import OrderFilterBar from '../components/OrderFilterBar';
 
 const SVC_LABEL: Record<string, string> = {
   combo: 'Giặt + Sấy',
@@ -44,8 +43,6 @@ export default function OrdersPage() {
       <p style={{ color: '#3730a3', fontSize: 14, fontWeight: 500, margin: '0 0 8px', lineHeight: 1.5 }}>
         Tất cả các đơn hàng từ đang chờ xử lý đến khi hoàn tất.
       </p>
-
-      <OrderFilterBar />
 
       {/* Table */}
       <div className="tb-wrap">

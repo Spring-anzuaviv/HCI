@@ -1,10 +1,15 @@
 import { prisma } from "../lib/prisma.js";
 import { ApiError } from "../lib/http.js";
-import { findOrderForStore } from "./order.service.js";
+import { activeStatuses, findOrderForStore } from "./order.service.js";
 import { refreshStoreSchedule } from "./order.service.js";
 import { generateSchedule, checkDeadlineFeasibility } from "./scheduling.service.js";
+import {
+  createSimulationToken,
+  evaluateScheduleImpact,
+  getSimulationDataProblems,
+} from "./expedite-workflow.js";
 
-export async function check(orderId: number, storeId: number, newPickupAt: string) {
+async function legacyCheck(orderId: number, storeId: number, newPickupAt: string) {
   const order = await findOrderForStore(orderId, storeId);
   const pickupAt = new Date(newPickupAt);
   if (Number.isNaN(pickupAt.getTime()) || pickupAt <= new Date())
@@ -42,7 +47,7 @@ export async function check(orderId: number, storeId: number, newPickupAt: strin
   };
 }
 
-export async function apply(orderId: number, storeId: number, newPickupAt: string) {
+async function legacyApply(orderId: number, storeId: number, newPickupAt: string) {
   const order = await findOrderForStore(orderId, storeId);
   const pickupAt = new Date(newPickupAt);
   if (Number.isNaN(pickupAt.getTime()) || pickupAt <= new Date())
@@ -51,6 +56,176 @@ export async function apply(orderId: number, storeId: number, newPickupAt: strin
     where: { storeId, ...(order.groupCode ? { groupCode: order.groupCode } : { orderId }) },
     data: { pickupAt },
   });
+  await refreshStoreSchedule(storeId);
+  return findOrderForStore(orderId, storeId);
+}
+
+void legacyCheck;
+void legacyApply;
+
+async function loadActiveState(storeId: number, db: any = prisma) {
+  const [orders, machines] = await Promise.all([
+    db.laundryOrder.findMany({
+      where: { storeId, status: { in: [...activeStatuses] } },
+      include: {
+        customer: true,
+        stages: { include: { machine: true }, orderBy: { orderStageId: "asc" } },
+      },
+      orderBy: { orderId: "asc" },
+    }),
+    db.machine.findMany({ where: { storeId }, orderBy: { machineId: "asc" } }),
+  ]);
+  return { orders, machines };
+}
+
+function validatePickupChange(order: any, newPickupAt: string, now = new Date()) {
+  const pickupAt = new Date(newPickupAt);
+  if (Number.isNaN(pickupAt.getTime()) || pickupAt <= now)
+    throw new ApiError(400, "VALIDATION_ERROR", "Giờ lấy mới phải ở tương lai");
+  if (!order.pickupAt)
+    throw new ApiError(409, "SIMULATION_DATA_INCOMPLETE", "Dữ liệu không đầy đủ để mô phỏng: đơn thiếu pickupAt");
+  if (pickupAt >= order.pickupAt)
+    throw new ApiError(400, "VALIDATION_ERROR", "Giờ lấy mới phải sớm hơn giờ lấy hiện tại");
+  return pickupAt;
+}
+
+function simulateExpedite(
+  orderId: number,
+  orders: any[],
+  machines: any[],
+  pickupAt: Date,
+  now: Date,
+) {
+  const problems = getSimulationDataProblems(orders, machines);
+  if (problems.length > 0)
+    throw new ApiError(
+      409,
+      "SIMULATION_DATA_INCOMPLETE",
+      `Dữ liệu không đầy đủ để mô phỏng: ${problems.join("; ")}`,
+    );
+  const simulatedOrders = orders.map((order) =>
+    order.orderId === orderId ? { ...order, pickupAt } : order
+  );
+  let schedule: any[];
+  try {
+    schedule = generateSchedule(simulatedOrders, machines, now);
+  } catch (error) {
+    if (error instanceof ApiError)
+      throw new ApiError(409, "SIMULATION_FAILED", `Không thể mô phỏng lịch: ${error.message}`);
+    throw error;
+  }
+  const scheduleByOrderId = new Map(schedule.map((item) => [item.orderId, item]));
+  const impacts = orders
+    .map((order) => {
+      const simulated = scheduleByOrderId.get(order.orderId);
+      if (!simulated) return null;
+      const proposedPickupAt = order.orderId === orderId ? pickupAt : order.pickupAt;
+      const current = evaluateScheduleImpact(order.estimatedAt, order.pickupAt);
+      const proposed = evaluateScheduleImpact(simulated.estimatedAt, proposedPickupAt);
+      const currentEstimatedTime = order.estimatedAt?.getTime?.() ?? null;
+      const simulatedEstimatedTime = simulated.estimatedAt?.getTime?.() ?? null;
+      const etaChanged = currentEstimatedTime !== simulatedEstimatedTime;
+      if (order.orderId !== orderId && !etaChanged && current.impact === proposed.impact)
+        return null;
+      return {
+        orderId: order.orderId,
+        customer: order.customer
+          ? { name: order.customer.name, phone: order.customer.phone }
+          : null,
+        isTarget: order.orderId === orderId,
+        currentPickupAt: order.pickupAt,
+        proposedPickupAt,
+        currentEstimatedAt: order.estimatedAt,
+        simulatedEstimatedAt: simulated.estimatedAt,
+        etaDeltaMinutes:
+          currentEstimatedTime === null || simulatedEstimatedTime === null
+            ? null
+            : Math.round((simulatedEstimatedTime - currentEstimatedTime) / 60_000),
+        currentImpact: current.impact,
+        currentSlackMinutes: current.slackMinutes,
+        proposedImpact: proposed.impact,
+        proposedSlackMinutes: proposed.slackMinutes,
+      };
+    })
+    .filter((item): item is NonNullable<typeof item> => Boolean(item));
+  return { schedule, impacts };
+}
+
+export async function check(orderId: number, storeId: number, newPickupAt: string) {
+  const now = new Date();
+  const { orders, machines } = await loadActiveState(storeId);
+  const order = orders.find((item: any) => item.orderId === orderId);
+  if (!order) {
+    const completed = await prisma.laundryOrder.findFirst({ where: { orderId, storeId } });
+    if (completed?.status === "COMPLETED")
+      throw new ApiError(409, "ORDER_COMPLETED", "Đơn đã hoàn tất, không thể thay đổi giờ lấy");
+    throw new ApiError(404, "NOT_FOUND", "Không tìm thấy đơn hàng trong cửa hàng");
+  }
+  const pickupAt = validatePickupChange(order, newPickupAt, now);
+  const simulation = simulateExpedite(orderId, orders, machines, pickupAt, now);
+  const targetImpact = simulation.impacts.find((item) => item.orderId === orderId)!;
+  return {
+    orderId,
+    currentPickupAt: order.pickupAt,
+    newPickupAt: pickupAt,
+    simulationToken: createSimulationToken(orders, machines, orderId, pickupAt),
+    targetImpact,
+    impacts: simulation.impacts,
+    summary: {
+      affectedOrders: simulation.impacts.length,
+      onTimeOrders: simulation.impacts.filter((item) => item.proposedImpact === "ON_TIME").length,
+      atRiskOrders: simulation.impacts.filter((item) => item.proposedImpact === "AT_RISK").length,
+      notFeasibleOrders: simulation.impacts.filter((item) => item.proposedImpact === "NOT_FEASIBLE").length,
+    },
+    feasibility: targetImpact.proposedImpact,
+    newEstimatedAt: targetImpact.simulatedEstimatedAt,
+    reason:
+      targetImpact.proposedImpact === "ON_TIME"
+        ? "Lịch mô phỏng vẫn đáp ứng giờ hẹn"
+        : targetImpact.proposedImpact === "AT_RISK"
+          ? "Lịch mô phỏng sát giờ hẹn"
+          : "Lịch mô phỏng không đáp ứng giờ hẹn",
+  };
+}
+
+export async function apply(
+  orderId: number,
+  storeId: number,
+  newPickupAt: string,
+  reason: string,
+  simulationToken: string,
+) {
+  if (!reason?.trim())
+    throw new ApiError(400, "VALIDATION_ERROR", "Vui lòng nhập lý do lấy sớm");
+  if (!simulationToken?.trim())
+    throw new ApiError(400, "VALIDATION_ERROR", "Thiếu mã xác nhận mô phỏng");
+  const now = new Date();
+  const pickupValue = new Date(newPickupAt);
+  if (Number.isNaN(pickupValue.getTime()))
+    throw new ApiError(400, "VALIDATION_ERROR", "Giờ lấy mới không hợp lệ");
+
+  await prisma.$transaction(async (tx) => {
+    const { orders, machines } = await loadActiveState(storeId, tx);
+    const order = orders.find((item: any) => item.orderId === orderId);
+    if (!order) {
+      const completed = await tx.laundryOrder.findFirst({ where: { orderId, storeId } });
+      if (completed?.status === "COMPLETED")
+        throw new ApiError(409, "ORDER_COMPLETED", "Đơn đã hoàn tất, không thể thay đổi giờ lấy");
+      throw new ApiError(404, "NOT_FOUND", "Không tìm thấy đơn hàng trong cửa hàng");
+    }
+    const pickupAt = validatePickupChange(order, newPickupAt, now);
+    const currentToken = createSimulationToken(orders, machines, orderId, pickupAt);
+    if (currentToken !== simulationToken)
+      throw new ApiError(409, "QUEUE_CHANGED", "Hàng đợi đã thay đổi, cần mô phỏng lại trước khi xác nhận");
+    simulateExpedite(orderId, orders, machines, pickupAt, now);
+    const updated = await tx.laundryOrder.updateMany({
+      where: { orderId, storeId, status: { not: "COMPLETED" } },
+      data: { pickupAt },
+    });
+    if (updated.count !== 1)
+      throw new ApiError(409, "ORDER_COMPLETED", "Đơn đã hoàn tất, không thể thay đổi giờ lấy");
+  }, { isolationLevel: "Serializable" });
+
   await refreshStoreSchedule(storeId);
   return findOrderForStore(orderId, storeId);
 }

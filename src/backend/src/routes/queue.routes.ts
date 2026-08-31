@@ -6,3 +6,7 @@ queueRouter.post(
   "/stores/:storeId/queue/recommendation",
   controller.recommendation,
 );
+queueRouter.get(
+  "/machines/:machineId/recommendations",
+  controller.machineRecommendation,
+);

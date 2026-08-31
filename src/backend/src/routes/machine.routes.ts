@@ -6,6 +6,7 @@ machineRouter.post("/stores/:storeId/machines", controller.create);
 machineRouter.get("/machines/:machineId", controller.detail);
 machineRouter.patch("/machines/:machineId", controller.update);
 machineRouter.delete("/machines/:machineId", controller.remove);
+machineRouter.patch("/machines/:machineId/status", controller.markOutOfService);
 machineRouter.post("/orders/:orderId/stages/:stage/start", controller.startRun);
 machineRouter.patch(
   "/order-stages/:orderStageId/complete",

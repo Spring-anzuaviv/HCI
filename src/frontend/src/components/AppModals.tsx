@@ -440,7 +440,7 @@ export function OrderDetailModal() {
   const stageList = order?.stages ?? [];
   const cur = Math.max(0, stageList.findIndex((stage: any) => stage.status !== 'COMPLETED'));
 
-  const availMachines = machines.filter(m => m.type === (actualSvc === 'dry' ? 'dry' : 'wash'));
+  const availMachines = machines;
 
   return (
     <div className={`mov${isOpen ? ' open' : ''}`} id="om" onClick={() => closeM('om')}>
@@ -503,12 +503,17 @@ export function OrderDetailModal() {
 
         {/* Action buttons */}
         <div style={{ display: 'flex', gap: 9, marginTop: 18, justifyContent: 'flex-end' }}>
-          {p.isWaiting ? (
+          {p.readOnly ? (
+            <>
+              <span style={{ marginRight: 'auto', alignSelf: 'center', fontSize: 11, color: 'var(--ts)' }}>Chế độ xem không thay đổi dữ liệu.</span>
+              <button className="bs" onClick={() => closeM('om')}>Đóng</button>
+            </>
+          ) : p.isWaiting ? (
             <>
               <button className="bs" onClick={() => closeM('om')}>Đóng</button>
               <select className="finput" style={{ width: 160, padding: '7px 10px', height: 35 }}>
                 {availMachines.map(m => (
-                  <option key={m.id} value={m.id} disabled={m.st !== 'trong'}>
+                  <option key={m.id} value={m.id}>
                     {m.name} {m.st !== 'trong' ? '(Đang bận)' : '(Trống)'}
                   </option>
                 ))}
