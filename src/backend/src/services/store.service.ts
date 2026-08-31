@@ -1,8 +1,7 @@
 import { prisma } from "../lib/prisma.js";
 import { ApiError } from "../lib/http.js";
-import { findStoreOrders, serializeOrder, activeStatuses } from "./order.service.js";
-import { buildQueueSnapshot } from "./queue.service.js";
-import { generateSchedule, checkDeadlineFeasibility } from "./scheduling.service.js";
+import { activeStatuses, findStoreOrders, serializeOrder } from "./order.service.js";
+import { generateSchedule, checkDeadlineFeasibility, getWorkflowStages } from "./scheduling.service.js";
 
 export async function dashboard(storeId: number) {
   const [store, orders, machines] = await Promise.all([
@@ -22,10 +21,10 @@ export async function dashboard(storeId: number) {
     },
     nextTask: queue.recommendation
       ? {
-          orderId: queue.recommendation.orderId,
-          machineId: queue.recommendation.machineId,
-          reason: queue.recommendation.priorityReason,
-        }
+        orderId: queue.recommendation.orderId,
+        machineId: queue.recommendation.machineId,
+        reason: queue.recommendation.priorityReason,
+      }
       : null,
     attentionItems: queue.attentionItems.slice(0, 5),
   };
@@ -66,6 +65,29 @@ export async function checkDeadline(storeId: number, input: { pickupAt: string; 
     requiredMinutes: estimatedAt ? Math.ceil((estimatedAt.getTime() - now.getTime()) / 60000) : null,
     affectedOrders: [],
     reason: result.result === "FEASIBLE" ? "Đủ thời gian xử lý" : "Cần kiểm tra lại lịch máy và giờ hẹn",
+  };
+}
+
+export async function checkDeadlineGroup(storeId: number, input: { pickupAt: string; parts: Array<{ weightKg: number; serviceType: string }> }) {
+  const now = new Date();
+  const [machines, existingOrders] = await Promise.all([
+    prisma.machine.findMany({ where: { storeId } }),
+    prisma.laundryOrder.findMany({ where: { storeId, status: { not: "COMPLETED" } }, include: { stages: { include: { machine: true } } } }),
+  ]);
+  const parts = input.parts.map((part, index) => ({
+    orderId: -(index + 1), weightKg: Number(part.weightKg), serviceType: part.serviceType,
+    readyAt: now, createdAt: now, pickupAt: new Date(input.pickupAt), groupCode: "PREVIEW-GROUP",
+    stages: getWorkflowStages(part.serviceType).map(stage => ({ stage, status: "PLANNED" })),
+  }));
+  const schedule = generateSchedule([...existingOrders, ...parts], machines, now);
+  const previews = schedule.filter(item => item.orderId < 0).sort((a, b) => b.orderId - a.orderId);
+  const groupETA = previews.reduce<Date | null>((latest, item) => !latest || item.groupETA > latest ? item.groupETA : latest, null);
+  const feasibility = checkDeadlineFeasibility(groupETA, new Date(input.pickupAt));
+  return {
+    result: feasibility.result,
+    reason: feasibility.result === "FEASIBLE" ? "Đủ thời gian xử lý toàn bộ các mẻ" : "Giờ hẹn không khả thi cho toàn bộ nhóm",
+    groupETA,
+    parts: previews.map(item => ({ orderId: item.orderId, estimatedAt: item.estimatedAt })),
   };
 }
 

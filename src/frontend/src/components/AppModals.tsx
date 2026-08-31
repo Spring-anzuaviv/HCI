@@ -24,6 +24,7 @@ export function AddOrderModal() {
   ]);
   const [splitEstimates, setSplitEstimates] = useState<Array<string | null>>([]);
   const [splitGroupETA, setSplitGroupETA] = useState<string | null>(null);
+  const [splitCheckResult, setSplitCheckResult] = useState<{ text: string; isRisk: boolean } | null>(null);
   const [createdSummary, setCreatedSummary] = useState<Array<{ index: number; estimatedAt?: string; groupETA?: string }>>([]);
   useEffect(() => { if (isOpen) setCreatedSummary([]); }, [isOpen]);
   const [calcResult, setCalcResult] = useState<{ text: string; isRisk: boolean; loading?: boolean } | null>(null);
@@ -43,12 +44,26 @@ export function AddOrderModal() {
     return result;
   };
 
+  const checkDeadlineGroup = async (parts: typeof splitParts, pickupTime: string) => {
+    if (!store) return null;
+    return apiPost<any>(`/stores/${store.storeId}/deadline-group-check`, {
+      pickupAt: pickupDate(pickupTime),
+      parts: parts.map(part => ({ weightKg: Number(part.weight), serviceType: part.service === 'combo' ? 'WASH_DRY' : part.service.toUpperCase() })),
+    });
+  };
+
   const updateSplitEstimates = async (parts = splitParts, pickupTime = time, enabled = isSplit) => {
     if (!enabled || !store || !pickupTime) { setSplitEstimates([]); setSplitGroupETA(null); return; }
-    const results = await Promise.all(parts.map(part => Number(part.weight) > 0 ? checkDeadline(part.service, Number(part.weight), pickupTime) : Promise.resolve(null)));
-    const estimates = results.map(result => result?.estimatedAt ?? null);
-    setSplitEstimates(estimates);
-    setSplitGroupETA(estimates.filter((value): value is string => Boolean(value)).sort().at(-1) ?? null);
+    try {
+      const result = await checkDeadlineGroup(parts, pickupTime);
+      const estimates = parts.map((_, index) => result?.parts?.[index]?.estimatedAt ?? null);
+      setSplitCheckResult(result ? { text: result.reason, isRisk: result.result !== 'FEASIBLE' } : null);
+      setSplitEstimates(estimates);
+      setSplitGroupETA(result?.groupETA ?? null);
+    } catch (error) {
+      setSplitCheckResult({ text: error instanceof Error ? error.message : 'Không thể kiểm tra lịch các mẻ', isRisk: true });
+      setSplitEstimates([]); setSplitGroupETA(null);
+    }
   };
 
   const updateCalc = async (newSvc = svc, newKg = kg, newTime = time) => {
@@ -83,11 +98,12 @@ export function AddOrderModal() {
     }
     try {
       const groupCode = isSplit ? `GROUP-${Date.now()}` : undefined;
-      for (const part of parts) {
-        const check = await checkDeadline(part.service, Number(part.weight), time);
-        if (!check || check.result === 'NOT_FEASIBLE' || check.result === 'AT_RISK') {
-          showToast(check?.reason ?? 'Giờ hẹn không khả thi, đơn chưa được tạo', 'red'); return;
-        }
+      if (isSplit) {
+        const check = await checkDeadlineGroup(splitParts, time);
+        if (!check || check.result !== 'FEASIBLE') { showToast(check?.reason ?? 'Giờ hẹn không khả thi, đơn chưa được tạo', 'red'); return; }
+      } else {
+        const check = await checkDeadline(svc, kg, time);
+        if (!check || check.result !== 'FEASIBLE') { showToast(check?.reason ?? 'Giờ hẹn không khả thi, đơn chưa được tạo', 'red'); return; }
       }
       const createdOrders: Array<{ estimatedAt?: string }> = [];
       for (const part of parts) {
@@ -125,24 +141,25 @@ export function AddOrderModal() {
           </div>
         </div>
 
-        <div className="frow" style={{ marginBottom: 11 }}>
-          <div className="fg">
-            <label className="flbl">Dịch vụ</label>
-            <select className="finput" value={svc} onChange={e => { const v = e.target.value as typeof svc; setSvc(v); updateCalc(v, kg, time); }}>
-              <option value="combo">Giặt + Sấy</option>
-              <option value="wash">Chỉ giặt</option>
+        {!isSplit && (
+          <div className="frow" style={{ marginBottom: 11 }}>
+            <div className="fg">
+              <label className="flbl">Dịch vụ</label>
+              <select className="finput" value={svc} onChange={e => { const v = e.target.value as typeof svc; setSvc(v); updateCalc(v, kg, time); }}>
+                <option value="combo">Giặt + Sấy</option>
+                <option value="wash">Chỉ giặt</option>
               <option value="dry">Chỉ sấy</option>
             </select>
           </div>
-        </div>
+        </div>)}
 
-        <div id="add-calc" style={{
+        {!isSplit && <div id="add-calc" style={{
           background: calcResult ? (calcResult.isRisk ? '#fef2f2' : '#f0fdf4') : '#f1f5f9',
           borderRadius: 9, padding: '11px 14px', marginBottom: 14,
           fontSize: '11.5px', color: calcResult ? (calcResult.isRisk ? '#991b1b' : '#166534') : 'var(--ts)',
         }}>
           {calcResult ? calcResult.text : <><strong>Dự tính:</strong> Vui lòng nhập thông tin để hệ thống kiểm tra giờ.</>}
-        </div>
+        </div>}
         {createdSummary.length > 0 && <div className="created-summary">
           <strong>Đã tạo thành công</strong>
           {createdSummary.map(item => <div className="created-summary-row" key={item.index}><span>Mẻ {item.index}</span><span>Mẻ này xong: <b>{item.estimatedAt ? new Date(item.estimatedAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) : 'Chưa xác định'}</b></span><span>Cả nhóm: <b>{item.groupETA ? new Date(item.groupETA).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) : 'Chưa xác định'}</b></span></div>)}
@@ -156,7 +173,7 @@ export function AddOrderModal() {
           <div className="split-box-title">Các mẻ <span>Tổng: {splitParts.reduce((sum, part) => sum + (Number(part.weight) || 0), 0).toFixed(2)} / {kg}kg</span></div>
           {splitParts.map((part, index) => <div className="split-part" key={index}><span>Mẻ {index + 1}</span><input className="finput" type="number" min="0.1" step="0.1" value={part.weight} onChange={e => { const parts = splitParts.map((item, partIndex) => partIndex === index ? { ...item, weight: e.target.value } : item); setSplitParts(parts); void updateSplitEstimates(parts); }} /><select className="finput split-service" value={part.service} onChange={e => { const parts = splitParts.map((item, partIndex) => partIndex === index ? { ...item, service: e.target.value as 'combo' | 'wash' | 'dry' } : item); setSplitParts(parts); void updateSplitEstimates(parts); }}><option value="combo">Giặt + Sấy</option><option value="wash">Chỉ giặt</option><option value="dry">Chỉ sấy</option></select><input className="finput split-note" type="text" value={part.note} onChange={e => setSplitParts(parts => parts.map((item, partIndex) => partIndex === index ? { ...item, note: e.target.value } : item))} placeholder="Ghi chú mẻ" />{splitParts.length > 2 && <button type="button" className="split-remove" onClick={() => { const parts = splitParts.filter((_, partIndex) => partIndex !== index); setSplitParts(parts); void updateSplitEstimates(parts); }}>Xóa</button>}</div>)}
           <button type="button" className="bs split-add" onClick={() => { const parts = [...splitParts, { weight: '0', service: 'combo' as const, note: '' }]; setSplitParts(parts); void updateSplitEstimates(parts); }}>+ Thêm mẻ</button>
-          <div className="split-eta"><strong>Thời gian dự kiến</strong>{splitEstimates.length ? splitEstimates.map((estimate, index) => <span key={index}>Mẻ {index + 1}: <b>{estimate ? new Date(estimate).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) : 'Chưa xác định'}</b></span>) : <span>Đang kiểm tra lịch máy...</span>}{splitGroupETA && <span className="split-group-eta">Cả nhóm hoàn tất: <b>{new Date(splitGroupETA).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}</b></span>}</div>
+          <div className="split-eta"><strong>Thời gian dự kiến</strong>{splitEstimates.length ? splitEstimates.map((estimate, index) => <span key={index}>Mẻ {index + 1}: <b>{estimate ? new Date(estimate).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) : 'Chưa xác định'}</b></span>) : <span>Đang kiểm tra lịch máy...</span>}{splitGroupETA && <span className="split-group-eta">Cả nhóm hoàn tất: <b>{new Date(splitGroupETA).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}</b></span>}{splitCheckResult && <span className={splitCheckResult.isRisk ? 'split-check-risk' : 'split-check-ok'}>{splitCheckResult.text}</span>}</div>
         </div>}
 
         <div className="frow" style={{ marginBottom: 11 }}>

@@ -18,7 +18,7 @@ export default function TopBar() {
 
   return (
     <header className="topbar">
-      <div className="searchbar">
+      {/* <div className="searchbar">
         <svg className="icon icon-sm"><use href="#i-search" /></svg>
         <input
           type="text"
@@ -29,7 +29,7 @@ export default function TopBar() {
             if (currentPage !== 'q' && currentPage !== 'orders') setCurrentPage('orders');
           }}
         />
-      </div>
+      </div> */}
 
       {(currentPage === 'q' || currentPage === 'orders') && (
         <div style={{ display: 'flex', gap: 6 }}>

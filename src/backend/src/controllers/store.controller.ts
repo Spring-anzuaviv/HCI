@@ -18,6 +18,12 @@ export const deadlineCheck = asyncRoute(async (req, res) => {
   validateBody(req.body, ["pickupAt", "weightKg", "serviceType"]);
   ok(res, await service.checkDeadline(storeId, req.body));
 });
+export const deadlineGroupCheck = asyncRoute(async (req, res) => {
+  const storeId = requireStore(req);
+  validateBody(req.body, ["pickupAt", "parts"]);
+  if (!Array.isArray(req.body.parts) || !req.body.parts.length) throw new ApiError(400, "VALIDATION_ERROR", "Danh sách mẻ không hợp lệ");
+  ok(res, await service.checkDeadlineGroup(storeId, req.body));
+});
 export const stats = asyncRoute(async (req, res) => {
   const storeId = requireStore(req);
   if (parseId(req.params.storeId, "storeId") !== storeId) throw new ApiError(404, "NOT_FOUND", "Không tìm thấy cửa hàng");

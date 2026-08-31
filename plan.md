@@ -177,6 +177,8 @@ Kết quả tạo đơn và chi tiết order hiện hiển thị riêng ETA củ
 
 Form tách đơn hiện hiển thị ETA từng mẻ và ETA hoàn tất nhóm ngay trong lúc nhập, tự cập nhật khi đổi khối lượng, dịch vụ hoặc giờ hẹn.
 
+Đã sửa kiểm tra ETA khi tách đơn: form dùng API preview nhóm để lập lịch tất cả mẻ cùng lúc, ẩn kết quả kiểm tra dịch vụ tổng khi đang tách, và chỉ cho tạo khi ETA toàn nhóm khả thi.
+
 Đã hoàn thiện chỉnh sửa máy giặt/máy sấy: cập nhật tên, loại, sức chứa, thời gian xử lý và trạng thái; thêm/xóa/chỉnh sửa máy đều gọi tính lại schedule để hàng chờ nhận ETA và phân máy mới nhất. Máy đang chạy không thể đổi loại hoặc chuyển sang trạng thái không hoạt động.
 
 Đã cập nhật quy tắc khóa máy: nếu còn stage/order chưa hoàn thành, frontend khóa tên, loại, sức chứa và thời gian xử lý; backend chỉ cho đổi trạng thái. Mọi thay đổi trạng thái gọi tính lại schedule và tải lại hàng chờ; máy đang chạy chỉ được chuyển sang `Hỏng`, không được chuyển thẳng sang `Sẵn sàng`.
