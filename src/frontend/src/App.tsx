@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { getCurrentStore } from './api/auth';
 import { AppProvider } from './context/AppContext';
 import SVGSprite from './components/SVGSprite';
 // Note: styles are in index.css
@@ -18,7 +19,7 @@ import StatsPage from './pages/StatsPage';
 import { useApp } from './context/AppContext';
 
 // ─── Inner App (cần context) ───
-function AppShell({ onLogout }: { onLogout: () => void }) {
+function AppShell() {
   const { currentPage } = useApp();
 
   return (
@@ -51,7 +52,13 @@ function AppShell({ onLogout }: { onLogout: () => void }) {
 
 // ─── Root App ───
 export default function App() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    getCurrentStore().then(() => setIsLoggedIn(true)).catch(() => setIsLoggedIn(false));
+  }, []);
+
+  if (isLoggedIn === null) return <div style={{ padding: 40, fontFamily: 'Inter, sans-serif' }}>Đang kiểm tra phiên đăng nhập...</div>;
 
   if (!isLoggedIn) {
     return (
@@ -64,7 +71,7 @@ export default function App() {
 
   return (
     <AppProvider>
-      <AppShell onLogout={() => setIsLoggedIn(false)} />
+      <AppShell />
     </AppProvider>
   );
 }

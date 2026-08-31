@@ -64,11 +64,15 @@ export const list = asyncRoute(async (req, res) => {
   if (req.query.status)
     orders = orders.filter((o: any) => o.status === req.query.status);
   if (req.query.search)
-    orders = orders.filter(
-      (o: any) =>
-        o.customer.name.includes(String(req.query.search)) ||
-        o.customer.phone.includes(String(req.query.search)),
-    );
+    orders = orders.filter((o: any) => {
+      const search = String(req.query.search).trim().toLowerCase();
+      const orderId = search.replace(/^#/, "");
+      return (
+        o.customer.name.toLowerCase().includes(search) ||
+        o.customer.phone.replace(/\s/g, "").includes(search.replace(/\s/g, "")) ||
+        String(o.orderId) === orderId
+      );
+    });
   const page = Math.max(1, Number(req.query.page ?? 1)),
     limit = Math.min(100, Math.max(1, Number(req.query.limit ?? 20)));
   const data = orders.map(service.serializeOrder);

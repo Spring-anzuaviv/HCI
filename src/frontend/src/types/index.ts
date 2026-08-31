@@ -46,6 +46,30 @@ export interface Order {
   chipLabel?: string;
   chipStyle?: { background: string; color: string };
   machine?: string;
+  orderId?: number;
+  serviceType?: string;
+  readyAt?: string | null;
+  pickupAt?: string | null;
+  estimatedAt?: string | null;
+  groupCode?: string | null;
+  riskLevel?: 'LOW' | 'MEDIUM' | 'HIGH' | 'UNKNOWN';
+  currentStage?: string;
+  currentMachine?: { name: string; type: string } | null;
+  nextAction?: string;
+  priorityReason?: string;
+  stages?: ApiOrderStage[];
+}
+
+export interface ApiOrderStage {
+  orderStageId: number;
+  stage: string;
+  status: string;
+  machineId: number | null;
+  plannedStartAt: string | null;
+  plannedEndAt: string | null;
+  actualStartedAt: string | null;
+  actualEndedAt: string | null;
+  machine?: { name: string; type: string; processingMinutes: number } | null;
 }
 
 export interface Config {
@@ -54,9 +78,12 @@ export interface Config {
 }
 
 export type Page = 'db' | 'q' | 'orders' | 'n' | 'stats';
+export type OrderFilter = 'all' | OrderStatus;
 
 export interface ModalOrderParams {
+  orderId?: number;
   name: string;
+  phone?: string;
   deadline: string;
   atRisk: boolean;
   svcType: SvcType;

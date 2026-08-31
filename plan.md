@@ -151,6 +151,10 @@ Nhân viên giặt ủi trực tiếp, có thể phải:
 
 **Tiêu chí kết thúc:** Presentation và report đầy đủ, nhất quán với các artifact còn lại, dễ đọc và sẵn sàng review.
 
+### Trạng thái 2026-08-31
+
+Đã nối prototype React với backend cho đăng nhập bằng JWT trong HttpOnly cookie, tải order/machine sau xác thực, tạo order và kiểm tra deadline, xem chi tiết/timeline order, tìm kiếm và lọc order. Bộ lọc và preview order dùng chung trên các tab Tổng quan, Hàng đợi và Đơn hàng. Frontend/backend build và frontend lint đã qua; walkthrough với database thật còn phụ thuộc biến môi trường PostgreSQL.
+
 ## 6. Dependency giữa các artifact
 
 1. Bằng chứng và phân tích công việc hiện tại hỗ trợ Persona và Scenario 1.

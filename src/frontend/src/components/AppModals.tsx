@@ -1,9 +1,12 @@
-import { useState } from 'react';
+/* eslint-disable @typescript-eslint/no-explicit-any, react-hooks/set-state-in-effect */
+import { useEffect, useState } from 'react';
 import { useApp } from '../context/AppContext';
+import { apiGet, apiPost } from '../api/client';
+import { logout } from '../api/auth';
 
 // ─── Modal Thêm đơn hàng ───
 export function AddOrderModal() {
-  const { openModal, closeM, showToast, machines } = useApp();
+  const { openModal, closeM, showToast, store, refreshOrders } = useApp();
   const isOpen = openModal === 'am';
 
   const [kg, setKg] = useState(3);
@@ -12,49 +15,42 @@ export function AddOrderModal() {
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [note, setNote] = useState('');
-  const [calcResult, setCalcResult] = useState<{ text: string; isRisk: boolean } | null>(null);
+  const [calcResult, setCalcResult] = useState<{ text: string; isRisk: boolean; loading?: boolean } | null>(null);
 
-  const calcTime = (s: string, _kg: number) => {
-    const washMs = machines.filter(m => m.type === 'wash');
-    const dryMs = machines.filter(m => m.type === 'dry');
-    const wTime = washMs.length > 0 ? washMs.reduce((a, b) => a + b.time, 0) / washMs.length : 30;
-    const dTime = dryMs.length > 0 ? dryMs.reduce((a, b) => a + b.time, 0) / dryMs.length : 45;
-    if (s === 'wash') return { text: 'Giặt', total: Math.round(wTime) };
-    if (s === 'dry') return { text: 'Sấy', total: Math.round(dTime) };
-    return { text: 'Giặt + Sấy', total: Math.round(wTime + dTime) };
+  const pickupDate = (value: string) => {
+    const date = new Date();
+    const [hour, minute] = value.split(':').map(Number);
+    date.setHours(hour, minute, 0, 0);
+    return date.toISOString();
   };
 
-  const updateCalc = (newSvc = svc, newKg = kg, newTime = time) => {
-    if (newKg > 0 && newTime) {
-      const t = calcTime(newSvc, newKg);
-      const now = new Date();
-      const sysFinish = new Date(now.getTime() + (30 + t.total) * 60000);
-      const sysStr = `${String(sysFinish.getHours()).padStart(2, '0')}:${String(sysFinish.getMinutes()).padStart(2, '0')}`;
-      const [rh, rm] = newTime.split(':').map(Number);
-      let reqMins = rh * 60 + rm;
-      let sysMins = sysFinish.getHours() * 60 + sysFinish.getMinutes();
-      if (reqMins < 300) reqMins += 24 * 60;
-      if (sysMins < 300) sysMins += 24 * 60;
-      const isRisk = reqMins < sysMins;
-      setCalcResult({
-        text: isRisk
-          ? `⚠ Nguy cơ không kịp: Giờ sớm nhất có thể xong là ${sysStr} (cần ~${t.total}p xử lý + chờ máy).`
-          : `✓ Kịp giờ: Hệ thống dự kiến xong lúc ${sysStr}.`,
-        isRisk,
+  const updateCalc = async (newSvc = svc, newKg = kg, newTime = time) => {
+    if (!newKg || newKg <= 0 || !newTime || !store) { setCalcResult(null); return; }
+    setCalcResult({ text: 'Đang kiểm tra lịch máy...', isRisk: false, loading: true });
+    try {
+      // API payload is intentionally kept flexible while backend response fields evolve.
+      const result = await apiPost<any>(`/stores/${store.storeId}/deadline-check`, {
+        weightKg: newKg, serviceType: newSvc === 'combo' ? 'WASH_DRY' : newSvc.toUpperCase(), pickupAt: pickupDate(newTime),
       });
-    } else {
-      setCalcResult(null);
+      const eta = result.estimatedAt ? new Date(result.estimatedAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) : 'chưa xác định';
+      const isRisk = result.result === 'AT_RISK' || result.result === 'NOT_FEASIBLE';
+      setCalcResult({ isRisk, text: `${isRisk ? '⚠' : result.result === 'UNKNOWN' ? '!' : '✓'} ${result.reason}. Dự kiến xong: ${eta}${result.requiredMinutes ? ` · Khoảng ${result.requiredMinutes} phút` : ''}.` });
+    } catch (error) {
+      setCalcResult({ isRisk: true, text: error instanceof Error ? error.message : 'Không thể kiểm tra giờ hẹn.' });
     }
   };
 
-  const handleSubmit = () => {
-    const t = calcTime(svc, kg);
-    closeM('am');
-    if (calcResult?.isRisk) {
-      showToast(`Đã tạo đơn cho ${name || 'Khách mới'} (${t.total} phút) - Gắn nhãn Nguy cơ trễ!`, 'red');
-    } else {
-      showToast(`Đã tạo đơn cho ${name || 'Khách mới'} (${t.total} phút, ${t.text})`, 'grn');
-    }
+  const handleSubmit = async () => {
+    if (!name.trim() || !phone.trim() || !kg || !time || !store) { showToast('Vui lòng nhập đủ tên, số điện thoại, khối lượng và giờ hẹn', 'red'); return; }
+    try {
+      await apiPost(`/stores/${store.storeId}/orders`, {
+        customer: { name: name.trim(), phone: phone.trim() }, weightKg: kg,
+        serviceType: svc === 'combo' ? 'WASH_DRY' : svc.toUpperCase(), pickupAt: pickupDate(time),
+        readyAt: new Date().toISOString(), note,
+      });
+      await refreshOrders(); closeM('am'); showToast(`Đã tạo đơn cho ${name}`, 'grn');
+      setName(''); setPhone(''); setNote('');
+    } catch (error) { showToast(error instanceof Error ? error.message : 'Không thể tạo đơn', 'red'); }
   };
 
   return (
@@ -166,7 +162,7 @@ export function SettingsModal() {
         </div>
 
         <div style={{ display: 'flex', gap: 9, justifyContent: 'space-between' }}>
-          <button className="bs" style={{ color: '#ef4444', borderColor: '#ef4444' }} onClick={() => { closeM('sm'); /* TODO: logout */ }}>
+          <button className="bs" style={{ color: '#ef4444', borderColor: '#ef4444' }} onClick={() => { void logout(); closeM('sm'); window.location.reload(); }}>
             Đăng xuất
           </button>
           <div style={{ display: 'flex', gap: 9 }}>
@@ -255,27 +251,39 @@ export function MachineModal() {
 
 // ─── Modal Chi tiết đơn hàng ───
 export function OrderDetailModal() {
-  const { openModal, closeM, showToast, orderModalParams, machines } = useApp();
+  const { openModal, closeM, showToast, orderModalParams, machines, orders } = useApp();
   const isOpen = openModal === 'om';
   const p = orderModalParams;
+  const [detail, setDetail] = useState<any>(null);
+  const [detailError, setDetailError] = useState('');
+
+  // Clear stale detail when a different order is opened.
+  useEffect(() => {
+    setDetail(null); setDetailError('');
+    if (p?.orderId) apiGet<any>(`/orders/${p.orderId}`).then(setDetail).catch(error => setDetailError(error instanceof Error ? error.message : 'Không thể tải chi tiết đơn'));
+  }, [p?.orderId]);
 
   if (!p) return null;
 
-  const svcLabel = p.svcType === 'combo' ? 'Giặt + Sấy' : p.svcType === 'wash' ? 'Chỉ Giặt' : 'Chỉ Sấy';
+  const order = detail ?? (p.orderId ? orders.find(item => item.orderId === p.orderId) : undefined);
+
+  const actualSvc = order?.serviceType === 'WASH_DRY' ? 'combo' : order?.serviceType === 'DRY' ? 'dry' : order?.serviceType === 'WASH' ? 'wash' : p.svcType;
+  const svcLabel = actualSvc === 'combo' ? 'Giặt + Sấy' : actualSvc === 'wash' ? 'Chỉ Giặt' : 'Chỉ Sấy';
   let stages: string[] = [];
-  if (p.svcType === 'combo') stages = ['Tiếp nhận', 'Đang giặt', 'Đang sấy', 'Gấp đồ', 'Gửi thông báo'];
-  else if (p.svcType === 'wash') stages = ['Tiếp nhận', 'Đang giặt', 'Gửi thông báo'];
+  if (actualSvc === 'combo') stages = ['Phân loại', 'Đang giặt', 'Chuyển đồ', 'Đang sấy', 'Đóng gói'];
+  else if (actualSvc === 'wash') stages = ['Phân loại', 'Đang giặt', 'Đóng gói'];
   else stages = ['Tiếp nhận', 'Đang sấy', 'Gấp đồ', 'Gửi thông báo'];
 
-  const cur = p.isWaiting ? 0 : 1;
+  const stageList = order?.stages ?? [];
+  const cur = Math.max(0, stageList.findIndex((stage: any) => stage.status !== 'COMPLETED'));
 
-  const availMachines = machines.filter(m => m.type === (p.svcType === 'dry' ? 'dry' : 'wash'));
+  const availMachines = machines.filter(m => m.type === (actualSvc === 'dry' ? 'dry' : 'wash'));
 
   return (
     <div className={`mov${isOpen ? ' open' : ''}`} id="om" onClick={() => closeM('om')}>
       <div className="modal" onClick={e => e.stopPropagation()}>
         <div className="mhd">
-          <div className="mtitle">{p.name} – Chi tiết đơn</div>
+          <div className="mtitle">{order?.customer?.name ?? p.name} – Chi tiết đơn</div>
           <button className="mxbtn" onClick={() => closeM('om')}>
             <svg className="icon icon-sm"><use href="#i-x" /></svg>
           </button>
@@ -284,11 +292,11 @@ export function OrderDetailModal() {
         {/* Header info */}
         <div style={{ display: 'flex', alignItems: 'flex-start', gap: 13, padding: '11px 0', borderBottom: '1.5px solid #f1f5f9', marginBottom: 11 }}>
           <div>
-            <div style={{ fontSize: 17, fontWeight: 800, color: 'var(--tx)' }}>{p.name}</div>
-            <div style={{ fontSize: '11.5px', color: 'var(--ts)', marginTop: 3 }}>0912 345 678</div>
+            <div style={{ fontSize: 17, fontWeight: 800, color: 'var(--tx)' }}>{order?.customer?.name ?? p.name}</div>
+            <div style={{ fontSize: '11.5px', color: 'var(--ts)', marginTop: 3 }}>{order?.customer?.phone ?? p.phone ?? 'Chưa có số điện thoại'}</div>
           </div>
           <div style={{ marginLeft: 'auto', textAlign: 'right' }}>
-            <div style={{ fontSize: 20, fontWeight: 900, color: p.atRisk ? '#ef4444' : '#1e1b4b' }}>{p.deadline}</div>
+            <div style={{ fontSize: 20, fontWeight: 900, color: order?.riskLevel === 'HIGH' || p.atRisk ? '#ef4444' : '#1e1b4b' }}>{order?.pickupAt ? new Date(order.pickupAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) : p.deadline || 'Chưa hẹn'}</div>
             <div style={{ fontSize: '10.5px', color: 'var(--tl)' }}>Giờ hẹn lấy</div>
           </div>
         </div>
@@ -313,16 +321,18 @@ export function OrderDetailModal() {
         </div>
 
         {/* Risk warning */}
-        {p.atRisk && (
+          {(order?.riskLevel === 'HIGH' || order?.riskLevel === 'MEDIUM' || p.atRisk) && (
           <div style={{ background: '#fee2e2', borderRadius: 9, padding: '11px 13px', margin: '11px 0', borderLeft: '3px solid var(--rd)' }}>
             <div style={{ fontSize: '11.5px', fontWeight: 700, color: 'var(--rd)', marginBottom: 3 }}>Cảnh báo trễ hẹn</div>
-            <div style={{ fontSize: '11.5px', color: '#9ca3af' }}>Dự kiến xong 18:35 · Hẹn {p.deadline} · Trễ ~65 phút</div>
+            <div style={{ fontSize: '11.5px', color: '#9ca3af' }}>Dự kiến xong {order?.estimatedAt ? new Date(order.estimatedAt).toLocaleString('vi-VN') : 'chưa xác định'} · Hẹn {p.deadline || 'chưa có'}</div>
           </div>
         )}
 
         <div style={{ fontSize: '11.5px', color: 'var(--ts)', padding: '9px 0', borderTop: '1.5px solid #f1f5f9' }}>
-          <strong>Dịch vụ:</strong> {svcLabel} 3kg &nbsp;·&nbsp; <strong>Máy:</strong> {p.isWaiting ? 'Chưa xếp máy' : 'Máy 1'}
+          {detailError || (detail ? <><strong>Dịch vụ:</strong> {svcLabel} {order.weightKg}kg &nbsp;·&nbsp; <strong>Trạng thái:</strong> {order.status}</> : 'Đang tải thông tin chi tiết...')}
         </div>
+
+        {detail?.nextAction && <div style={{ background: '#f8fafc', borderRadius: 8, padding: '9px 11px', fontSize: 12 }}><strong>Làm gì tiếp theo:</strong> {detail.nextAction}</div>}
 
         {/* Action buttons */}
         <div style={{ display: 'flex', gap: 9, marginTop: 18, justifyContent: 'flex-end' }}>
