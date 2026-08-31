@@ -148,7 +148,7 @@ function mapApiOrder(order: any): Order {
     chipLabel: order.currentMachine ? `${order.currentMachine.name} · ${order.currentStage ?? ''} · Dự kiến xong: ${eta}` : undefined,
     machine: order.currentMachine?.name, readyAt: order.readyAt, pickupAt: order.pickupAt, estimatedAt: order.estimatedAt,
     groupCode: order.groupCode, riskLevel: order.riskLevel, currentStage: order.currentStage,
-    currentMachine: order.currentMachine, nextAction: order.nextAction, priorityReason: order.priorityReason, stages: order.stages,
+     currentMachine: order.currentMachine, nextAction: order.nextAction, priorityReason: order.priorityReason, stages: order.stages, groupETA: order.groupETA,
   };
 }
 
@@ -157,7 +157,7 @@ function mapApiMachine(machine: any): Machine {
   const activeStage = machine.stages?.[0];
   return {
     id: machine.machineId, name: machine.name, type, kg: machine.capacityKg, time: machine.processingMinutes,
-    st: machine.status === 'RUNNING' ? type : 'trong', user: activeStage?.order?.customer?.name ?? '',
+    st: machine.status === 'RUNNING' ? type : machine.status === 'BROKEN' ? 'hong' : machine.status === 'INACTIVE' ? 'ngung' : 'trong', status: machine.status, locked: machine.locked, user: activeStage?.order?.customer?.name ?? '',
     timeLeft: machine.timeLeft ?? 0,
   };
 }

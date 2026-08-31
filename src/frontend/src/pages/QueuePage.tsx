@@ -39,7 +39,7 @@ export function QueueOrderRow({ order, onOpen }: { order: Order; onOpen: (order:
     <div className="queue-facts">
       <div><span>Đang làm</span><strong>{currentStage}{order.currentMachine?.name ? ` · ${order.currentMachine.name}` : ''}</strong></div>
       <div><span>Sắp làm</span><strong>{stageLabel(nextStage?.stage) === 'Chưa xác định' ? 'Không còn' : stageLabel(nextStage?.stage)}</strong></div>
-      <div><span>Dự kiến xong</span><strong>{formatTime(order.estimatedAt)}</strong></div>
+      <div><span>Dự kiến xong</span><strong>{order.groupCode ? <><small className="queue-eta-line">Mẻ này: {formatTime(order.estimatedAt)}</small><small className="queue-eta-line queue-group-eta">Cả nhóm: {formatTime(order.groupETA ?? order.estimatedAt)}</small></> : formatTime(order.estimatedAt)}</strong></div>
       <div><span>Hành động tiếp theo</span><strong>{nextAction} <em>{formatTime(nextActionTime)}</em></strong></div>
     </div>
     <div className={`queue-deadline${order.atRisk ? ' danger' : ''}`}><span>Hẹn lấy</span><strong>{order.deadline || 'Chưa hẹn'}</strong></div>

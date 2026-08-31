@@ -69,6 +69,18 @@ export function serializeOrder(order: any) {
       risk === "HIGH" ? "Đã vượt giờ hẹn" : risk === "MEDIUM" ? "Sắp đến giờ hẹn" : "Theo schedule hiện tại",
   };
 }
+export function serializeOrders(orders: any[]) {
+  const groupEta = new Map<string, Date>();
+  for (const order of orders) {
+    if (!order.groupCode || !order.estimatedAt) continue;
+    const current = groupEta.get(order.groupCode);
+    if (!current || order.estimatedAt > current) groupEta.set(order.groupCode, order.estimatedAt);
+  }
+  return orders.map(order => ({
+    ...serializeOrder(order),
+    groupETA: order.groupCode ? groupEta.get(order.groupCode) ?? order.estimatedAt : order.estimatedAt,
+  }));
+}
 export async function findOrderForStore(orderId: number, storeId: number) {
   const order = await prisma.laundryOrder.findFirst({
     where: { orderId, storeId },
@@ -128,6 +140,8 @@ export async function refreshStoreSchedule(storeId: number) {
     prisma.machine.findMany({ where: { storeId } }),
   ]);
   const schedule = generateSchedule(orders, machines);
+  // Recalculating a busy store updates multiple stages and orders. Keep the
+  // write atomic, but allow enough time for PostgreSQL to finish the batch.
   return prisma.$transaction(async (tx) => {
     for (const item of schedule) {
       for (const stage of item.stages) {
@@ -147,7 +161,7 @@ export async function refreshStoreSchedule(storeId: number) {
       });
     }
     return schedule;
-  });
+  }, { maxWait: 10_000, timeout: 30_000 });
 }
 export async function updateStatus(orderId: number, status: string) {
   return prisma.laundryOrder.update({

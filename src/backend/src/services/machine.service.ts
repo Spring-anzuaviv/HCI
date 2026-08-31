@@ -8,20 +8,21 @@ export async function list(storeId: number) {
     where: { storeId },
     include: {
       stages: {
-        where: { status: "RUNNING" },
+        where: { status: { not: "COMPLETED" } },
         include: { order: true },
         orderBy: { actualStartedAt: "desc" },
       },
     },
   });
   return machines.map((machine) => {
-    const current = machine.stages[0];
+    const current = machine.stages.find((stage) => stage.status === "RUNNING") ?? machine.stages[0];
     const elapsed = current?.actualStartedAt
       ? Math.floor((Date.now() - current.actualStartedAt.getTime()) / 60000)
       : 0;
     return {
       ...machine,
       timeLeft: current ? Math.max(0, machine.processingMinutes - elapsed) : 0,
+      locked: machine.stages.length > 0,
     };
   });
 }
@@ -48,13 +49,18 @@ function validateMachine(input: any) {
   return data;
 }
 export async function create(storeId: number, input: any) {
-  return prisma.machine.create({ data: { storeId, ...validateMachine(input) } });
+  const result = await prisma.machine.create({ data: { storeId, ...validateMachine(input) } });
+  await refreshStoreSchedule(storeId);
+  return result;
 }
 export async function update(machineId: number, storeId: number, input: any) {
-  const machine = await prisma.machine.findFirst({ where: { machineId, storeId } });
+  const machine = await prisma.machine.findFirst({ where: { machineId, storeId }, include: { stages: { where: { status: { not: "COMPLETED" } }, select: { status: true } } } });
   if (!machine) throw new ApiError(404, "NOT_FOUND", "Không tìm thấy máy");
   const data = validateMachine({ ...machine, ...input });
-  if (machine.status === "RUNNING" && data.status !== "RUNNING") throw new ApiError(409, "WORKFLOW_CONFLICT", "Không thể đổi trạng thái máy đang chạy");
+  if (machine.stages.length > 0 && (data.name !== machine.name || data.type !== machine.type || data.capacityKg !== Number(machine.capacityKg) || data.processingMinutes !== machine.processingMinutes))
+    throw new ApiError(409, "WORKFLOW_CONFLICT", "Máy đang gắn với order chưa hoàn thành; chỉ được cập nhật trạng thái");
+  if (machine.status === "RUNNING" && !["RUNNING", "BROKEN"].includes(data.status)) throw new ApiError(409, "WORKFLOW_CONFLICT", "Máy đang chạy chỉ có thể chuyển sang trạng thái Hỏng");
+  if (machine.stages.some((stage) => stage.status === "RUNNING") && data.status === "AVAILABLE") throw new ApiError(409, "WORKFLOW_CONFLICT", "Không thể chuyển máy sang Sẵn sàng khi order vẫn đang chạy");
   const result = await prisma.machine.update({ where: { machineId }, data });
   await refreshStoreSchedule(storeId);
   return result;

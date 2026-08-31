@@ -4,9 +4,10 @@ import type { Machine } from '../types';
 // ─── Machine Card ───
 function MachineCard({ machine, onEdit }: { machine: Machine; onEdit: (id: number) => void }) {
   const isIdle = machine.st === 'trong';
+  const isUnavailable = machine.st === 'hong' || machine.st === 'ngung';
   const label = machine.type === 'wash' ? 'Giặt' : 'Sấy';
 
-  const colorClass = isIdle ? 'gy' : machine.type === 'wash' ? 'bl' : 'am';
+  const colorClass = isUnavailable ? 'gy' : isIdle ? 'gy' : machine.type === 'wash' ? 'bl' : 'am';
 
   return (
     <div
@@ -22,7 +23,9 @@ function MachineCard({ machine, onEdit }: { machine: Machine; onEdit: (id: numbe
       </div>
       <div className="mc-name">{machine.name}</div>
       <div className="mc-st" style={{ fontSize: 12, fontWeight: 600, marginTop: 2 }}>
-        {isIdle ? (
+        {isUnavailable ? (
+          <>{machine.st === 'hong' ? 'Hỏng' : 'Ngừng hoạt động'}<br /><span style={{ fontSize: 10, fontWeight: 400, opacity: 0.6 }}>--</span></>
+        ) : isIdle ? (
           <>Trống<br /><span style={{ fontSize: 10, fontWeight: 400, opacity: 0.6 }}>--</span></>
         ) : (
           <>
