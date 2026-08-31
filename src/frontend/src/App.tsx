@@ -6,12 +6,13 @@ import SVGSprite from './components/SVGSprite';
 import Sidebar from './components/Sidebar';
 import TopBar from './components/TopBar';
 import RightPanel from './components/RightPanel';
+import MachineCompletionAlert from './components/MachineCompletionAlert';
 import { ToastContainer } from './components/Modals';
 import { AddOrderModal, SettingsModal, MachineModal, OrderDetailModal } from './components/AppModals';
 
 import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
-import QueuePage from './pages/QueuePage';
+import QueuePage from './pages/OperationsQueuePage';
 import OrdersPage from './pages/OrdersPage';
 import NotifyPage from './pages/NotifyPage';
 import StatsPage from './pages/StatsPage';
@@ -43,6 +44,7 @@ function AppShell() {
       <SettingsModal />
       <MachineModal />
       <OrderDetailModal />
+      <MachineCompletionAlert />
 
       {/* Toasts */}
       <ToastContainer />

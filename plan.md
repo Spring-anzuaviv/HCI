@@ -135,8 +135,6 @@ Nhân viên giặt ủi trực tiếp, có thể phải:
 
 **Tiêu chí kết thúc:** **Software Product** minh họa workflow tương tác đáng kể, phản hồi sau các hành động quan trọng và nhất quán với prototype và scenario.
 
-**Trạng thái 2026-08-30:** Backend prototype tại `src/backend` sử dụng Prisma PostgreSQL với schema vật lý Supabase theo quy ước bảng số nhiều và tên lowercase `snake_case`. Prisma/API vẫn giữ model và field camelCase qua `@@map`/`@map`; migration đổi tên tại chỗ đã được thêm, không tạo lại bảng.
-
 ### Phase 5: Presentation và report
 
 **Mục tiêu:** Chuẩn bị bài nộp đầy đủ và có thể bảo vệ.

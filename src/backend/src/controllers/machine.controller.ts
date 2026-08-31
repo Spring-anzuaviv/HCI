@@ -39,7 +39,18 @@ export const completeRun = asyncRoute(async (req, res) =>
     await service.completeRun(
       parseId(req.params.orderStageId, "orderStageId"),
       requireStore(req),
-      req.body?.endedAt,
     ),
   ),
 );
+
+export const markOutOfService = asyncRoute(async (req, res) => {
+  validateBody(req.body, ["status"]);
+  ok(
+    res,
+    await service.markOutOfService(
+      parseId(req.params.machineId, "machineId"),
+      requireStore(req),
+      String(req.body.status).toUpperCase(),
+    ),
+  );
+});

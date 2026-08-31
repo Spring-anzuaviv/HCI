@@ -25,3 +25,4 @@ export async function apiRequest<T>(path: string, options: RequestInit = {}) {
 
 export const apiGet = <T,>(path: string) => apiRequest<T>(path);
 export const apiPost = <T,>(path: string, data: unknown) => apiRequest<T>(path, { method: 'POST', body: JSON.stringify(data) });
+export const apiPatch = <T,>(path: string, data: unknown = {}) => apiRequest<T>(path, { method: 'PATCH', body: JSON.stringify(data) });

@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any, react-hooks/set-state-in-effect, react-refresh/only-export-components */
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
-import type { Machine, Staff, Config, Order, Page, ModalOrderParams, OrderFilter } from '../types';
-import { MOCK_MACHINES, MOCK_STAFF, MOCK_CONFIG } from '../data/mockData';
+import type { Machine, Staff, Config, Order, Page, ModalOrderParams, OrderFilter, QueueSnapshot } from '../types';
+import { MOCK_STAFF, MOCK_CONFIG } from '../data/mockData';
 import { apiGet } from '../api/client';
 import type { StoreSession } from '../api/auth';
 
@@ -32,6 +32,10 @@ interface AppContextType {
   orderFilter: OrderFilter;
   setOrderFilter: React.Dispatch<React.SetStateAction<OrderFilter>>;
   store: StoreSession | null;
+  queueSnapshot: QueueSnapshot | null;
+  operationsLoading: boolean;
+  operationsError: string;
+  refreshOperations: () => Promise<void>;
   refreshOrders: () => Promise<void>;
 
   // Toasts
@@ -53,13 +57,16 @@ const AppContext = createContext<AppContextType | null>(null);
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
   const [currentPage, setCurrentPage] = useState<Page>('db');
-  const [machines, setMachines] = useState<Machine[]>(MOCK_MACHINES);
+  const [machines, setMachines] = useState<Machine[]>([]);
   const [staff, setStaff] = useState<Staff[]>(MOCK_STAFF);
   const [config, setConfig] = useState<Config>(MOCK_CONFIG);
   const [orders, setOrders] = useState<Order[]>([]);
   const [orderSearch, setOrderSearch] = useState('');
   const [orderFilter, setOrderFilter] = useState<OrderFilter>('all');
   const [store, setStore] = useState<StoreSession | null>(null);
+  const [queueSnapshot, setQueueSnapshot] = useState<QueueSnapshot | null>(null);
+  const [operationsLoading, setOperationsLoading] = useState(true);
+  const [operationsError, setOperationsError] = useState('');
   const [toasts, setToasts] = useState<ToastItem[]>([]);
   const [openModal, setOpenModal] = useState<string | null>(null);
   const [orderModalParams, setOrderModalParams] = useState<ModalOrderParams | null>(null);
@@ -75,15 +82,28 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const openM = useCallback((id: string) => setOpenModal(id), []);
   const closeM = useCallback((id: string) => { void id; setOpenModal(null); }, []);
 
-  const refreshOrders = useCallback(async () => {
+  const refreshOperations = useCallback(async () => {
     if (!store) return;
-    const [data, machineData] = await Promise.all([
-      apiGet<Record<string, unknown>[]>(`/stores/${store.storeId}/orders?limit=100`),
-      apiGet<Record<string, unknown>[]>(`/stores/${store.storeId}/machines`),
-    ]);
-    setOrders(data.map(mapApiOrder));
-    setMachines(machineData.map(mapApiMachine));
+    setOperationsLoading(true);
+    setOperationsError('');
+    try {
+      const [data, machineData, queueData] = await Promise.all([
+        apiGet<Record<string, unknown>[]>(`/stores/${store.storeId}/orders?limit=100`),
+        apiGet<Record<string, unknown>[]>(`/stores/${store.storeId}/machines`),
+        apiGet<QueueSnapshot>(`/stores/${store.storeId}/queue`),
+      ]);
+      setOrders(data.map(mapApiOrder));
+      setMachines(machineData.map(mapApiMachine));
+      setQueueSnapshot(queueData);
+    } catch (error) {
+      setQueueSnapshot(null);
+      setOperationsError(error instanceof Error ? error.message : 'Không thể tải trạng thái vận hành');
+    } finally {
+      setOperationsLoading(false);
+    }
   }, [store]);
+
+  const refreshOrders = refreshOperations;
 
   // The provider is mounted only after App has confirmed the cookie session.
   useEffect(() => {
@@ -91,8 +111,24 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
-    if (store) void refreshOrders();
-  }, [store, refreshOrders]);
+    if (store) void refreshOperations();
+  }, [store, refreshOperations]);
+
+  // UC-SQ-02: chỉ polling projection máy từ database để phát hiện mẻ vừa xong.
+  useEffect(() => {
+    if (!store) return;
+    const pollMachines = async () => {
+      try {
+        const machineData = await apiGet<Record<string, unknown>[]>(`/stores/${store.storeId}/machines`);
+        setMachines(machineData.map(mapApiMachine));
+        setOperationsError('');
+      } catch (error) {
+        setOperationsError(error instanceof Error ? error.message : 'Không thể cập nhật trạng thái máy');
+      }
+    };
+    const intervalId = window.setInterval(() => { void pollMachines(); }, 15_000);
+    return () => window.clearInterval(intervalId);
+  }, [store]);
 
   return (
     <AppContext.Provider value={{
@@ -100,7 +136,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       machines, setMachines,
       staff, setStaff,
       config, setConfig,
-      orders, setOrders, store, refreshOrders, orderSearch, setOrderSearch, orderFilter, setOrderFilter,
+      orders, setOrders, store, queueSnapshot, operationsLoading, operationsError,
+      refreshOperations, refreshOrders, orderSearch, setOrderSearch, orderFilter, setOrderFilter,
       toasts, showToast,
       openModal, setOpenModal, openM, closeM,
       orderModalParams, setOrderModalParams,
@@ -129,11 +166,25 @@ function mapApiOrder(order: any): Order {
 
 function mapApiMachine(machine: any): Machine {
   const type = machine.type === 'DRYER' ? 'dry' : 'wash';
-  const activeStage = machine.stages?.[0];
+  const activeStage = machine.currentStage ?? machine.stages?.find((stage: any) => stage.status === 'RUNNING');
+  const state = machine.operationalState === 'NEEDS_REVIEW'
+    ? 'review'
+    : machine.status === 'BROKEN'
+      ? 'broken'
+      : machine.status === 'INACTIVE'
+        ? 'inactive'
+        : machine.status === 'RUNNING'
+          ? type
+          : 'trong';
   return {
     id: machine.machineId, name: machine.name, type, kg: machine.capacityKg, time: machine.processingMinutes,
-    st: machine.status === 'RUNNING' ? type : 'trong', user: activeStage?.order?.customer?.name ?? '',
-    timeLeft: machine.timeLeft ?? 0,
+    st: state, statusRaw: machine.status, user: activeStage?.order?.customer?.name ?? '',
+    timeLeft: machine.timeLeft ?? null, operationalState: machine.operationalState,
+    reviewReasons: machine.reviewReasons ?? [], currentStage: machine.currentStage ?? null,
+    nextPlannedStage: machine.nextPlannedStage ?? null,
+    finishAt: machine.finishAt ?? null, completionDue: Boolean(machine.completionDue),
+    completionActionAllowed: Boolean(machine.completionActionAllowed),
+    completionBlockedReason: machine.completionBlockedReason ?? null,
   };
 }
 

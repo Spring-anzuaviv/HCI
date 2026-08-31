@@ -18,13 +18,15 @@ export const expedite = asyncRoute(async (req, res) => {
   );
 });
 export const confirm = asyncRoute(async (req, res) => {
-  validateBody(req.body, ["newPickupAt"]);
+  validateBody(req.body, ["newPickupAt", "reason", "simulationToken"]);
   ok(
     res,
     await apply(
       parseId(req.params.orderId, "orderId"),
       requireStore(req),
       req.body.newPickupAt,
+      req.body.reason,
+      req.body.simulationToken,
     ),
   );
 });

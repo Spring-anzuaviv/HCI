@@ -1,6 +1,7 @@
 import { prisma } from "../lib/prisma.js";
 import { ApiError } from "../lib/http.js";
-import { activeStatuses, findStoreOrders, serializeOrder } from "./order.service.js";
+import { findStoreOrders } from "./order.service.js";
+import { buildQueueSnapshot } from "./queue.service.js";
 import { generateSchedule, checkDeadlineFeasibility } from "./scheduling.service.js";
 
 export async function dashboard(storeId: number) {
@@ -10,18 +11,23 @@ export async function dashboard(storeId: number) {
     prisma.machine.findMany({ where: { storeId } }),
   ]);
   if (!store) throw new ApiError(404, "NOT_FOUND", "Không tìm thấy cửa hàng");
-  const data = orders.map(serializeOrder);
-  const pending = data.filter((order: any) => activeStatuses.has(order.status));
+  const queue = buildQueueSnapshot(orders, machines);
   return {
     store,
     summary: {
-      pendingOrders: pending.length,
-      riskOrders: data.filter((order: any) => order.riskLevel !== "LOW").length,
-      runningMachines: machines.filter((machine) => machine.status === "RUNNING").length,
-      availableMachines: machines.filter((machine) => machine.status === "AVAILABLE").length,
+      pendingOrders: queue.summary.totalOrders,
+      riskOrders: queue.summary.atRiskOrders,
+      runningMachines: queue.summary.runningMachines,
+      availableMachines: queue.summary.availableMachines,
     },
-    nextTask: pending[0] ? { orderId: pending[0].orderId, reason: pending[0].priorityReason } : null,
-    attentionItems: data.filter((order: any) => order.riskLevel !== "LOW").slice(0, 5),
+    nextTask: queue.recommendation
+      ? {
+          orderId: queue.recommendation.orderId,
+          machineId: queue.recommendation.machineId,
+          reason: queue.recommendation.priorityReason,
+        }
+      : null,
+    attentionItems: queue.attentionItems.slice(0, 5),
   };
 }
 

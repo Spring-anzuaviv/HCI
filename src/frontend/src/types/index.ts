@@ -1,7 +1,7 @@
 // ─── Kiểu dữ liệu chung cho toàn bộ app ───
 
 export type SvcType = 'wash' | 'dry' | 'combo';
-export type MachineStatus = 'trong' | 'wash' | 'dry';
+export type MachineStatus = 'trong' | 'wash' | 'dry' | 'broken' | 'inactive' | 'review';
 export type OrderStatus = 'pending' | 'done';
 
 export interface Machine {
@@ -11,8 +11,17 @@ export interface Machine {
   kg: number;
   time: number; // phút
   st: MachineStatus;
+  statusRaw?: string;
   user: string;
-  timeLeft: number; // phút còn lại
+  timeLeft: number | null; // phút còn lại
+  operationalState?: 'NORMAL' | 'NEEDS_REVIEW';
+  reviewReasons?: string[];
+  currentStage?: ApiMachineStage | null;
+  nextPlannedStage?: ApiMachineStage | null;
+  finishAt?: string | null;
+  completionDue?: boolean;
+  completionActionAllowed?: boolean;
+  completionBlockedReason?: string | null;
 }
 
 export interface Staff {
@@ -62,6 +71,7 @@ export interface Order {
 
 export interface ApiOrderStage {
   orderStageId: number;
+  orderId?: number;
   stage: string;
   status: string;
   machineId: number | null;
@@ -70,6 +80,78 @@ export interface ApiOrderStage {
   actualStartedAt: string | null;
   actualEndedAt: string | null;
   machine?: { name: string; type: string; processingMinutes: number } | null;
+}
+
+export interface ApiMachineStage extends ApiOrderStage {
+  order?: {
+    orderId: number;
+    status: string;
+    serviceType: string;
+    customer?: { name: string; phone: string };
+  };
+}
+
+export type QueueRisk = 'FEASIBLE' | 'AT_RISK' | 'NOT_FEASIBLE' | 'UNKNOWN';
+
+export interface QueueItem {
+  rank: number;
+  orderId: number;
+  customer: { name: string; phone: string } | null;
+  status: string;
+  serviceType: string;
+  weightKg: number;
+  readyAt: string | null;
+  pickupAt: string | null;
+  estimatedAt: string | null;
+  groupCode: string | null;
+  currentStage: string;
+  nextStage: string | null;
+  orderStageId: number | null;
+  machineId: number | null;
+  machineName: string | null;
+  plannedStartAt: string | null;
+  plannedEndAt: string | null;
+  riskLevel: QueueRisk;
+  slackMinutes: number | null;
+  riskMessage: string;
+  missingFields: string[];
+  priorityReason: string;
+  priorityReasons: string[];
+  nextAction: string;
+  operationalState: 'NORMAL' | 'NEEDS_REVIEW';
+  reviewReasons: string[];
+  canStart: boolean;
+  recommendationBlockedReasons: string[];
+  remainingStages: number;
+  createdAt: string;
+}
+
+export interface QueueSnapshot {
+  generatedAt: string;
+  recommendation: QueueItem | null;
+  recommendations: QueueItem[];
+  items: QueueItem[];
+  attentionItems: QueueItem[];
+  summary: {
+    totalOrders: number;
+    atRiskOrders: number;
+    unknownDeadlineOrders: number;
+    needsReviewOrders: number;
+    availableMachines: number;
+    runningMachines: number;
+    statusCounts: Record<string, number>;
+  };
+}
+
+export interface MachineCompletionResult {
+  completedStage: ApiMachineStage;
+  orderStatus: string;
+  machine: {
+    machineId: number;
+    name: string;
+    status: string;
+  } | null;
+  recommendation: QueueItem | null;
 }
 
 export interface Config {
@@ -88,4 +170,5 @@ export interface ModalOrderParams {
   atRisk: boolean;
   svcType: SvcType;
   isWaiting: boolean;
+  readOnly?: boolean;
 }

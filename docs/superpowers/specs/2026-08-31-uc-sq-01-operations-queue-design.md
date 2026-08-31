@@ -2,89 +2,82 @@
 
 ## 1. Mục tiêu và phạm vi
 
-Triển khai end-to-end UC-SQ-01 trên backend Node.js/Express/Prisma và frontend React hiện có. Giao diện hiện tại được giữ lại; chỉ bổ sung dữ liệu và trạng thái còn thiếu để nhân viên có thể xem máy, hàng đợi, rủi ro và đề xuất xử lý tiếp.
+Triển khai end-to-end UC-SQ-01 trên backend Node.js/Express/Prisma và frontend React hiện có. Nhân viên vận hành có thể xem trạng thái máy, lịch công đoạn hiện tại, ETA, rủi ro deadline, danh sách cần chú ý và đề xuất công việc tiếp theo có giải thích.
 
-UC này là luồng chỉ đọc. Việc mở trang Hàng đợi, tải trạng thái vận hành hoặc mở chi tiết order không được thay đổi database và không tự bắt đầu stage.
+UC này chỉ đọc dữ liệu. Việc mở màn hình, tải lại hàng đợi hoặc xem đề xuất không được thay đổi database, không tự bắt đầu công đoạn và không điều khiển máy thật.
 
-Deliverable được hỗ trợ: **Software Product**.
+Thiết kế giữ nguyên ngôn ngữ trực quan hiện tại. Chỉ điều chỉnh hoặc thêm thành phần khi cần để hiển thị đúng trạng thái trong đặc tả.
 
-## 2. Vấn đề người dùng được hỗ trợ
+## 2. Vấn đề người dùng và deliverable
 
-- Nhân viên khó biết việc nào nên làm tiếp khi nhiều order cùng cạnh tranh sự chú ý.
-- Thông tin máy, stage, deadline và hành động tiếp theo đang phân tán.
-- Nhân viên cần hiểu lý do của đề xuất và vẫn giữ quyền quyết định.
+- Người dùng chính: nhân viên giặt ủi trực tiếp, gồm cả nhân viên mới và có kinh nghiệm.
+- Vấn đề: khó biết việc nào cần làm tiếp, thông tin máy và đơn bị phân tán, khó hiểu lý do ưu tiên và khó phát hiện lịch mâu thuẫn.
+- Deliverable được hỗ trợ: Software Product; đồng thời giữ nhất quán với Prototype và Wireframe hiện có.
+- Dữ liệu máy, order, stage và deadline trong môi trường chạy là dữ liệu prototype/mô phỏng, không phải bằng chứng nghiên cứu người dùng.
 
-Các dữ liệu trong database và seed là dữ liệu mô phỏng; thiết kế không giả định đây là kết quả nghiên cứu người dùng mới.
+## 3. Nguyên tắc nghiệp vụ
 
-## 3. Kiến trúc và ranh giới
+1. `order_stages` là nguồn lịch duy nhất.
+2. Chế độ xem queue chỉ đọc các stage hiện tại; không gọi logic tạo lịch mới để thay thế thứ tự đã lưu.
+3. Stage máy chỉ gồm `WASH` trên `WASHER` và `DRY` trên `DRYER`.
+4. Đề xuất chỉ được đánh dấu có thể bắt đầu khi máy `AVAILABLE`, stage `PLANNED`, máy đúng loại/đủ sức chứa, order không có stage khác `RUNNING` và các stage trước đã hoàn tất.
+5. Nếu `OrderStage.status = RUNNING` nhưng `LaundryOrder.status` không khớp, trả `NEEDS_REVIEW` và không dùng order để tạo recommendation.
+6. Nếu thiếu `pickupAt` hoặc `estimatedAt`, risk là `UNKNOWN` và chỉ rõ field còn thiếu.
+7. Recommendation phải có lý do dễ hiểu và luôn được trình bày là đề xuất cần nhân viên xác nhận ở use case bắt đầu stage sau này.
 
-### Backend
+## 4. Kiến trúc backend
 
-- `OrderStage` tiếp tục là nguồn lịch duy nhất.
-- Dịch vụ queue chỉ đọc các stage `PLANNED`, `RUNNING` và `COMPLETED` hiện có; không gọi logic tạo một thứ tự xử lý khác với lịch đã lưu.
-- Dịch vụ kiểm tra tính hợp lệ của candidate: đúng loại máy, đủ sức chứa, máy hoạt động, máy đang trống, order chưa hoàn tất, không có stage khác đang chạy và các stage trước đã hoàn tất.
-- Dịch vụ máy trả stage đang chạy, thời gian còn lại và stage planned tiếp theo.
-- Dashboard lấy `nextTask` và danh sách cần chú ý từ cùng logic queue/risk để tránh hai màn hình hiển thị thứ tự khác nhau.
+Queue service dựng projection thuần đọc từ orders, `order_stages` và machines. Service không gọi `generateSchedule()` và không ghi Prisma.
 
-### Frontend
+`GET /stores/:storeId/queue` trả:
 
-- `AppContext` tải orders, machines và queue từ API sau khi xác thực.
-- `QueuePage` dùng thứ hạng backend thay vì lấy order đầu tiên trong danh sách order.
-- `RightPanel` dùng số lượng order đang chờ thật và trạng thái máy thật.
-- Giữ bố cục, màu sắc và component hiện tại; bổ sung loading, error, empty, unknown và inconsistent states.
+```text
+generatedAt
+recommendation nullable
+recommendations[]
+items[]
+attentionItems[]
+summary
+```
 
-## 4. Contract dữ liệu
+Mỗi item gồm rank, order/customer, trạng thái hiện tại, stage/máy kế tiếp, ETA, deadline, risk, field thiếu, lý do ưu tiên, trạng thái kiểm tra và khả năng recommendation.
 
-Mỗi queue item cung cấp tối thiểu:
+`GET /stores/:storeId/machines` giữ field máy hiện có và bổ sung `currentStage`, `nextPlannedStage`, `timeLeft`, `operationalState` và lý do cần kiểm tra.
 
-- `rank`, `orderId`, customer và trạng thái order;
-- `nextStage`, `machineId`, tên máy;
-- `plannedStartAt`, `plannedEndAt`;
-- `estimatedAt`, `groupETA`, `pickupAt`;
-- `riskLevel`, `priorityReason`, `reasons`, `nextAction`;
-- `canStart` và `needsReview`.
+Dashboard dùng cùng queue projection để không hiển thị một đề xuất khác với trang Hàng đợi.
 
-Mỗi machine item cung cấp:
+## 5. Luồng dữ liệu frontend
 
-- thông tin máy và trạng thái hiện tại;
-- `currentStage` cùng `timeLeft`;
-- `nextPlannedStage` nếu có.
+1. Sau khi xác thực store, frontend tải song song orders, machines và queue.
+2. `AppContext` lưu riêng loading, error và queue snapshot.
+3. Trang Hàng đợi dùng recommendation/rank từ backend, không lấy order đầu tiên trong mảng.
+4. Panel máy dùng dữ liệu backend và số order chờ thật.
+5. Nhân viên có thể mở chi tiết order ở chế độ chỉ đọc; UC-SQ-01 không gửi lệnh bắt đầu/hoàn tất stage.
+6. Không tạo màn hình bàn giao riêng; màn hình vận hành hiện tại phục vụ cả lúc đăng nhập và đổi ca.
 
-Các field hiện hữu được giữ lại khi có thể để không phá frontend đang hoạt động.
+## 6. Trạng thái giao diện
 
-## 5. Luồng dữ liệu và tương tác
+- Loading: “Đang tải trạng thái vận hành”.
+- Error: thông báo lỗi và nút “Thử lại”.
+- Không có order: “Hiện không có đơn cần xử lý.”
+- Không có máy trống: không hiển thị recommendation, vẫn hiển thị máy/cảnh báo/queue.
+- Không có order rủi ro: không hiển thị khu vực cảnh báo.
+- Thiếu deadline/ETA: chỉ rõ `pickupAt` hoặc `estimatedAt` còn thiếu.
+- Mâu thuẫn RUNNING/order status: “Trạng thái cần kiểm tra” và “Không dùng để đề xuất”.
 
-1. Nhân viên mở trang Hàng đợi.
-2. Frontend hiển thị loading và gọi orders, machines, queue.
-3. Backend đọc snapshot hiện tại từ database, kiểm tra schedule và tính risk từ ETA/deadline hiện có.
-4. Backend xếp hạng theo đặc tả: risk, deadline, số stage còn lại, thời điểm tạo và order ID.
-5. Backend chỉ đánh dấu recommendation có thể bắt đầu khi candidate phù hợp với máy `AVAILABLE`; recommendation luôn có lý do và cần nhân viên xác nhận trong use case bắt đầu stage riêng.
-6. Frontend hiển thị đề xuất, máy, order cần chú ý và toàn bộ queue.
-7. Nhân viên có thể mở chi tiết order; thao tác xem không ghi database.
+Ý nghĩa quan trọng luôn có nhãn chữ hoặc icon, không chỉ dùng màu.
 
-## 6. Trạng thái và xử lý lỗi
+## 7. Kiểm thử và tiêu chí chấp nhận
 
-- Không có order: “Hiện không có đơn cần xử lý”.
-- Thiếu deadline/ETA: `UNKNOWN` và “Chưa đủ dữ liệu để đánh giá giờ hẹn”.
-- Không có máy phù hợp: vẫn hiển thị order nhưng không cho hiểu nhầm là có thể bắt đầu.
-- Stage và trạng thái order mâu thuẫn: `needsReview = true`, hiển thị “Cần kiểm tra”.
-- API lỗi: giữ màn hình ổn định, hiển thị lỗi và nút tải lại.
-- Dữ liệu đang tải: hiển thị trạng thái loading, không hiển thị dữ liệu cũ như snapshot mới.
-
-## 7. Kiểm thử và tiêu chí thành công
-
-- Unit test logic queue bằng dữ liệu thuần, bao gồm thứ hạng, candidate hợp lệ, thiếu deadline, máy không phù hợp và stage mâu thuẫn.
-- Kiểm tra API không thực hiện mutation khi xem queue.
-- Backend TypeScript build thành công.
-- Frontend lint và build thành công.
-- Walkthrough trình duyệt xác nhận loading, dữ liệu thường, empty/error và khả năng đọc ở giao diện hiện có.
-- Không có recommendation trái với `order_stages` đã lưu.
-- Mọi recommendation hiển thị lý do và không tự bắt đầu stage.
+- Unit test candidate hợp lệ, không máy trống, không rủi ro, queue rỗng, field thiếu và trạng thái mâu thuẫn.
+- Không đề xuất sai loại máy hoặc vượt capacity.
+- Queue đọc đúng planned stage hiện tại và không thay đổi input/database.
+- Backend build/test thành công; frontend build/lint thành công.
+- Walkthrough trình duyệt khi môi trường database và DevTools khả dụng.
 
 ## 8. Ngoài phạm vi
 
-- Bắt đầu hoặc hoàn tất stage.
-- Reschedule và ghi planned schedule mới.
-- Đôn order và xác nhận simulation.
+- Bắt đầu/hoàn tất stage và countdown lấy đồ.
+- Đôn order, simulation và reschedule thật.
 - Gửi thông báo khách.
-- Thay đổi schema database nếu contract hiện tại đã đủ cho UC-SQ-01.
+- Thiết kế lại toàn bộ giao diện.
