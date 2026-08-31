@@ -53,7 +53,8 @@ export default function OperationsQueuePage() {
   );
   const allItems = queueSnapshot?.items ?? [];
   const visibleItems = allItems.filter(item => visibleOrderIds.has(item.orderId));
-  const riskItems = visibleItems.filter(isAtRisk);
+  const lateItems = visibleItems.filter(item => item.riskLevel === 'NOT_FEASIBLE');
+  const riskItems = visibleItems.filter(item => item.riskLevel === 'AT_RISK');
   const reviewItems = visibleItems.filter(item => item.operationalState === 'NEEDS_REVIEW');
   const suggestion = queueSnapshot?.recommendation && visibleOrderIds.has(queueSnapshot.recommendation.orderId)
     ? queueSnapshot.recommendation
@@ -127,6 +128,14 @@ export default function OperationsQueuePage() {
         </QueueSection>
       )}
 
+      {lateItems.length > 0 && (
+        <QueueSection title="Đơn sẽ trễ hẹn" tone="late">
+          {lateItems.map(item => (
+            <QueueRow key={item.orderId} item={item} onOpen={() => openOrderModal(item)} compactMessage={item.riskMessage} />
+          ))}
+        </QueueSection>
+      )}
+
       {riskItems.length > 0 && (
         <QueueSection title="Đơn có nguy cơ trễ hẹn" tone="risk">
           {riskItems.map(item => (
@@ -190,9 +199,9 @@ function RecommendationCard({ item, onOpen }: { item: QueueItem; onOpen: () => v
   </div>;
 }
 
-function QueueSection({ title, tone, children }: { title: string; tone: 'risk' | 'review'; children: React.ReactNode }) {
-  const color = tone === 'risk' ? 'var(--rd)' : '#92400e';
-  const background = tone === 'risk' ? '#fee2e2' : '#fef3c7';
+function QueueSection({ title, tone, children }: { title: string; tone: 'late' | 'risk' | 'review'; children: React.ReactNode }) {
+  const color = tone === 'late' ? 'var(--rd)' : tone === 'risk' ? '#b45309' : '#92400e';
+  const background = tone === 'late' ? '#fee2e2' : tone === 'risk' ? '#fef3c7' : '#fef3c7';
   return <div className={`card queue-section ${tone}`}>
     <div className="ch"><div className="ctitle" style={{ color }}>
       <div className="cico" style={{ color, background }}><svg className="icon icon-sm"><use href="#i-alert" /></svg></div>
@@ -203,9 +212,10 @@ function QueueSection({ title, tone, children }: { title: string; tone: 'risk' |
 }
 
 function QueueRow({ item, onOpen, compactMessage }: { item: QueueItem; onOpen: () => void; compactMessage?: string }) {
-  const risky = isAtRisk(item);
+  const late = item.riskLevel === 'NOT_FEASIBLE';
+  const risky = item.riskLevel === 'AT_RISK';
   const review = item.operationalState === 'NEEDS_REVIEW';
-  return <button className={`orow queue-row${risky ? ' risk' : ''}${review ? ' review' : ''}`} onClick={onOpen}>
+  return <button className={`orow queue-row${late ? ' late' : risky ? ' risk' : ''}${review ? ' review' : ''}`} onClick={onOpen}>
     <span className={`opri ${review ? 'am' : risky ? 'rd' : item.rank === 1 ? 'bl' : 'gr'}`}>{review ? '!' : item.rank}</span>
     <span className="queue-row-main">
       <span className="oname">#{item.orderId} · {item.customer?.name ?? 'Chưa có tên khách'}</span>
@@ -231,8 +241,4 @@ function stageLabel(value: string | null) {
 
 function formatTime(value: string | null, fallback = 'Chưa có') {
   return value ? new Date(value).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) : fallback;
-}
-
-function isAtRisk(item: QueueItem) {
-  return item.riskLevel === 'AT_RISK' || item.riskLevel === 'NOT_FEASIBLE';
 }

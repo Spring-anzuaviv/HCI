@@ -142,6 +142,7 @@ export interface QueueSnapshot {
   attentionItems: QueueItem[];
   summary: {
     totalOrders: number;
+    lateOrders: number;
     atRiskOrders: number;
     unknownDeadlineOrders: number;
     needsReviewOrders: number;

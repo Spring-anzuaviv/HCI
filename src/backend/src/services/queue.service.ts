@@ -202,9 +202,8 @@ export function buildQueueSnapshot(
     attentionItems,
     summary: {
       totalOrders: rankedItems.length,
-      atRiskOrders: rankedItems.filter((item) =>
-        item.riskLevel === "NOT_FEASIBLE" || item.riskLevel === "AT_RISK"
-      ).length,
+      lateOrders: rankedItems.filter((item) => item.riskLevel === "NOT_FEASIBLE").length,
+      atRiskOrders: rankedItems.filter((item) => item.riskLevel === "AT_RISK").length,
       unknownDeadlineOrders: rankedItems.filter((item) => item.riskLevel === "UNKNOWN").length,
       needsReviewOrders: rankedItems.filter((item) => item.operationalState === "NEEDS_REVIEW").length,
       availableMachines: availableMachines.length,

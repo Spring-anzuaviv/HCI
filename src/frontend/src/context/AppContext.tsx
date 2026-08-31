@@ -1,12 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any, react-hooks/set-state-in-effect, react-refresh/only-export-components */
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
-<<<<<<< HEAD
-import type { Machine, Staff, Config, Order, Page, ModalOrderParams, OrderFilter, WorkShift } from '../types';
-import { MOCK_MACHINES, MOCK_STAFF, MOCK_CONFIG } from '../data/mockData';
-=======
-import type { Machine, Staff, Config, Order, Page, ModalOrderParams, OrderFilter, QueueSnapshot } from '../types';
+import type { Machine, Staff, Config, Order, Page, ModalOrderParams, OrderFilter, WorkShift, QueueSnapshot } from '../types';
 import { MOCK_STAFF, MOCK_CONFIG } from '../data/mockData';
->>>>>>> MX
 import { apiGet } from '../api/client';
 import type { StoreSession } from '../api/auth';
 import { listEmployees, listShifts } from '../api/staff';

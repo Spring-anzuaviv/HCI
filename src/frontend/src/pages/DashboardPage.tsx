@@ -76,8 +76,10 @@ export default function DashboardPage() {
     .filter(item => visibleIds.has(item.orderId))
     .map(item => orders.find(order => order.orderId === item.orderId))
     .filter((order): order is NonNullable<typeof order> => Boolean(order));
+  const lateOrders = (queueSnapshot?.items ?? [])
+    .filter(item => visibleIds.has(item.orderId) && item.riskLevel === 'NOT_FEASIBLE');
   const riskOrders = (queueSnapshot?.items ?? [])
-    .filter(item => visibleIds.has(item.orderId) && (item.riskLevel === 'AT_RISK' || item.riskLevel === 'NOT_FEASIBLE'));
+    .filter(item => visibleIds.has(item.orderId) && item.riskLevel === 'AT_RISK');
   const suggestedOrder = queueSnapshot?.recommendation
     ? orders.find(order => order.orderId === queueSnapshot.recommendation?.orderId)
     : undefined;
@@ -85,6 +87,7 @@ export default function DashboardPage() {
   const stats = {
     today: orders.filter(o => o.status === 'pending').length + orders.filter(o => o.status === 'done').length,
     processing: orders.filter(o => o.status === 'pending').length,
+    late: lateOrders.length,
     risk: riskOrders.length,
     done: orders.filter(o => o.status === 'done').length,
   };
@@ -111,17 +114,21 @@ export default function DashboardPage() {
             </span>
           </div>
           {shiftSummary && <div className="hero-handover">
-            <strong>Tóm tắt ca:</strong> {shiftSummary.totals.active} đang xử lý · {shiftSummary.totals.completed} hoàn tất · {shiftSummary.totals.atRisk} nguy cơ trễ
+            <strong>Tóm tắt ca:</strong> {shiftSummary.totals.active} đang xử lý · {shiftSummary.totals.completed} hoàn tất · {queueSnapshot?.summary.lateOrders ?? 0} sẽ trễ · {queueSnapshot?.summary.atRiskOrders ?? 0} nguy cơ trễ
           </div>}
         </div>
         <div className="hero-img"><HeroSVG /></div>
       </div>
 
       {/* Alert */}
-      {riskOrders.length > 0 && (
+      {(lateOrders.length > 0 || riskOrders.length > 0) && (
         <div className="alert">
           <svg className="icon"><use href="#i-alert" /></svg>
-          <div className="alert-txt"><strong>Cảnh báo:</strong> {riskOrders.length} đơn có nguy cơ không kịp giờ hẹn</div>
+          <div className="alert-txt">
+            <strong>Cảnh báo:</strong> {lateOrders.length > 0 ? `${lateOrders.length} đơn sẽ trễ hẹn` : ''} 
+            {lateOrders.length > 0 && riskOrders.length > 0 ? ' và ' : ''}
+            {riskOrders.length > 0 ? `${riskOrders.length} đơn có nguy cơ không kịp giờ hẹn` : ''}
+          </div>
           <button className="alink" onClick={() => setCurrentPage('q')}>
             Xem ngay <svg className="icon icon-sm"><use href="#i-arrow-right" /></svg>
           </button>
@@ -131,10 +138,13 @@ export default function DashboardPage() {
       <OrderFilterBar />
 
       {/* Stats */}
-      <div className="srow">
+      <div className="srow" style={{ gridTemplateColumns: 'repeat(5, 1fr)' }}>
         <div className="scard pur"><div className="snum">{stats.today}</div><div className="slbl">Đơn hôm nay</div></div>
         <div className="scard"><div className="snum">{stats.processing}</div><div className="slbl">Đang xử lý</div></div>
-        <div className="scard red"><div className="snum">{stats.risk}</div><div className="slbl">Nguy cơ trễ</div></div>
+        <div className="scard red"><div className="snum">{stats.late}</div><div className="slbl">Sẽ trễ hẹn</div></div>
+        <div className="scard warning" style={{ borderLeft: '4px solid #b45309', background: '#fef3c7' }}>
+          <div className="snum" style={{ color: '#b45309' }}>{stats.risk}</div><div className="slbl" style={{ color: '#92400e' }}>Nguy cơ trễ</div>
+        </div>
         <div className="scard grn"><div className="snum">{stats.done}</div><div className="slbl">Hoàn tất</div></div>
       </div>
 
