@@ -62,7 +62,6 @@ export default function QueuePage() {
 
   return (
     <div id="p-q" className="page">
-      <OrderFilterBar />
       {/* Hero */}
       <div className="hero hero-sub">
         <div className="hero-txt">
@@ -83,6 +82,7 @@ export default function QueuePage() {
           </svg>
         </div>
       </div>
+      <OrderFilterBar />
 
       {/* Recommendation preview */}
       {suggestedOrder && <div className="card">

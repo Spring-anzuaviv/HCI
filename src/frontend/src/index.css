@@ -345,6 +345,8 @@ select.finput {
 .split-eta strong { color: var(--tx); font-size: 11px; }
 .split-eta b { color: var(--tx); }
 .split-eta .split-group-eta { color: var(--pu); font-weight: 700; margin-top: 3px; }
+.split-check-risk { color: var(--rd); font-weight: 700; margin-top: 3px; }
+.split-check-ok { color: var(--gn); font-weight: 700; margin-top: 3px; }
 .summary-caption { color: var(--ts); font-size: 10.5px; margin-top: 4px; }
 .summary-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 4px 0 13px; }
 .summary-grid > div { background: #f8fafc; border-radius: 10px; padding: 10px 8px; text-align: center; }

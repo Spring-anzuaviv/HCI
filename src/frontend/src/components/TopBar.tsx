@@ -11,7 +11,7 @@ export default function TopBar() {
 
   return (
     <header className="topbar">
-      <div className="searchbar">
+      {/* <div className="searchbar">
         <svg className="icon icon-sm"><use href="#i-search" /></svg>
         <input
           type="text"
@@ -20,7 +20,7 @@ export default function TopBar() {
           onChange={e => setOrderSearch(e.target.value)}
           onFocus={() => setCurrentPage('orders')}
         />
-      </div>
+      </div> */}
 
       <div className="tbr">
         <button className="bp" onClick={() => openM('am')} style={{ marginRight: 5, padding: '8px 12px' }}>
