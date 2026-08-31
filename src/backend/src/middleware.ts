@@ -15,7 +15,7 @@ export function auth(req: Request, _res: Response, next: NextFunction) {
     req.path.endsWith("/health/db")
   )
     return next();
-  const value = req.header("Authorization");
+  const value = req.header("Authorization") ?? parseCookie(req.header("Cookie"), "accessToken");
   if (!value?.startsWith("Bearer "))
     return next(new ApiError(401, "UNAUTHORIZED", "Thiếu access token"));
   try {
@@ -30,6 +30,11 @@ export function auth(req: Request, _res: Response, next: NextFunction) {
       ),
     );
   }
+}
+
+function parseCookie(header: string | undefined, name: string) {
+  const value = header?.split(";").find((part) => part.trim().startsWith(`${name}=`));
+  return value ? `Bearer ${decodeURIComponent(value.trim().slice(name.length + 1))}` : undefined;
 }
 export function notFound(_req: Request, _res: Response, next: NextFunction) {
   next(new ApiError(404, "NOT_FOUND", "Không tìm thấy endpoint"));

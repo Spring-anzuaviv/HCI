@@ -1,19 +1,24 @@
 import { useApp } from '../context/AppContext';
 import type { ModalOrderParams } from '../types';
+import { filterOrders } from '../utils/orderSearch';
+import OrderFilterBar from '../components/OrderFilterBar';
 
 export default function QueuePage() {
-  const { orders, openM, setOrderModalParams } = useApp();
+  const { orders, openM, setOrderModalParams, orderSearch, orderFilter } = useApp();
 
   const openOrderModal = (params: ModalOrderParams) => {
     setOrderModalParams(params);
     openM('om');
   };
 
-  const riskOrders = orders.filter(o => o.atRisk && o.status === 'pending');
-  const allPending = orders.filter(o => o.status === 'pending');
+  const visibleOrders = filterOrders(orders, orderSearch, orderFilter);
+  const riskOrders = visibleOrders.filter(o => o.atRisk && o.status === 'pending');
+  const allPending = visibleOrders.filter(o => o.status === 'pending');
+  const suggestedOrder = allPending[0];
 
   return (
     <div id="p-q" className="page">
+      <OrderFilterBar />
       {/* Hero */}
       <div className="hero hero-sub">
         <div className="hero-txt">
@@ -35,31 +40,31 @@ export default function QueuePage() {
         </div>
       </div>
 
-      {/* AI Suggestion – Máy 2 vừa trống */}
-      <div className="card">
+      {/* Recommendation preview */}
+      {suggestedOrder && <div className="card">
         <div className="sugg-lbl" style={{ fontSize: '10.5px', marginBottom: 11 }}>
-          <svg className="icon icon-sm"><use href="#i-cpu" /></svg> Máy 2 vừa trống – Đề xuất xử lý tiếp
+           <svg className="icon icon-sm"><use href="#i-cpu" /></svg> Đề xuất xử lý tiếp
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 15, padding: 15, background: 'linear-gradient(135deg,#f0ebff,#ede9fe)', borderRadius: 13, border: '1.5px solid #c4b5fd' }}>
-          <div style={{ fontSize: 36, fontWeight: 900, color: 'var(--pu)', lineHeight: 1 }}>#3</div>
-          <div style={{ flex: 1 }}>
-            <div style={{ fontSize: 17, fontWeight: 800, color: 'var(--tx)' }}>Lê Văn Nam</div>
-            <div style={{ fontSize: '11.5px', color: 'var(--ts)', marginTop: 3, display: 'flex', alignItems: 'center', gap: 5 }}>
-              <svg className="icon icon-sm" style={{ color: 'var(--tl)' }}><use href="#i-phone" /></svg>
-              0912 345 678 · Hẹn 18:00 · 3kg giặt thường · Chờ máy
-            </div>
-            <div style={{ fontSize: '11.5px', color: 'var(--pu)', fontWeight: 600, marginTop: 6, display: 'flex', alignItems: 'center', gap: 4 }}>
-              <svg className="icon icon-sm"><use href="#i-info" /></svg>
-              Lý do: Hẹn sớm nhất trong chờ · Máy 2 phù hợp · Cần ~55 phút
-            </div>
+           <div style={{ fontSize: 36, fontWeight: 900, color: 'var(--pu)', lineHeight: 1 }}>#{suggestedOrder.id}</div>
+           <div style={{ flex: 1 }}>
+             <div style={{ fontSize: 17, fontWeight: 800, color: 'var(--tx)' }}>{suggestedOrder.name}</div>
+             <div style={{ fontSize: '11.5px', color: 'var(--ts)', marginTop: 3, display: 'flex', alignItems: 'center', gap: 5 }}>
+               <svg className="icon icon-sm" style={{ color: 'var(--tl)' }}><use href="#i-phone" /></svg>
+               {suggestedOrder.phone} · Hẹn {suggestedOrder.deadline || 'chưa có'} · {suggestedOrder.kg}kg · {suggestedOrder.isWaiting ? 'Chờ máy' : 'Đang xử lý'}
+             </div>
+             <div style={{ fontSize: '11.5px', color: 'var(--pu)', fontWeight: 600, marginTop: 6, display: 'flex', alignItems: 'center', gap: 4 }}>
+               <svg className="icon icon-sm"><use href="#i-info" /></svg>
+               Lý do: {suggestedOrder.priorityReason ?? 'Theo schedule hiện tại'} · {suggestedOrder.nextAction ?? 'Kiểm tra công đoạn tiếp theo'}
+             </div>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
-            <button className="bp" onClick={() => openOrderModal({ name: 'Lê Văn Nam', deadline: '18:00', atRisk: false, svcType: 'dry', isWaiting: true })}>
+             <button className="bp" onClick={() => openOrderModal({ orderId: suggestedOrder.orderId, name: suggestedOrder.name, phone: suggestedOrder.phone, deadline: suggestedOrder.deadline, atRisk: suggestedOrder.atRisk, svcType: suggestedOrder.service, isWaiting: suggestedOrder.isWaiting })}>
               Xử lý đơn này <svg className="icon icon-sm"><use href="#i-arrow-right" /></svg>
             </button>
           </div>
         </div>
-      </div>
+      </div>}
 
       {/* At-risk orders */}
       {riskOrders.length > 0 && (
@@ -74,7 +79,7 @@ export default function QueuePage() {
           </div>
           <div className="olist">
             {riskOrders.map(order => (
-              <div key={order.id} className="orow risk" onClick={() => openOrderModal({ name: order.name, deadline: order.deadline, atRisk: true, svcType: order.service, isWaiting: order.isWaiting })}>
+               <div key={order.id} className="orow risk" onClick={() => openOrderModal({ orderId: order.orderId, name: order.name, phone: order.phone, deadline: order.deadline, atRisk: true, svcType: order.service, isWaiting: order.isWaiting })}>
                 <div className="opri rd">!</div>
                 <div style={{ flex: 1 }}>
                   <div className="oname">{order.name}</div>
@@ -104,22 +109,28 @@ export default function QueuePage() {
             <div
               key={order.id}
               className={`orow${order.atRisk ? ' risk' : ''}`}
-              onClick={() => openOrderModal({ name: order.name, deadline: order.deadline, atRisk: order.atRisk, svcType: order.service, isWaiting: order.isWaiting })}
+               onClick={() => openOrderModal({ orderId: order.orderId, name: order.name, phone: order.phone, deadline: order.deadline, atRisk: order.atRisk, svcType: order.service, isWaiting: order.isWaiting })}
             >
               <div className={`opri ${order.atRisk ? 'rd' : order.chipLabel === 'Gửi thông báo' ? 'am' : order.priority === 1 ? 'bl' : order.priority === 2 ? 'am' : 'gr'}`}>
                 {order.chipLabel === 'Gửi thông báo'
                   ? <svg className="icon icon-sm"><use href="#i-alert" /></svg>
                   : order.priority ?? ''}
               </div>
-              <div style={{ flex: 1 }}>
-                <div className="oname">{order.name}</div>
-                <div style={{ display: 'flex', gap: 5, marginTop: 5, flexWrap: 'wrap' }}>
+                <div style={{ flex: 1 }}>
+                  <div className="oname">#{order.id} · {order.name}</div>
+                  <div style={{ fontSize: '10.5px', color: 'var(--ts)', marginTop: 3 }}>
+                    {order.phone} · {order.kg}kg · {order.service === 'combo' ? 'Giặt + Sấy' : order.service === 'wash' ? 'Chỉ Giặt' : 'Chỉ Sấy'} · {order.nextAction ?? (order.isWaiting ? 'Chờ máy' : 'Đang xử lý')}
+                  </div>
+                  <div style={{ display: 'flex', gap: 5, marginTop: 5, flexWrap: 'wrap' }}>
                   {order.chipLabel && <span className="chip" style={order.chipStyle}>{order.chipLabel}</span>}
                   {order.atRisk && <span className="chip rk">Nguy cơ trễ</span>}
                   {!order.chipLabel && order.isWaiting && <span className="chip wt">Chờ máy</span>}
                 </div>
               </div>
-              <div className="otime">{order.deadlineFull || order.deadline}</div>
+                <div className="otime" style={{ textAlign: 'right' }}>
+                  <div>{order.deadline || 'Chưa hẹn'}</div>
+                  {order.estimatedAt && <div style={{ fontSize: '9.5px', marginTop: 2 }}>ETA {new Date(order.estimatedAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}</div>}
+                </div>
             </div>
           ))}
         </div>

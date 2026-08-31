@@ -13,7 +13,7 @@ interface NotifyCard {
 }
 
 export default function NotifyPage() {
-  const { showToast, orders } = useApp();
+  const { showToast } = useApp();
 
   const [notifiedList, setNotifiedList] = useState<NotifyCard[]>([]);
   const [pendingCards, setPendingCards] = useState<NotifyCard[]>([
@@ -23,8 +23,6 @@ export default function NotifyPage() {
       sent: false, bgColor: 'var(--pu)',
     },
   ]);
-
-  const processingCards = orders.filter(o => o.status === 'pending' && !o.isWaiting && o.id !== 'dqa');
 
   const sendNotify = (card: NotifyCard) => {
     // Xóa khỏi pending

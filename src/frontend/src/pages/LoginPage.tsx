@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { login } from '../api/auth';
+import { ApiRequestError } from '../api/client';
 
 interface LoginPageProps {
   onLogin: () => void;
@@ -9,21 +11,20 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
   const [showPwd, setShowPwd] = useState(false);
   const [showPwdReg, setShowPwdReg] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [email, setEmail] = useState('admin@washtrack.com');
+  const [password, setPassword] = useState('your-password');
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
-      onLogin();
-    }, 1000);
+    setError('');
+    try { await login(email, password); onLogin(); }
+    catch (cause) { setError(cause instanceof ApiRequestError ? cause.message : 'Không thể kết nối máy chủ'); }
+    finally { setLoading(false); }
   };
 
   const handleRegister = () => {
-    setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
-      onLogin();
-    }, 1000);
+    setError('Đăng ký tài khoản chưa được hỗ trợ trong prototype này.');
   };
 
   return (
@@ -93,13 +94,13 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
 
                 <div style={{ marginBottom: 20 }}>
                   <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: '#877ab4', marginBottom: 4 }}>Email</label>
-                  <input className="mat-input" type="email" defaultValue="admin@washtrack.com" />
+                    <input className="mat-input" type="email" value={email} onChange={e => setEmail(e.target.value)} />
                 </div>
 
                 <div style={{ marginBottom: 35 }}>
                   <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: '#877ab4', marginBottom: 4 }}>Mật khẩu</label>
                   <div style={{ position: 'relative' }}>
-                    <input className="mat-input" type={showPwd ? 'text' : 'password'} defaultValue="12345678" style={{ paddingRight: 30 }} />
+                    <input className="mat-input" type={showPwd ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)} style={{ paddingRight: 30 }} />
                     <div onClick={() => setShowPwd(v => !v)} style={{ position: 'absolute', right: 0, top: '50%', transform: 'translateY(-50%)', cursor: 'pointer', opacity: showPwd ? 1 : 0.6, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 16, height: 16, color: '#64748b' }}>
                         <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" />
@@ -107,6 +108,8 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
                     </div>
                   </div>
                 </div>
+
+                {error && <div role="alert" style={{ color: '#b91c1c', background: '#fef2f2', borderRadius: 8, padding: '9px 11px', fontSize: 12, marginBottom: 16 }}>{error}</div>}
 
                 <button className="pill-btn" onClick={handleLogin} disabled={loading}>
                   {loading ? '↻ Đang xử lý...' : 'Đăng nhập'}

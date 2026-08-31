@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useApp } from '../context/AppContext';
 import type { ModalOrderParams } from '../types';
+import { filterOrders } from '../utils/orderSearch';
+import OrderFilterBar from '../components/OrderFilterBar';
 
 // ─── Hero SVG (washing machine illustration) ───
 const HeroSVG = () => (
@@ -30,7 +32,7 @@ const HeroSVG = () => (
 );
 
 export default function DashboardPage() {
-  const { setCurrentPage, openM, orders, setOrderModalParams } = useApp();
+  const { setCurrentPage, openM, orders, setOrderModalParams, orderSearch, orderFilter } = useApp();
   const [shiftInfo, setShiftInfo] = useState({ name: '', timeRange: '', timeLeft: '', day: '' });
 
   // Tính thông tin ca làm việc
@@ -67,8 +69,10 @@ export default function DashboardPage() {
     openM('om');
   };
 
-  const pendingOrders = orders.filter(o => o.status === 'pending');
-  const riskOrders = orders.filter(o => o.atRisk && o.status === 'pending');
+  const visibleOrders = filterOrders(orders, orderSearch, orderFilter);
+  const pendingOrders = visibleOrders.filter(o => o.status === 'pending');
+  const riskOrders = visibleOrders.filter(o => o.atRisk && o.status === 'pending');
+  const suggestedOrder = pendingOrders[0];
 
   const stats = {
     today: orders.filter(o => o.status === 'pending').length + orders.filter(o => o.status === 'done').length,
@@ -118,6 +122,8 @@ export default function DashboardPage() {
         </div>
       )}
 
+      <OrderFilterBar />
+
       {/* Stats */}
       <div className="srow">
         <div className="scard pur"><div className="snum">{stats.today}</div><div className="slbl">Đơn hôm nay</div></div>
@@ -140,30 +146,30 @@ export default function DashboardPage() {
           </div>
 
           {/* Đề xuất xử lý tiếp */}
-          <div className="sugg">
+           {suggestedOrder ? <div className="sugg">
             <div className="sugg-lbl">
               <svg className="icon icon-sm"><use href="#i-cpu" /></svg> Đề xuất xử lý tiếp
             </div>
             <div className="sugg-row">
-              <div className="sugg-n">#3</div>
+               <div className="sugg-n">#{suggestedOrder.id}</div>
               <div className="sugg-info">
-                <div className="sugg-name">Lê Văn Nam</div>
-                <div className="sugg-meta">Hẹn 18:00 · Chờ máy · Máy 2 vừa trống</div>
+                 <div className="sugg-name">{suggestedOrder.name}</div>
+                 <div className="sugg-meta">{suggestedOrder.kg}kg · Hẹn {suggestedOrder.deadline || 'chưa có'} · {suggestedOrder.isWaiting ? 'Chờ máy' : 'Đang xử lý'}</div>
               </div>
-              <button className="bp" onClick={() => openOrderModal({ name: 'Lê Văn Nam', deadline: '18:00', atRisk: false, svcType: 'dry', isWaiting: true })}>
+                <button className="bp" onClick={() => openOrderModal({ orderId: suggestedOrder.orderId, name: suggestedOrder.name, phone: suggestedOrder.phone, deadline: suggestedOrder.deadline, atRisk: suggestedOrder.atRisk, svcType: suggestedOrder.service, isWaiting: suggestedOrder.isWaiting })}>
                 Xử lý ngay <svg className="icon icon-sm"><use href="#i-arrow-right" /></svg>
               </button>
-            </div>
-          </div>
-
-          {/* Order list (top 5) */}
+            </div></div> : <div style={{ color: 'var(--ts)', fontSize: 12, padding: 10 }}>Không có order phù hợp với bộ lọc hiện tại</div>}
+           {/* Order list (top 5) */}
           <div className="olist">
             {pendingOrders.slice(0, 5).map(order => (
               <div
                 key={order.id}
                 className={`orow${order.atRisk ? ' risk' : ''}`}
-                onClick={() => openOrderModal({
-                  name: order.name,
+                 onClick={() => openOrderModal({
+                   orderId: order.orderId,
+                   name: order.name,
+                   phone: order.phone,
                   deadline: order.deadline,
                   atRisk: order.atRisk,
                   svcType: order.service,
@@ -176,7 +182,10 @@ export default function DashboardPage() {
                     : order.priority ?? ''}
                 </div>
                 <div style={{ flex: 1 }}>
-                  <div className="oname">{order.name}</div>
+                  <div className="oname">#{order.id} · {order.name}</div>
+                  <div style={{ fontSize: '10.5px', color: 'var(--ts)', marginTop: 3 }}>
+                    {order.kg}kg · {order.service === 'combo' ? 'Giặt + Sấy' : order.service === 'wash' ? 'Chỉ Giặt' : 'Chỉ Sấy'} · {order.nextAction ?? (order.isWaiting ? 'Chờ máy' : 'Đang xử lý')}
+                  </div>
                   <div style={{ display: 'flex', gap: 5, marginTop: 5, flexWrap: 'wrap' }}>
                     {order.chipLabel && (
                       <span className="chip" style={order.chipStyle}>{order.chipLabel}</span>
@@ -184,7 +193,10 @@ export default function DashboardPage() {
                     {order.atRisk && <span className="chip rk">Nguy cơ trễ</span>}
                   </div>
                 </div>
-                <div className="otime">{order.deadline}</div>
+                <div className="otime" style={{ textAlign: 'right' }}>
+                  <div>{order.deadline || 'Chưa hẹn'}</div>
+                  {order.estimatedAt && <div style={{ fontSize: '9.5px', marginTop: 2 }}>ETA {new Date(order.estimatedAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}</div>}
+                </div>
               </div>
             ))}
           </div>

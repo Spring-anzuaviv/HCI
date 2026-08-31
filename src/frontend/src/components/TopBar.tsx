@@ -1,9 +1,7 @@
-import { useState } from 'react';
 import { useApp } from '../context/AppContext';
 
 export default function TopBar() {
-  const { config, openM, setCurrentPage } = useApp();
-  const [search, setSearch] = useState('');
+  const { config, openM, setCurrentPage, orderSearch, setOrderSearch } = useApp();
 
   const shopName = config.shopName || 'WashTrack';
   const parts = shopName.trim().split(' ');
@@ -18,8 +16,9 @@ export default function TopBar() {
         <input
           type="text"
           placeholder="Tìm kiếm đơn hàng, khách hàng…"
-          value={search}
-          onChange={e => setSearch(e.target.value)}
+          value={orderSearch}
+          onChange={e => setOrderSearch(e.target.value)}
+          onFocus={() => setCurrentPage('orders')}
         />
       </div>
 
