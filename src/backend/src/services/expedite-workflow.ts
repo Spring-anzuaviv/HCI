@@ -29,6 +29,35 @@ export function evaluateScheduleImpact(estimatedValue: unknown, pickupValue: unk
   };
 }
 
+export function isDeadlineBeforeEstimate(estimateValue: unknown, deadlineValue: unknown) {
+  const estimateAt = asDate(estimateValue);
+  const deadlineAt = asDate(deadlineValue);
+  return Boolean(estimateAt && deadlineAt && deadlineAt < estimateAt);
+}
+
+export function hasExpediteImpact(
+  currentEstimatedValue: unknown,
+  simulatedEstimatedValue: unknown,
+  currentImpact: ExpediteImpact,
+  proposedImpact: ExpediteImpact,
+  isTarget: boolean,
+) {
+  if (isTarget) return true;
+  const currentEstimatedAt = asDate(currentEstimatedValue);
+  const simulatedEstimatedAt = asDate(simulatedEstimatedValue);
+  const etaChanged = currentEstimatedAt?.getTime() !== simulatedEstimatedAt?.getTime();
+  return etaChanged || currentImpact !== proposedImpact;
+}
+
+export function hasBlockingExpediteImpact(impact: {
+  isTarget: boolean;
+  currentImpact: ExpediteImpact;
+  proposedImpact: ExpediteImpact;
+}) {
+  return !impact.isTarget
+    && impact.proposedImpact === "NOT_FEASIBLE";
+}
+
 function normalizedDate(value: unknown) {
   return asDate(value)?.toISOString() ?? null;
 }

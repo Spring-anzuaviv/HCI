@@ -173,7 +173,8 @@ export default function RightPanel() {
     return () => { active = false; };
   }, [store]);
 
-  const chartStats = hourlyStats.map((item, index) => ({ ...item, color: `b${index + 1}` }));
+  const chartColors = ['var(--pu)', 'var(--pk)', 'var(--bl)', 'var(--ye)'];
+  const chartStats = hourlyStats.map((item, index) => ({ ...item, color: chartColors[index % chartColors.length] }));
   const maxHourlyCount = Math.max(...chartStats.map(item => item.count), 1);
 
   return (
@@ -207,8 +208,8 @@ export default function RightPanel() {
           {chartStats.map(item => (
             <div className="bbar-g" key={item.label}>
               <div className="bnum">{item.count}</div>
-              <div className={`bbar ${item.color}`} style={{ height: `${Math.max(item.count / maxHourlyCount * 52, item.count ? 8 : 3)}px` }} />
-              <div className="blbl">{item.label}</div>
+               <div className="bbar" style={{ height: `${Math.max(item.count / maxHourlyCount * 52, item.count ? 8 : 3)}px`, background: item.color }} />
+               <div className="blbl" title={`${item.label}: ${item.count} đơn`}>{item.label}</div>
             </div>
           ))}
         </div>

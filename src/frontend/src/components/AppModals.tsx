@@ -10,6 +10,9 @@ import { startRun, completeRun, checkExpedite, confirmExpedite } from '../api/or
 import { useAsyncAction, useKeyedAsyncAction } from '../hooks/useAsyncAction';
 import { AlertTriangle, Check, CheckCircle2, Clock3, Info, LoaderCircle, Plus, Zap, X } from 'lucide-react';
 
+const ETA_BUFFER_MINUTES = 5;
+const PICKUP_SAFETY_MINUTES = 15;
+
 // ─── Modal Thêm đơn hàng ───
 export function AddOrderModal() {
   const { openModal, closeM, showToast, store, refreshOrders } = useApp();
@@ -123,16 +126,23 @@ export function AddOrderModal() {
           if (controller.signal.aborted) return;
           if (!result) { setCalcResult(null); return; }
           const eta = result.estimatedAt ? new Date(result.estimatedAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) : 'chưa xác định';
+          const recommendedPickup = result.estimatedAt
+            ? new Date(new Date(result.estimatedAt).getTime() + (PICKUP_SAFETY_MINUTES + 1) * 60_000)
+              .toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })
+            : null;
           const isRisk = result.result === 'AT_RISK' || result.result === 'NOT_FEASIBLE';
           let durationText = '';
           if (result.requiredMinutes) {
             const hrs = Math.floor(result.requiredMinutes / 60);
             const mins = result.requiredMinutes % 60;
             durationText = hrs > 0
-              ? ` · Mất khoảng ${hrs} giờ${mins > 0 ? ` ${mins} phút` : ''} để xử lý`
-              : ` · Mất khoảng ${mins} phút để xử lý`;
+              ? `Thời gian xử lý: khoảng ${hrs} giờ${mins > 0 ? ` ${mins} phút` : ''}`
+              : `Thời gian xử lý: khoảng ${mins} phút`;
           }
-           setCalcResult({ isRisk, text: `${result.reason}. Dự kiến xong: ${eta}${durationText}.` });
+          const timingText = recommendedPickup
+            ? `Dự kiến xong: ${eta}\nĐã cộng thêm ${ETA_BUFFER_MINUTES} phút thời gian đệm\nĐể đảm bảo đúng hẹn, nên chọn giờ lấy từ ${recommendedPickup} trở đi`
+            : `Dự kiến xong: ${eta}`;
+          setCalcResult({ isRisk, text: `${result.reason}.\n${timingText}${durationText ? `\n${durationText}` : ''}` });
         })
         .catch(error => {
           if (error?.name === 'AbortError') return;
@@ -236,7 +246,7 @@ export function AddOrderModal() {
         {!isSplit && <div id="add-calc" style={{
           background: calcResult ? (calcResult.isRisk ? '#fef2f2' : '#f0fdf4') : '#f1f5f9',
           borderRadius: 9, padding: '11px 14px', marginBottom: 14,
-          fontSize: '11.5px', color: calcResult ? (calcResult.isRisk ? '#991b1b' : '#166534') : 'var(--ts)',
+           fontSize: '11.5px', color: calcResult ? (calcResult.isRisk ? '#991b1b' : '#166534') : 'var(--ts)', whiteSpace: 'pre-line',
         }}>
            {calcResult ? <><CalcIcon className={`icon icon-sm${calcResult.loading ? ' oq-spin' : ''}`} aria-hidden="true" /> {calcResult.text}</> : <><strong>Dự tính:</strong> Vui lòng nhập thông tin để hệ thống kiểm tra giờ.</>}
         </div>}
@@ -787,6 +797,9 @@ export function OrderDetailModal() {
 
   // order = detail API (có stage data đầy đủ) > fallback context (hiển ngay)
   const order = detail ?? orderFromContext;
+  const groupedOrders = order?.groupCode ? orders.filter(item => item.groupCode === order.groupCode) : [];
+  const isGroupedOrder = Boolean(order?.groupCode);
+  const groupLabel = groupedOrders.length > 0 ? `ĐƠN NHÓM · ${groupedOrders.length} MẺ` : 'ĐƠN NHÓM';
   const timingWarning = orderTimingWarning(order, now, p?.deadline);
 
   const actualSvc = order?.serviceType === 'WASH_DRY' ? 'combo' : order?.serviceType === 'DRY' ? 'dry' : order?.serviceType === 'WASH' ? 'wash' : p?.svcType;
@@ -947,6 +960,27 @@ export function OrderDetailModal() {
     return detail?.nextAction ?? 'Kiểm tra công đoạn tiếp theo';
   })();
 
+  const expediteImpacts = expediteCheck?.impacts ?? [];
+
+  const renderExpediteImpact = (impact: any) => {
+    const kind = impact.isTarget ? 'target' : impact.isSameGroup ? 'group' : 'other';
+    const kindLabel = impact.isTarget ? 'Đơn được đôn' : impact.isSameGroup ? 'Đơn cùng nhóm' : 'Đơn ảnh hưởng khác';
+    return (
+    <div key={impact.orderId} style={{
+      display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8,
+      fontSize: 11, lineHeight: 1.5, padding: '6px 8px', color: '#475569',
+      background: kind === 'target' ? '#f5f3ff' : kind === 'group' ? '#eff6ff' : '#f8fafc',
+      borderLeft: `3px solid ${kind === 'target' ? '#7c3aed' : kind === 'group' ? '#2563eb' : '#94a3b8'}`,
+      borderRadius: 4,
+    }}>
+      <span><strong>#{impact.orderId}</strong> · {impact.customer?.name ?? 'Khách hàng'} <small style={{ color: kind === 'target' ? '#6d28d9' : kind === 'group' ? '#1d4ed8' : '#64748b', fontWeight: 700 }}>· {kindLabel}</small></span>
+      <span style={{ whiteSpace: 'nowrap', fontWeight: 700, color: impact.proposedImpact === 'NOT_FEASIBLE' ? '#b45309' : impact.proposedImpact === 'AT_RISK' ? '#a16207' : '#15803d' }}>
+        {expediteImpactLabel(impact.proposedImpact)}
+      </span>
+    </div>
+    );
+  };
+
   return (
     <div className={`mov${isOpen ? ' open' : ''}`} id="om" onClick={() => closeM('om')}>
       <div className="modal" onClick={e => e.stopPropagation()}>
@@ -968,7 +1002,8 @@ export function OrderDetailModal() {
             <div style={{ fontSize: '10.5px', color: 'var(--tl)' }}>Giờ hẹn lấy</div>
           </div>
         </div>
-        {order?.groupCode && <div className="order-group-eta"><span>Mẻ này dự kiến xong</span><strong>{safeFormatTime(order.estimatedAt)}</strong><span>Cả nhóm dự kiến xong</span><strong>{safeFormatTime(order.groupETA)}</strong></div>}
+        {isGroupedOrder && <div className="order-group-context"><strong>{groupLabel}</strong><span>Các mẻ vẫn có thứ tự riêng trong hàng đợi.</span><span>Đôn mẻ này sẽ mô phỏng và áp dụng cho toàn bộ nhóm.</span></div>}
+        {isGroupedOrder && <div className="order-group-eta"><span>Mẻ này dự kiến xong</span><strong>{safeFormatTime(order.estimatedAt)}</strong><span>Cả nhóm dự kiến xong</span><strong>{safeFormatTime(order.groupETA)}</strong></div>}
 
         {/* Progress steps */}
         <div style={{ display: 'flex', margin: '14px 0' }}>
@@ -1045,23 +1080,27 @@ export function OrderDetailModal() {
                 <div style={{ fontSize: 12, color: '#475569', marginBottom: 4 }}>
                    → Giờ hẹn mới: <strong style={{ color: expediteCheck.feasibility === 'ON_TIME' ? '#15803d' : '#c2410c' }}>{new Date(expediteCheck.newPickupAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}</strong>
                 </div>
-                <div style={{ fontSize: 11, color: expediteCheck.feasibility === 'ON_TIME' ? '#15803d' : '#c2410c', marginBottom: 4 }}>
-                  {expediteCheck.feasibility === 'ON_TIME' ? 'Giờ hẹn mới giúp đơn không còn trễ.' : 'Giờ hẹn này vẫn chưa đủ để loại bỏ tình trạng trễ.'}
-                </div>
-                <div style={{ fontSize: 11, color: '#475569' }}>
-                  <strong>Tác động:</strong> {expediteCheck.summary?.affectedOrders || 0} đơn bị ảnh hưởng (Trễ: {expediteCheck.summary?.notFeasibleOrders || 0}, Cảnh báo: {expediteCheck.summary?.atRiskOrders || 0})
-                </div>
-                {expediteCheck.impacts?.length > 0 && (
-                  <div style={{ marginTop: 9, borderTop: '1px solid #e2e8f0', paddingTop: 7 }}>
-                    <div style={{ fontSize: 11, fontWeight: 700, color: '#334155', marginBottom: 4 }}>Các đơn bị ảnh hưởng</div>
-                    {expediteCheck.impacts.map((impact: any) => (
-                      <div key={impact.orderId} style={{ display: 'flex', justifyContent: 'space-between', gap: 8, fontSize: 11, lineHeight: 1.5, padding: '3px 0', color: '#475569' }}>
-                        <span><strong>#{impact.orderId}</strong> · {impact.customer?.name ?? 'Khách hàng'}{impact.isTarget ? ' · Đơn được đôn' : impact.isSameGroup ? ' · Cùng nhóm' : ''}</span>
-                        <span style={{ whiteSpace: 'nowrap', fontWeight: 700, color: impact.proposedImpact === 'NOT_FEASIBLE' ? '#b45309' : impact.proposedImpact === 'AT_RISK' ? '#a16207' : '#15803d' }}>{expediteImpactLabel(impact.proposedImpact)}</span>
-                      </div>
-                    ))}
-                  </div>
-                )}
+                 <div style={{ fontSize: 11, color: expediteCheck.feasibility === 'ON_TIME' ? '#15803d' : '#c2410c', marginBottom: 4 }}>
+                   {expediteCheck.targetDeadlineTooEarly
+                     ? 'Giờ hẹn mới sớm hơn giờ dự kiến hoàn thành của đơn này.'
+                     : expediteCheck.feasibility === 'ON_TIME'
+                       ? 'Giờ hẹn mới giúp đơn không còn trễ.'
+                       : 'Giờ hẹn này vẫn chưa đủ để loại bỏ tình trạng trễ.'}
+                 </div>
+                 <div style={{ fontSize: 11, color: '#475569' }}>
+                   <strong>Tác động:</strong> {expediteCheck.summary?.affectedOrders || 0} đơn bị ảnh hưởng (Trễ: {expediteCheck.summary?.notFeasibleOrders || 0}, Cảnh báo: {expediteCheck.summary?.atRiskOrders || 0})
+                 </div>
+                 {expediteCheck.blockingImpacts?.length > 0 && (
+                   <div style={{ fontSize: 11, color: '#b45309', fontWeight: 700, marginTop: 6 }}>
+                     Không thể đôn: lần dời này sẽ làm {expediteCheck.blockingImpacts.length} đơn khác trễ hẹn.
+                   </div>
+                 )}
+                 {expediteImpacts.length > 0 && (
+                    <div style={{ marginTop: 9, borderTop: '1px solid #e2e8f0', paddingTop: 7 }}>
+                      <div style={{ fontSize: 11, fontWeight: 700, color: '#334155', marginBottom: 6 }}>{isGroupedOrder ? 'Các mẻ và đơn bị ảnh hưởng' : 'Các đơn bị ảnh hưởng'}</div>
+                      {expediteImpacts.map((impact: any) => renderExpediteImpact(impact))}
+                    </div>
+                  )}
               </div>
             )}
             
@@ -1070,8 +1109,8 @@ export function OrderDetailModal() {
             </div>
             <div style={{ display: 'flex', gap: 8 }}>
               <button className="bs" onClick={() => { setShowExpedite(false); setExpediteCheck(null); setExpediteTime(''); setExpediteReason(''); }}>Hủy</button>
-              <button className="bp" style={{ background: '#7c3aed', color: '#fff', flex: 1 }} onClick={handleConfirmExpedite} disabled={modalBusy || !expediteReason || !expediteCheck || expediteCheck.feasibility !== 'ON_TIME'}>
-                Xác nhận đổi giờ
+                 <button className="bp" style={{ background: '#7c3aed', color: '#fff', flex: 1 }} onClick={handleConfirmExpedite} disabled={modalBusy || !expediteReason || !expediteCheck || !expediteCheck.canConfirm}>
+                 {isGroupedOrder ? 'Xác nhận đôn cả nhóm' : 'Xác nhận đôn đơn'}
               </button>
             </div>
           </div>

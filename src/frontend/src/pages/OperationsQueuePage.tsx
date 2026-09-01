@@ -132,13 +132,14 @@ export function QueueRow({ item, now, onOpen, onExpedite }: { item: QueueItem; n
   const timeTags = timingTags(item, now);
   const machineWait = Boolean(machineCountdown && !machineCountdown.late);
   const machineDone = isRunning && Boolean(machineCountdown?.late);
+  const isGrouped = Boolean(item.groupCode);
   return (
     <div className={`oq-task-card oq-state-${state.key}${risk === 'late' ? ' late' : risk === 'risk' ? ' risk' : ''}`} onClick={onOpen} role="button" tabIndex={0} onKeyDown={event => { if (event.key === 'Enter' || event.key === ' ') onOpen(); }}>
       <div className="oq-task-layout">
         <div className="oq-task-summary">
           <div className="oq-task-identity">
             <span className="oq-state-icon"><StateIcon size={20} strokeWidth={2.2} aria-hidden="true" /></span>
-            <span className="oq-task-title-group"><span className="oq-task-name">#{item.orderId} · {item.customer?.name ?? 'Khách'}</span><span className="oq-state-label">{state.label}{state.automatic && <em>TỰ ĐỘNG</em>}</span></span>
+            <span className="oq-task-title-group"><span className="oq-task-name">#{item.orderId} · {item.customer?.name ?? 'Khách'}</span><span className="oq-state-label">{state.label}{state.automatic && <em>TỰ ĐỘNG</em>}</span>{isGrouped && <span className="oq-group-badge">ĐƠN NHÓM</span>}</span>
           </div>
           <div className="oq-task-meta"><span>{statusText(item)}</span><span>{SERVICE_LABELS[item.serviceType] ?? item.serviceType}</span><span>{item.weightKg} kg</span></div>
         </div>
@@ -173,21 +174,21 @@ function PrimaryAction({ item, onOpen, tone, waitingForMachine, machineDone }: {
   };
   if (item.status === 'WASHING' || item.status === 'DRYING') {
     const machineLabel = item.status === 'WASHING' ? 'MÁY GIẶT' : 'MÁY SẤY';
+    const machineName = (item.machineName ?? machineLabel).toUpperCase();
     if (!machineDone) {
-      const machineName = (item.machineName ?? machineLabel).toUpperCase();
       return <button type="button" className={`oq-row-action oq-action-${tone} oq-action-waiting`} disabled>CHỜ {machineName} XONG</button>;
     }
-    return <button type="button" className={`oq-row-action oq-action-${tone}`} disabled={loading} onClick={event => { event.stopPropagation(); void runAction(() => completeRun(item.orderStageId!), `Đã lấy đồ ra khỏi máy cho #${item.orderId}`); }}>{loading ? 'ĐANG LƯU...' : `LẤY ĐỒ RA KHỎI ${machineLabel}`}</button>;
+    return <button type="button" className={`oq-row-action oq-action-${tone}`} disabled={loading} onClick={event => { event.stopPropagation(); void runAction(() => completeRun(item.orderStageId!), `Đã lấy đồ ra khỏi máy cho #${item.orderId}`); }}>{loading ? 'ĐANG LƯU...' : `ĐÃ LẤY ĐỒ RA KHỎI ${machineName}`}</button>;
   }
   if (item.status === 'WAITING' && (item.nextStage === 'WASH' || item.nextStage === 'DRY') && !item.machineId) {
     const machineLabel = item.nextStage === 'WASH' ? 'GIẶT' : 'SẤY';
     return <button type="button" className={`oq-row-action oq-action-${tone} oq-action-waiting`} disabled>CHỜ {machineLabel} XONG</button>;
   }
   if (item.status === 'WAITING' && (item.nextStage === 'WASH' || item.nextStage === 'DRY') && item.machineId) {
-    return <button type="button" className={`oq-row-action oq-action-${tone}`} disabled={loading || waitingForMachine} onClick={event => { event.stopPropagation(); void runAction(() => startRun(item.orderId, item.nextStage!, item.machineId!), `Đã đưa #${item.orderId} vào ${item.machineName ?? 'máy'}`); }}>{loading ? 'ĐANG LƯU...' : waitingForMachine ? 'CHỜ MÁY TRỐNG' : `XÁC NHẬN ${actionText(item)}`}</button>;
+    return <button type="button" className={`oq-row-action oq-action-${tone}${waitingForMachine ? ' oq-action-waiting' : ''}`} disabled={loading || waitingForMachine} onClick={event => { event.stopPropagation(); void runAction(() => startRun(item.orderId, item.nextStage!, item.machineId!), `Đã đưa #${item.orderId} vào ${item.machineName ?? 'máy'}`); }}>{loading ? 'ĐANG LƯU...' : waitingForMachine ? 'CHỜ MÁY TRỐNG' : `ĐÃ ĐƯA ĐỒ VÀO ${item.machineName?.toUpperCase() ?? (item.nextStage === 'WASH' ? 'MÁY GIẶT' : 'MÁY SẤY')}`}</button>;
   }
   if (item.status === 'RECEIVED' || item.status === 'FOLDING_PACKING' || item.nextStage === 'TRANSFER') {
-    const label = item.status === 'FOLDING_PACKING' || item.nextStage === 'PACKING' ? 'XÁC NHẬN HOÀN THÀNH' : item.nextStage === 'TRANSFER' ? 'XÁC NHẬN ĐƯA VÀO MÁY SẤY' : 'XÁC NHẬN PHÂN LOẠI';
+    const label = item.status === 'FOLDING_PACKING' || item.nextStage === 'PACKING' ? 'ĐÃ XẾP VÀ ĐÓNG GÓI' : item.nextStage === 'TRANSFER' ? 'ĐÃ CHUYỂN ĐỒ SANG MÁY SẤY' : 'ĐÃ PHÂN LOẠI';
     return <button type="button" className={`oq-row-action oq-action-${tone}`} disabled={loading} onClick={event => { event.stopPropagation(); void runAction(async () => { const result = await startRun(item.orderId, item.nextStage!, 0); if (result?.orderStageId) await completeRun(result.orderStageId); }, `Đã cập nhật #${item.orderId}`); }}>{loading ? 'ĐANG LƯU...' : label}</button>;
   }
   return <button type="button" className={`oq-row-action secondary oq-action-${tone}`} onClick={event => { event.stopPropagation(); onOpen(); }}>XEM</button>;
@@ -204,7 +205,7 @@ function SuggestionCard({ item, now, onOpen }: { item: QueueItem; now: number; o
           <div className="sugg-name">{item.customer?.name ?? 'Khách hàng'}</div>
           <div className="sugg-meta"><span>{statusText(item)}</span><span>{SERVICE_LABELS[item.serviceType] ?? item.serviceType}</span><span>{item.weightKg} kg</span><span>Hẹn lấy {formatTime(item.pickupAt, 'chưa hẹn')}</span></div>
           <div className="oq-suggestion-reason"><Info className="icon icon-sm" aria-hidden="true" />Việc cần làm: <strong>{actionText(item)}</strong>{countdown ? ` · Bắt đầu sau ${countdown.text}` : ''}</div>
-          <div className="oq-priority-reason"><Info size={13} aria-hidden="true" /> <span>Lý do ưu tiên: {item.priorityReason || 'Theo thứ tự hàng đợi hiện tại'}</span></div>
+          {/* <div className="oq-priority-reason"><Info size={13} aria-hidden="true" /> <span>Lý do ưu tiên: {item.priorityReason || 'Theo thứ tự hàng đợi hiện tại'}</span></div> */}
         </div>
          <button type="button" className="bp oq-reference-button" onClick={onOpen}>Xử lý đơn này <ArrowRight className="icon icon-sm" aria-hidden="true" /></button>
       </div>

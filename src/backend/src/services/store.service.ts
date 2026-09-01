@@ -100,12 +100,15 @@ export async function stats(storeId: number) {
   const today = new Date(); today.setHours(0, 0, 0, 0);
   const tomorrow = new Date(today); tomorrow.setDate(tomorrow.getDate() + 1);
   const todayOrders = orders.filter(order => order.createdAt >= today);
-  const hourlyBreakdown = [
-    { label: "08–10h", start: 8, end: 10 },
-    { label: "10–12h", start: 10, end: 12 },
-    { label: "12–14h", start: 12, end: 14 },
-    { label: "14–16h", start: 14, end: 16 },
-  ].map(({ label, start, end }) => ({
+  const hourlyBreakdown = Array.from({ length: 4 }, (_, index) => {
+    const start = index * 6;
+    const end = start + 6;
+    return {
+      label: `${String(start).padStart(2, "0")}–${String(end).padStart(2, "0")}h`,
+      start,
+      end,
+    };
+  }).map(({ label, start, end }) => ({
     label,
     count: orders.filter(order => {
       const createdAt = order.createdAt;

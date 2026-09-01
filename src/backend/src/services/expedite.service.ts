@@ -6,6 +6,9 @@ import { generateSchedule, checkDeadlineFeasibility } from "./scheduling.service
 import {
   createSimulationToken,
   evaluateScheduleImpact,
+  hasBlockingExpediteImpact,
+  hasExpediteImpact,
+  isDeadlineBeforeEstimate,
   getExpediteOrderIds,
   getSimulationDataProblems,
 } from "./expedite-workflow.js";
@@ -118,7 +121,7 @@ function simulateExpedite(
     throw error;
   }
   const scheduleByOrderId = new Map(schedule.map((item) => [item.orderId, item]));
-  const impacts = orders
+  const impactRows = orders
     .map((order) => {
       const simulated = scheduleByOrderId.get(order.orderId);
       if (!simulated) return null;
@@ -127,16 +130,22 @@ function simulateExpedite(
       const proposed = evaluateScheduleImpact(simulated.estimatedAt, proposedPickupAt);
       const currentEstimatedTime = order.estimatedAt?.getTime?.() ?? null;
       const simulatedEstimatedTime = simulated.estimatedAt?.getTime?.() ?? null;
-      const etaChanged = currentEstimatedTime !== simulatedEstimatedTime;
-       if (!isTargetGroupOrder(order) && !etaChanged && current.impact === proposed.impact)
-         return null;
-       return {
+      const isTarget = order.orderId === orderId;
+      if (!hasExpediteImpact(
+        order.estimatedAt,
+        simulated.estimatedAt,
+        current.impact,
+        proposed.impact,
+        isTarget || isTargetGroupOrder(order),
+      ))
+        return null;
+      return {
         orderId: order.orderId,
         customer: order.customer
           ? { name: order.customer.name, phone: order.customer.phone }
           : null,
-         isTarget: order.orderId === orderId,
-         isSameGroup: isTargetGroupOrder(order) && order.orderId !== orderId,
+        isTarget,
+        isSameGroup: isTargetGroupOrder(order) && !isTarget,
         currentPickupAt: order.pickupAt,
         proposedPickupAt,
         currentEstimatedAt: order.estimatedAt,
@@ -152,7 +161,12 @@ function simulateExpedite(
       };
     })
     .filter((item): item is NonNullable<typeof item> => Boolean(item));
-  return { schedule, impacts };
+  const targetImpact = impactRows.find((item) => item.orderId === orderId);
+  const targetDeadlineTooEarly = Boolean(
+    targetImpact && isDeadlineBeforeEstimate(targetImpact.simulatedEstimatedAt, targetImpact.proposedPickupAt),
+  );
+  const impacts = impactRows.filter((item) => !(item.isTarget && targetDeadlineTooEarly));
+  return { schedule, impacts, targetImpact, targetDeadlineTooEarly };
 }
 
 export async function check(orderId: number, storeId: number, newPickupAt: string) {
@@ -173,7 +187,8 @@ export async function check(orderId: number, storeId: number, newPickupAt: strin
     throw new ApiError(409, "ORDER_COMPLETED", "Đơn đã sẵn sàng lấy hoặc hoàn tất, không thể thay đổi giờ lấy");
   const pickupAt = validatePickupChange(order, newPickupAt, now);
   const simulation = simulateExpedite(orderId, orders, machines, pickupAt, now);
-  const targetImpact = simulation.impacts.find((item) => item.orderId === orderId)!;
+  const targetImpact = simulation.targetImpact!;
+  const blockingImpacts = simulation.impacts.filter(hasBlockingExpediteImpact);
   return {
     orderId,
     currentPickupAt: order.pickupAt,
@@ -181,11 +196,15 @@ export async function check(orderId: number, storeId: number, newPickupAt: strin
     simulationToken: createSimulationToken(orders, machines, orderId, pickupAt),
     targetImpact,
     impacts: simulation.impacts,
+    blockingImpacts,
+    canConfirm: targetImpact.proposedImpact === "ON_TIME" && blockingImpacts.length === 0,
+    targetDeadlineTooEarly: simulation.targetDeadlineTooEarly,
     summary: {
       affectedOrders: simulation.impacts.length,
       onTimeOrders: simulation.impacts.filter((item) => item.proposedImpact === "ON_TIME").length,
       atRiskOrders: simulation.impacts.filter((item) => item.proposedImpact === "AT_RISK").length,
       notFeasibleOrders: simulation.impacts.filter((item) => item.proposedImpact === "NOT_FEASIBLE").length,
+      blockingOrders: blockingImpacts.length,
     },
     feasibility: targetImpact.proposedImpact,
     newEstimatedAt: targetImpact.simulatedEstimatedAt,
@@ -232,7 +251,13 @@ export async function apply(
     const currentToken = createSimulationToken(orders, machines, orderId, pickupAt);
     if (currentToken !== simulationToken)
       throw new ApiError(409, "QUEUE_CHANGED", "Hàng đợi đã thay đổi, cần mô phỏng lại trước khi xác nhận");
-    simulateExpedite(orderId, orders, machines, pickupAt, now);
+    const simulation = simulateExpedite(orderId, orders, machines, pickupAt, now);
+    const targetImpact = simulation.targetImpact;
+    if (!targetImpact || targetImpact.proposedImpact !== "ON_TIME")
+      throw new ApiError(409, "EXPEDITE_NOT_FEASIBLE", "Giờ hẹn mới vẫn không đảm bảo đơn được đôn đúng giờ");
+    const blockingImpacts = simulation.impacts.filter(hasBlockingExpediteImpact);
+    if (blockingImpacts.length > 0)
+      throw new ApiError(409, "EXPEDITE_WOULD_DELAY_ORDERS", "Không thể đôn vì sẽ làm đơn khác trễ hẹn");
     const updated = await tx.laundryOrder.updateMany({
       where: {
         storeId,

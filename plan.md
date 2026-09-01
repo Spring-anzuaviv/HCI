@@ -203,6 +203,7 @@ Form tách đơn hiện hiển thị ETA từng mẻ và ETA hoàn tất nhóm n
 Đã tách tính trễ công đoạn khỏi thời gian dự phòng giờ hẹn: đơn mới chỉ trễ sau khi hết `SORTING_TIME`, stage máy dùng thời điểm bắt đầu thực tế cộng thời lượng máy, và queue hiển thị `taskDelayMinutes` riêng với `slackMinutes`.
 Đã bổ sung phân biệt trực quan cho từng trạng thái hàng chờ bằng icon Lucide, màu nền và nhãn chữ: phân loại, chờ máy, đang giặt, chuyển sấy, đang sấy, xếp đồ và hoàn thành; trạng thái giặt/sấy được đánh dấu `TỰ ĐỘNG`.
 Đã đổi vùng `Việc cần làm` thành box, tách badge `Còn` và `Trễ` bằng màu xanh dương/cam nhạt, bổ sung lý do ưu tiên và các chip thông tin để tránh dính nội dung. Card hàng đợi có nút `ĐÔN ĐƠN`; chi tiết đơn có thao tác workflow, đôn đơn và hủy đơn, tự chọn máy nền thay vì hiển thị dropdown chọn máy.
+Đã làm rõ phạm vi đôn đơn nhóm trong UI: các mẻ vẫn hiển thị thành card riêng và giữ thứ tự ưu tiên riêng; card có nhãn `ĐƠN NHÓM`, nút `ĐÔN CẢ NHÓM`, modal nêu rõ toàn bộ nhóm được mô phỏng và cập nhật cùng nhau.
 Đã tái bố cục card đơn hàng theo 3 vùng ngang trên desktop: thông tin đơn, việc cần làm/lý do ưu tiên và thời gian/thao tác; tablet dùng 2 cột, mobile xếp dọc để bảo toàn khả năng đọc.
 Đã tách câu nhắc nhở thành các phần màu riêng: hành động trung tính, tên máy xanh đậm và thời gian indigo; tên máy và mốc giờ không còn dính vào phần hướng dẫn chung.
 Đã dùng chung `QueueRow` của trang Hàng đợi cho khu vực hàng đợi trên Tổng quan; Tổng quan chỉ hiển thị 5 đơn đầu theo thứ tự queue và vẫn có liên kết mở toàn bộ hàng đợi. Trang Hàng đợi được tải cùng bundle vì component card được dùng ngay trên Tổng quan.
@@ -221,12 +222,19 @@ Khi countdown của máy giặt/sấy đã hết, card hiển thị lại nút t
 
 Đã bổ sung trường ngày hẹn trong modal tạo đơn. Preview, kiểm tra deadline và payload tạo đơn hiện ghép ngày với giờ theo thời điểm cục bộ; ngày quá khứ bị chặn để tránh hiểu nhầm `AM/PM` thành giờ của ngày hiện tại.
 
+### Trạng thái 2026-09-02
+
+Đã mở rộng thống kê theo giờ trong panel phải từ 4 khoảng `08–16h` thành 4 khoảng 6 giờ phủ đủ ngày `00–24h`; giữ chức năng chỉnh ca trong Cài đặt và không hiển thị trigger chỉnh ca trong sidebar.
+
 Đã bỏ thao tác `Hủy đơn` khỏi chi tiết đơn hàng và chuẩn hóa phần `Việc cần làm tiếp theo` theo trạng thái thực tế của workflow, đồng nhất với Hàng đợi: phân loại, đưa vào máy, lấy đồ ra, chuyển sang máy sấy hoặc xếp đồ.
 
 Đã cập nhật luồng `Đôn đơn`: nếu đơn thuộc nhóm tách mẻ, mô phỏng và cập nhật giờ hẹn cho toàn bộ mẻ đang hoạt động cùng `groupCode`; kết quả mô phỏng hiển thị từng đơn bị ảnh hưởng với mã đơn, tên khách và mức tác động.
 
 Đã bổ sung nút `Chỉnh giờ hẹn` trong chi tiết đơn: cho phép dời giờ lấy muộn hơn theo các mốc nhanh hoặc giờ nhập thủ công, mô phỏng lịch trước khi lưu và chỉ xác nhận khi kết quả mới là `Đúng giờ`.
 Đã đồng bộ cách gọi thời gian giữa chi tiết đơn và Hàng đợi: phân biệt `Trễ tiến độ`, `Nguy cơ trễ hẹn` và `Cảnh báo trễ hẹn`; không dùng cảnh báo trễ hẹn cho trường hợp mới quá ETA công đoạn nhưng chưa quá giờ khách hẹn.
+Đã tách đơn bị ảnh hưởng thực sự khi dời giờ khỏi đơn vốn đã trễ; nếu mô phỏng làm đơn khác (kể cả cùng `groupCode`) chuyển sang trễ hẹn, cả UI và backend đều không cho xác nhận.
+Nếu giờ hẹn mới sớm hơn ETA dự kiến của chính đơn mục tiêu, hệ thống hiển thị cảnh báo riêng và không đưa đơn mục tiêu vào danh sách đơn bị ảnh hưởng.
+Danh sách tác động trong modal giữ một thứ tự duy nhất và phân biệt `Đơn được đôn`, `Đơn cùng nhóm` và `Đơn ảnh hưởng khác` ngay trên từng dòng bằng nhãn, nền và viền riêng.
 Thanh tiến trình chi tiết đơn ưu tiên `actualStartedAt` để hiển thị giờ bắt đầu thực tế; nếu công đoạn chưa bắt đầu thì dùng `plannedStartAt`, kèm tooltip phân biệt hai loại giờ.
 Banner Tổng quan ngoài giờ làm hiển thị giờ hiện tại thay cho giá trị `--`; Tổng quan cũng hiển thị danh sách đơn `AT_RISK` và `NOT_FEASIBLE` bằng cùng `QueueRow` như Hàng đợi.
 

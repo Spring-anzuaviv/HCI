@@ -418,13 +418,18 @@ Request:
 }
 ```
 
-Response gồm `newEstimatedAt`, `groupETA`, `feasibility`, `affectedOrders` và
-`reason`.
+Response gồm `newEstimatedAt`, `groupETA`, `feasibility`, `affectedOrders`,
+`blockingImpacts`, `canConfirm` và `reason`. `affectedOrders` chỉ gồm các đơn
+có ETA hoặc mức tác động thay đổi bởi lần dời; đơn vốn đã trễ nhưng không bị
+thay đổi không được tính. `canConfirm` là `false` nếu đơn mục tiêu chưa đúng
+giờ hoặc lần dời làm đơn khác trễ hẹn.
 
 ### POST `/orders/:orderId/expedite/confirm`
 
 Áp dụng giờ lấy mới sau khi nhân viên đã xem preview. Nếu order thuộc group,
 `pickupAt` được cập nhật cho toàn bộ group, sau đó schedule được tính lại.
+Backend từ chối nếu preview làm đơn khác chuyển sang trễ hẹn hoặc đơn mục tiêu
+vẫn không đúng giờ.
 
 Request:
 

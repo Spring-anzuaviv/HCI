@@ -10,7 +10,12 @@ import {
 } from "./machine-workflow.js";
 import { getWorkflowStages, requiredMachineType } from "./scheduling.service.js";
 import { collapseNotificationGroups } from "./notification.service.js";
-import { getExpediteOrderIds } from "./expedite-workflow.js";
+import {
+  getExpediteOrderIds,
+  hasBlockingExpediteImpact,
+  hasExpediteImpact,
+  isDeadlineBeforeEstimate,
+} from "./expedite-workflow.js";
 import { buildQueueSnapshot } from "./queue.service.js";
 
 test("workflow dịch vụ giữ đúng thứ tự công đoạn", () => {
@@ -63,6 +68,52 @@ test("đơn tách chỉ tạo một card thông báo cho cả nhóm", () => {
   assert.equal(cards[0].groupCount, 2);
   assert.deepEqual(cards[0].orderIds, [39, 40]);
   assert.equal(cards[1].groupCount, 1);
+});
+
+test("chỉ phân biệt đơn bị thay đổi bởi lần dời, không tính đơn vốn đã trễ", () => {
+  assert.equal(hasExpediteImpact(
+    new Date("2026-09-01T09:20:00.000Z"),
+    new Date("2026-09-01T09:20:00.000Z"),
+    "NOT_FEASIBLE",
+    "NOT_FEASIBLE",
+    false,
+  ), false);
+  assert.equal(hasExpediteImpact(
+    new Date("2026-09-01T09:00:00.000Z"),
+    new Date("2026-09-01T09:20:00.000Z"),
+    "ON_TIME",
+    "NOT_FEASIBLE",
+    false,
+  ), true);
+});
+
+test("không cho đôn nếu lần dời làm đơn khác trễ hẹn", () => {
+  assert.equal(hasBlockingExpediteImpact({
+    isTarget: false,
+    currentImpact: "ON_TIME",
+    proposedImpact: "NOT_FEASIBLE",
+  }), true);
+  assert.equal(hasBlockingExpediteImpact({
+    isTarget: false,
+    currentImpact: "NOT_FEASIBLE",
+    proposedImpact: "NOT_FEASIBLE",
+  }), true);
+  assert.equal(hasBlockingExpediteImpact({
+    isTarget: false,
+    currentImpact: "ON_TIME",
+    proposedImpact: "AT_RISK",
+  }), false);
+});
+
+test("giờ hẹn sớm hơn ETA được cảnh báo riêng, không phải đơn bị ảnh hưởng", () => {
+  assert.equal(isDeadlineBeforeEstimate(
+    new Date("2026-09-01T10:00:00.000Z"),
+    new Date("2026-09-01T09:45:00.000Z"),
+  ), true);
+  assert.equal(isDeadlineBeforeEstimate(
+    new Date("2026-09-01T10:00:00.000Z"),
+    new Date("2026-09-01T10:00:00.000Z"),
+  ), false);
 });
 
 test("đôn một mẻ áp dụng cho toàn bộ đơn cùng nhóm", () => {
