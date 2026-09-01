@@ -14,7 +14,7 @@ interface NotifyCard {
 }
 
 export default function NotifyPage() {
-  const { showToast, store } = useApp();
+  const { showToast, store, orderSearch } = useApp();
 
   const [loading, setLoading] = useState(true);
   const [pendingCards, setPendingCards] = useState<NotifyCard[]>([]);
@@ -148,6 +148,13 @@ export default function NotifyPage() {
         </div>
       </div>
 
+      {/* Search result hint */}
+      {orderSearch && (
+        <div style={{ fontSize: 12, color: 'var(--tl)', marginBottom: 8 }}>
+          Kết quả tìm kiếm cho <strong>"{orderSearch}"</strong>
+        </div>
+      )}
+
       <div className="card">
         {/* Section: Cần thông báo */}
         <div className="sdiv">Đã hoàn tất – cần thông báo</div>
@@ -156,11 +163,19 @@ export default function NotifyPage() {
           <div style={{ fontSize: '12.5px', color: 'var(--tl)', padding: '12px 0', textAlign: 'center' }}>
             Đang tải từ server...
           </div>
-        ) : pendingCards.length === 0 ? (
+        ) : pendingCards.filter(card => {
+          if (!orderSearch) return true;
+          const q = orderSearch.toLowerCase();
+          return card.name.toLowerCase().includes(q) || card.phone.includes(q);
+        }).length === 0 ? (
           <div style={{ fontSize: '12.5px', color: 'var(--tl)', padding: '12px 0', textAlign: 'center' }}>
-            Không có đơn nào cần thông báo
+            {orderSearch ? `Không tìm thấy "${orderSearch}" trong danh sách cần thông báo` : 'Không có đơn nào cần thông báo'}
           </div>
-        ) : pendingCards.map(card => (
+        ) : pendingCards.filter(card => {
+          if (!orderSearch) return true;
+          const q = orderSearch.toLowerCase();
+          return card.name.toLowerCase().includes(q) || card.phone.includes(q);
+        }).map(card => (
           <div key={card.id} className="nc">
             <div className="nca" style={{ background: card.bgColor }}>{card.initials}</div>
             <div className="ni2">
@@ -180,11 +195,19 @@ export default function NotifyPage() {
         {/* Section: Đã thông báo */}
         <div className="sdiv" style={{ marginTop: 14 }}>Đã thông báo</div>
         <div id="notified-list">
-          {notifiedList.length === 0 ? (
+          {notifiedList.filter(card => {
+            if (!orderSearch) return true;
+            const q = orderSearch.toLowerCase();
+            return card.name.toLowerCase().includes(q) || card.phone.includes(q);
+          }).length === 0 ? (
             <div style={{ fontSize: '12.5px', color: 'var(--tl)', padding: '12px 0', textAlign: 'center' }}>
-              Chưa có thông báo nào gửi trong ca này
+              {orderSearch ? `Không tìm thấy "${orderSearch}"` : 'Chưa có thông báo nào gửi trong ca này'}
             </div>
-          ) : notifiedList.map(card => (
+          ) : notifiedList.filter(card => {
+            if (!orderSearch) return true;
+            const q = orderSearch.toLowerCase();
+            return card.name.toLowerCase().includes(q) || card.phone.includes(q);
+          }).map(card => (
             <div key={card.id} className="nc">
               <div className="nca" style={{ background: 'var(--gn)' }}>{card.initials}</div>
               <div className="ni2">
@@ -206,11 +229,19 @@ export default function NotifyPage() {
 
         {/* Section: Đang xử lý */}
         <div className="sdiv" style={{ marginTop: 14 }}>Đang xử lý – chưa cần thông báo</div>
-        {processingList.length === 0 ? (
+        {processingList.filter((o: any) => {
+          if (!orderSearch) return true;
+          const q = orderSearch.toLowerCase();
+          return o.name.toLowerCase().includes(q);
+        }).length === 0 ? (
           <div style={{ fontSize: '12.5px', color: 'var(--tl)', padding: '12px 0', textAlign: 'center' }}>
-            Không có đơn nào đang xử lý
+            {orderSearch ? `Không tìm thấy "${orderSearch}"` : 'Không có đơn nào đang xử lý'}
           </div>
-        ) : processingList.map((o: any) => (
+        ) : processingList.filter((o: any) => {
+          if (!orderSearch) return true;
+          const q = orderSearch.toLowerCase();
+          return o.name.toLowerCase().includes(q);
+        }).map((o: any) => (
           <div key={o.id} className="nc">
             <div className="nca" style={{ background: 'var(--bl)' }}>{o.initials}</div>
             <div className="ni2">

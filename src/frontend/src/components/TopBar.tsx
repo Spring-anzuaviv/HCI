@@ -8,7 +8,7 @@ const FILTERS: { id: OrderFilter; label: string }[] = [
 ];
 
 export default function TopBar() {
-  const { config, openM, currentPage, setCurrentPage, orderFilter, setOrderFilter } = useApp();
+  const { config, openM, currentPage, setCurrentPage, orderFilter, setOrderFilter, orderSearch, setOrderSearch } = useApp();
 
   const shopName = config.shopName || 'WashTrack';
   const parts = shopName.trim().split(' ');
@@ -16,22 +16,52 @@ export default function TopBar() {
   if (parts.length >= 2) initials = (parts[0][0] + parts[1][0]).toUpperCase();
   else if (parts.length === 1) initials = parts[0].substring(0, 2).toUpperCase();
 
+  const showSearch = currentPage === 'db' || currentPage === 'q' || currentPage === 'n';
+  const showFilters = currentPage === 'q' || currentPage === 'orders';
+
+  const placeholder =
+    currentPage === 'n'
+      ? 'Tìm khách hàng trong thông báo...'
+      : 'Tìm kiếm đơn hàng, khách hàng...';
+
   return (
     <header className="topbar">
-      {/* <div className="searchbar">
-        <svg className="icon icon-sm"><use href="#i-search" /></svg>
-        <input
-          type="text"
-          placeholder="Tìm kiếm đơn hàng, khách hàng…"
-          value={orderSearch}
-          onChange={e => setOrderSearch(e.target.value)}
-          onFocus={() => {
-            if (currentPage !== 'q' && currentPage !== 'orders') setCurrentPage('orders');
-          }}
-        />
-      </div> */}
+      {showSearch && (
+        <div className="searchbar">
+          <svg className="icon icon-sm"><use href="#i-search" /></svg>
+          <input
+            type="text"
+            placeholder={placeholder}
+            value={orderSearch}
+            onChange={e => setOrderSearch(e.target.value)}
+            onFocus={() => {
+              if (currentPage !== 'q' && currentPage !== 'orders' && currentPage !== 'n') {
+                setCurrentPage('q');
+              }
+            }}
+          />
+          {orderSearch && (
+            <button
+              onClick={() => setOrderSearch('')}
+              style={{
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                padding: '0 6px',
+                color: 'var(--tl)',
+                display: 'flex',
+                alignItems: 'center',
+                flexShrink: 0,
+              }}
+              title="Xóa tìm kiếm"
+            >
+              <svg className="icon icon-sm"><use href="#i-x" /></svg>
+            </button>
+          )}
+        </div>
+      )}
 
-      {(currentPage === 'q' || currentPage === 'orders') && (
+      {showFilters && (
         <div style={{ display: 'flex', gap: 6 }}>
           {FILTERS.map(item => (
             <button
