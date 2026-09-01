@@ -491,6 +491,141 @@ button[aria-busy="true"] { cursor: wait !important; }
   .oq-rec-name { font-size: 13px; }
 }
 
+/* ── Task Card (thay thế bảng cột cũ) ── */
+/* Danh sách cards trong mỗi nhóm công đoạn */
+.oq-card-list { display: flex; flex-direction: column; gap: 7px; margin-top: 10px; }
+
+/* Card chính — mỗi đơn hàng */
+.oq-tc {
+  display: flex; align-items: flex-start; gap: 10px;
+  width: 100%; padding: 12px 52px 12px 12px;
+  background: #fff; border: 1.5px solid var(--bd); border-radius: 11px;
+  border-left: 3px solid var(--bd);
+  cursor: pointer; text-align: left; font-family: inherit; color: inherit;
+  transition: border-color .15s, background .15s; position: relative;
+}
+.oq-tc:hover { border-color: var(--pm); background: #f9f7ff; }
+.oq-tc:focus-visible { outline: 3px solid rgba(124,58,237,.4); outline-offset: 2px; }
+
+/* Card đầu tiên trong nhóm khi không có recommendation: gợi ý nhẹ */
+.oq-tc-first { background: #faf8ff; border-color: #c4b5fd; }
+.oq-tc-first:hover { background: #f3f0ff; }
+
+/* Card trễ / rủi ro */
+.oq-tc-late { background: #fff9f9; }
+.oq-tc-late:hover { background: #fee2e2; }
+.oq-tc-risk { background: #fffbeb; }
+.oq-tc-risk:hover { background: #fef3c7; }
+
+/* Nội dung bên trong card */
+.oq-tc-body { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 0; }
+
+/* Dòng 1: Tên + badge deadline */
+.oq-tc-head {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+}
+.oq-tc-name {
+  font-size: 13px; font-weight: 800; color: var(--tx);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+
+/* Badge ON_TIME / AT_RISK / NOT_FEASIBLE */
+.oq-tc-badge {
+  display: inline-flex; align-items: center; gap: 3px;
+  padding: 2px 8px; border-radius: 20px;
+  font-size: 9.5px; font-weight: 800; white-space: nowrap; flex-shrink: 0;
+}
+.oq-tc-badge.ok   { background: #dcfce7; color: #166534; }
+.oq-tc-badge.risk { background: #fef3c7; color: #92400e; }
+.oq-tc-badge.late { background: #fee2e2; color: #991b1b; }
+
+/* Dòng 2: Trạng thái hiện tại */
+.oq-tc-state {
+  font-size: 11.5px; color: var(--ts); line-height: 1.4;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+
+/* Dòng 3: Giờ hẹn & Dự kiến xong */
+.oq-tc-times {
+  display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+  font-size: 11.5px; color: var(--ts);
+}
+.oq-tc-times strong { color: var(--tx); font-weight: 700; }
+.oq-tc-dot { color: var(--bd); }
+.oq-tc-late-info {
+  font-size: 11px; font-weight: 700; color: var(--rd); margin-left: 4px;
+}
+
+/* Dòng 4: Hành động tiếp theo */
+.oq-tc-next {
+  display: flex; align-items: center; gap: 5px;
+  font-size: 11.5px; color: var(--pu); font-weight: 600; margin-top: 1px;
+}
+.oq-tc-next strong { font-weight: 800; }
+.oq-tc-next .icon { flex-shrink: 0; color: var(--pu); }
+
+/* Cảnh báo review */
+.oq-tc-review-hint {
+  font-size: 11px; color: var(--am); font-weight: 600; margin-top: 2px;
+}
+
+/* Risk badge chung (dùng trong oq-tc-times) */
+.oq-tc-risk-row { display: flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 700; }
+.oq-tc-risk-row.ok   { color: #16a34a; }
+.oq-tc-risk-row.risk { color: #b45309; }
+.oq-tc-risk-row.late { color: var(--rd); }
+
+/* ── Recommendation Card (cập nhật): thêm vùng trái với star ── */
+.oq-rec-left {
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  flex-shrink: 0;
+}
+.oq-rec-star { font-size: 16px; line-height: 1; }
+.oq-tc-risk-label { font-size: 10px; color: var(--ts); }
+
+/* Times & risk trong rec-card */
+.oq-tc-times { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; font-size: 11.5px; color: var(--ts); margin-top: 3px; }
+.oq-tc-risk  { font-size: 11px; font-weight: 700; margin-top: 3px; }
+.oq-tc-risk.ok   { color: #16a34a; }
+.oq-tc-risk.risk { color: #b45309; }
+.oq-tc-risk.late { color: var(--rd); }
+.oq-tc-next { display: flex; align-items: center; gap: 5px; font-size: 11.5px; color: var(--pu); font-weight: 600; margin-top: 4px; }
+
+/* ── Đã hoàn tất: toggle button & row compact ── */
+.oq-completed-toggle {
+  display: flex; align-items: center; justify-content: space-between; width: 100%;
+  background: none; border: none; cursor: pointer; padding: 2px 0;
+  font-family: inherit; text-align: left;
+}
+.oq-completed-toggle:hover { opacity: .82; }
+.oq-completed-hint {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: 11px; font-weight: 700; color: var(--ts);
+}
+
+/* Row compact cho đơn đã hoàn tất */
+.oq-done-row {
+  display: grid;
+  grid-template-columns: minmax(140px,1.5fr) minmax(80px,1fr) auto auto;
+  gap: 10px; align-items: center;
+  width: 100%; padding: 9px 12px;
+  background: #f9fafb; border: 1.5px solid #e5e7eb; border-radius: 9px;
+  cursor: pointer; text-align: left; font-family: inherit; color: inherit;
+  transition: background .15s;
+}
+.oq-done-row:hover { background: #f0fdf4; border-color: #6ee7b7; }
+.oq-done-name  { font-size: 12px; font-weight: 700; color: var(--tx); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.oq-done-svc   { font-size: 11px; color: var(--ts); }
+.oq-done-time  { font-size: 11px; color: var(--ts); white-space: nowrap; }
+.oq-done-status { font-size: 11px; font-weight: 700; color: #16a34a; white-space: nowrap; }
+.oq-done-status.late { color: var(--rd); }
+
+@media (max-width: 640px) {
+  .oq-done-row { grid-template-columns: 1fr auto; }
+  .oq-done-svc, .oq-done-time { display: none; }
+  .oq-tc-times { flex-direction: column; align-items: flex-start; gap: 2px; }
+  .oq-tc-dot { display: none; }
+}
 
 /* ── UC-SQ-02: MACHINE COMPLETION ── */
 .completion-overlay {

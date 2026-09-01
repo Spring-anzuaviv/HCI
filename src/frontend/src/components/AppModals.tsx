@@ -102,7 +102,15 @@ export function AddOrderModal() {
           if (!result) { setCalcResult(null); return; }
           const eta = result.estimatedAt ? new Date(result.estimatedAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) : 'chưa xác định';
           const isRisk = result.result === 'AT_RISK' || result.result === 'NOT_FEASIBLE';
-          setCalcResult({ isRisk, text: `${isRisk ? '⚠' : result.result === 'UNKNOWN' ? '!' : '✓'} ${result.reason}. Dự kiến xong: ${eta}${result.requiredMinutes ? ` · Khoảng ${result.requiredMinutes} phút` : ''}.` });
+          let durationText = '';
+          if (result.requiredMinutes) {
+            const hrs = Math.floor(result.requiredMinutes / 60);
+            const mins = result.requiredMinutes % 60;
+            durationText = hrs > 0
+              ? ` · Mất khoảng ${hrs} giờ${mins > 0 ? ` ${mins} phút` : ''} để xử lý`
+              : ` · Mất khoảng ${mins} phút để xử lý`;
+          }
+          setCalcResult({ isRisk, text: `${isRisk ? '⚠' : result.result === 'UNKNOWN' ? '!' : '✓'} ${result.reason}. Dự kiến xong: ${eta}${durationText}.` });
         })
         .catch(error => {
           if (error?.name === 'AbortError') return;
@@ -843,25 +851,42 @@ export function OrderDetailModal() {
 
         {showExpedite && (
           <div style={{ background: '#f8fafc', borderRadius: 9, padding: 14, margin: '11px 0', border: '1px solid #e2e8f0' }}>
-            <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 8, color: '#1e293b' }}>Đôn đơn lên trước</div>
-            
+            <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 8, color: '#1e293b' }}>Đôn đơn / Kiểm tra lấy sớm</div>
+
             {!expediteCheck ? (
-              <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                <input className="finput" type="time" value={expediteTime} onChange={e => setExpediteTime(e.target.value)} disabled={modalBusy} style={{ width: 120 }} />
-                <button className="bp" onClick={handleCheckExpedite} disabled={modalBusy}>Kiểm tra giờ mới</button>
+              <div>
+                {order?.pickupAt && (
+                  <div style={{ fontSize: 12, color: '#64748b', marginBottom: 8 }}>
+                    Giờ hẹn hiện tại: <strong>{new Date(order.pickupAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}</strong>
+                  </div>
+                )}
+                <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                  <input className="finput" type="time" value={expediteTime} onChange={e => { setExpediteTime(e.target.value); setExpediteCheck(null); }} disabled={modalBusy} style={{ width: 120 }} />
+                  <button className="bp" onClick={handleCheckExpedite} disabled={modalBusy || !expediteTime}>Kiểm tra</button>
+                  <button className="bs" onClick={() => { setShowExpedite(false); setExpediteTime(''); setExpediteCheck(null); setExpediteReason(''); }}>Hủy</button>
+                </div>
               </div>
             ) : (
               <div>
+                {order?.pickupAt && (
+                  <div style={{ fontSize: 12, color: '#64748b', marginBottom: 6 }}>
+                    Giờ hẹn hiện tại: <strong>{new Date(order.pickupAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}</strong>
+                    {expediteCheck.newPickupAt && (
+                      <> → Giờ hẹn mới: <strong style={{ color: '#1e293b' }}>{new Date(expediteCheck.newPickupAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}</strong></>  
+                    )}
+                  </div>
+                )}
                 <div style={{ fontSize: 12, marginBottom: 10, color: '#475569' }}>
                   <strong>Kết quả:</strong> {expediteCheck.reason}
-                  <br/>
-                  <strong>Tác động:</strong> {expediteCheck.summary.affectedOrders} đơn bị ảnh hưởng (Trễ: {expediteCheck.summary.notFeasibleOrders}, Cảnh báo: {expediteCheck.summary.atRiskOrders})
+                  {expediteCheck.summary && (
+                    <><br/><strong>Tác động:</strong> {expediteCheck.summary.affectedOrders} đơn bị ảnh hưởng (Trễ: {expediteCheck.summary.notFeasibleOrders}, Cảnh báo: {expediteCheck.summary.atRiskOrders})</>  
+                  )}
                 </div>
                 <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 10 }}>
                   <input className="finput" type="text" value={expediteReason} onChange={e => setExpediteReason(e.target.value)} placeholder="Nhập lý do đôn đơn..." disabled={modalBusy} style={{ flex: 1 }} />
                 </div>
                 <div style={{ display: 'flex', gap: 8 }}>
-                  <button className="bs" onClick={() => { setExpediteCheck(null); setExpediteTime(''); setExpediteReason(''); }}>Hủy</button>
+                  <button className="bs" onClick={() => { setExpediteCheck(null); setExpediteTime(''); setExpediteReason(''); }}>Thử giờ khác</button>
                   <button className="br" onClick={handleConfirmExpedite} disabled={modalBusy || !expediteReason}>Xác nhận đôn đơn</button>
                 </div>
               </div>
@@ -870,13 +895,29 @@ export function OrderDetailModal() {
         )}
 
         {/* Action buttons */}
+        {/* 
+          Logic hiển thị nút:
+          - COMPLETED / READY → chỉ Đóng, không Đôn đơn
+          - stage PLANNED kế tiếp → Đôn đơn + Xử lý ngay
+          - stage RUNNING → Đôn đơn + Hoàn tất công đoạn
+        */}
         <div style={{ display: 'flex', gap: 9, marginTop: 18, justifyContent: 'flex-end', flexWrap: 'wrap' }}>
-          {isCompleted ? (
+          {/* Nhánh 1: Đã hoàn tất hoặc READY — không cho Đôn đơn */}
+          {(isCompleted || order?.status === 'READY' || order?.status === 'NOTIFIED') ? (
             <button className="bs" onClick={() => closeM('om')}>Đóng</button>
-          ) : !isCompleted && nextStageObj?.status === 'PLANNED' ? (
+
+          ) : nextStageObj?.status === 'PLANNED' ? (
+            /* Nhánh 2: Stage tiếp theo đang PLANNED — cho Đôn đơn + Xử lý ngay */
             <>
               <button className="bs" onClick={() => closeM('om')}>Đóng</button>
-              
+
+              {!showExpedite && (
+                <button className="bs" onClick={() => setShowExpedite(true)} disabled={modalBusy}>
+                  <svg className="icon icon-sm"><use href="#i-zap" /></svg>
+                  Đôn đơn
+                </button>
+              )}
+
               {requiredType && (
                 <select
                   className="finput"
@@ -893,7 +934,7 @@ export function OrderDetailModal() {
                   {availMachines.length === 0 && <option disabled value="">Không có máy trống</option>}
                 </select>
               )}
-              
+
               <button
                 className="bp"
                 onClick={handleStart}
@@ -908,17 +949,19 @@ export function OrderDetailModal() {
                 }
               </button>
             </>
+
           ) : (
+            /* Nhánh 3: Stage đang RUNNING — cho Đôn đơn + Hoàn tất */
             <>
               <button className="bs" onClick={() => closeM('om')}>Đóng</button>
-              
+
               {!showExpedite && (
-                <button className="br" onClick={() => setShowExpedite(true)} disabled={modalBusy}>
+                <button className="bs" onClick={() => setShowExpedite(true)} disabled={modalBusy}>
                   <svg className="icon icon-sm"><use href="#i-zap" /></svg>
-                  Đôn đơn lên trước
+                  Đôn đơn
                 </button>
               )}
-              
+
               <button
                 className="bp"
                 onClick={handleComplete}

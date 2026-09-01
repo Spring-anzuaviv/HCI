@@ -1,8 +1,11 @@
+import React from 'react';
 import { useApp } from '../context/useApp';
+import { resetMachine } from '../api/machines';
 import type { Machine } from '../types';
 
 // ─── Machine Card ───
 function MachineCard({ machine, onEdit }: { machine: Machine; onEdit: (id: number) => void }) {
+  const { refreshMachines } = useApp();
   const isIdle = machine.st === 'trong';
   const needsReview = machine.operationalState === 'NEEDS_REVIEW';
   const unavailable = machine.st === 'broken' || machine.st === 'inactive';
@@ -17,6 +20,29 @@ function MachineCard({ machine, onEdit }: { machine: Machine; onEdit: (id: numbe
         : isIdle
           ? 'Trống'
           : machine.user || `Đang ${label.toLowerCase()}`;
+
+  const [resetting, setResetting] = React.useState(false);
+  const [resetError, setResetError] = React.useState<string | null>(null);
+
+  async function handleReset(event: React.MouseEvent) {
+    event.stopPropagation();
+    if (!window.confirm(
+      `Đặt lại "${machine.name}" về Sẵn sàng?\n` +
+      `Lý do cần kiểm tra:\n${machine.reviewReasons?.join('\n') ?? '(không rõ)'}\n\n` +
+      `Chỉ thực hiện khi chắc chắn máy không còn đồ bên trong.`
+    )) return;
+    setResetting(true);
+    setResetError(null);
+    try {
+      await resetMachine(machine.id);
+      await refreshMachines?.();
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Không thể đặt lại máy';
+      setResetError(message);
+    } finally {
+      setResetting(false);
+    }
+  }
 
   return (
     <div
@@ -47,11 +73,37 @@ function MachineCard({ machine, onEdit }: { machine: Machine; onEdit: (id: numbe
           </>
         )}
       </div>
+
+      {/* Nút Đặt lại — chỉ hiện khi NEEDS_REVIEW */}
+      {needsReview && (
+        <button
+          onClick={handleReset}
+          disabled={resetting}
+          title={machine.reviewReasons?.join('\n') ?? 'Máy cần kiểm tra trước khi sử dụng'}
+          style={{
+            position: 'absolute', bottom: 7, right: 7,
+            background: resetting ? '#e5e7eb' : '#fee2e2',
+            color: resetting ? '#9ca3af' : '#b91c1c',
+            border: '1px solid #fca5a5',
+            borderRadius: 6, padding: '2px 7px',
+            fontSize: 9.5, fontWeight: 800,
+            cursor: resetting ? 'wait' : 'pointer',
+            lineHeight: 1.4, whiteSpace: 'nowrap',
+          }}
+        >
+          {resetting ? '...' : '⟳ Đặt lại'}
+        </button>
+      )}
+      {resetError && (
+        <div style={{ fontSize: 9, color: '#b91c1c', marginTop: 3, lineHeight: 1.3, padding: '0 4px' }}>
+          {resetError}
+        </div>
+      )}
     </div>
   );
 }
 
-// ─── Staff Row ───
+// ─── Staff Section ───
 function StaffSection() {
   const { workShifts, selectedWorkDate, setSelectedWorkDate, openM } = useApp();
 

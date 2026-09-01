@@ -12,55 +12,90 @@ const SERVICE_LABELS: Record<string, string> = {
 const STAGE_LABELS: Record<string, string> = {
   SORTING: 'Phân loại', WASH: 'Giặt', TRANSFER: 'Chuyển đồ', DRY: 'Sấy', PACKING: 'Đóng gói',
 };
-const STATUS_LABELS: Record<string, string> = {
-  RECEIVED: 'Tiếp nhận', WAITING: 'Chờ máy', WASHING: 'Đang giặt',
-  DRYING: 'Đang sấy', FOLDING_PACKING: 'Đang đóng gói',
-  READY: 'Sẵn sàng lấy', NOTIFIED: 'Đã báo khách', COMPLETED: 'Hoàn tất',
-};
 
 /** Thứ tự công đoạn trong workflow */
 const STAGE_ORDER = ['SORTING', 'WASH', 'TRANSFER', 'DRY', 'PACKING'] as const;
 
-/** Màu sắc & icon cho từng công đoạn — đủ tương phản để nhìn từ xa */
-const STAGE_META: Record<string, { color: string; bg: string; border: string; icon: string; iconId: string }> = {
-  SORTING: { color: '#475569', bg: '#f1f5f9', border: '#cbd5e1', icon: '🗂️', iconId: 'i-sort' },
-  WASH: { color: '#1d4ed8', bg: '#dbeafe', border: '#93c5fd', icon: '🫧', iconId: 'i-washer' },
-  TRANSFER: { color: '#c2410c', bg: '#ffedd5', border: '#fdba74', icon: '↕️', iconId: 'i-arrow-right' },
-  DRY: { color: '#b45309', bg: '#fef3c7', border: '#fcd34d', icon: '💨', iconId: 'i-zap' },
-  PACKING: { color: '#15803d', bg: '#dcfce7', border: '#86efac', icon: '📦', iconId: 'i-package' },
+/** Màu sắc & icon cho từng công đoạn */
+const STAGE_META: Record<string, { color: string; bg: string; border: string; icon: string }> = {
+  SORTING:  { color: '#475569', bg: '#f1f5f9', border: '#cbd5e1', icon: '🗂️' },
+  WASH:     { color: '#1d4ed8', bg: '#dbeafe', border: '#93c5fd', icon: '🫧' },
+  TRANSFER: { color: '#c2410c', bg: '#ffedd5', border: '#fdba74', icon: '↕️' },
+  DRY:      { color: '#b45309', bg: '#fef3c7', border: '#fcd34d', icon: '💨' },
+  PACKING:  { color: '#15803d', bg: '#dcfce7', border: '#86efac', icon: '📦' },
 };
 
 // ─── Helpers ───
-function stageLabel(v: string | null) {
-  return v ? (STAGE_LABELS[v] ?? v) : '—';
-}
-
-function formatRelativeTime(value: string | null, now: Date, fallback = 'Chưa có'): string {
-  if (!value) return fallback;
-  try {
-    const d = new Date(value);
-    if (isNaN(d.getTime())) return fallback;
-    const diff = Math.round((d.getTime() - now.getTime()) / 60_000);
-    if (Math.abs(diff) <= 120) {
-      if (diff < -1) return `Trễ ${Math.abs(diff)} phút`;
-      if (diff <= 1) return 'Ngay bây giờ';
-      return `Còn ${diff} phút`;
-    }
-    return d.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
-  } catch {
-    return fallback;
-  }
-}
-
 function formatTime(value: string | null, fallback = 'Chưa có'): string {
   if (!value) return fallback;
   try {
     const d = new Date(value);
     if (isNaN(d.getTime())) return fallback;
     return d.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
-  } catch {
-    return fallback;
+  } catch { return fallback; }
+}
+
+function slackText(slackMinutes: number | null, estimatedAt: string | null, pickupAt: string | null): {
+  label: string; cls: 'ok' | 'risk' | 'late'; icon: string;
+} {
+  if (!estimatedAt || !pickupAt) return { label: 'Chưa tính được', cls: 'ok', icon: '—' };
+  const slack = slackMinutes ?? Math.round((new Date(pickupAt).getTime() - new Date(estimatedAt).getTime()) / 60_000);
+  if (slack < 0)  return { label: `Dự kiến trễ ${Math.abs(slack)} phút`, cls: 'late', icon: '🔴' };
+  if (slack <= 15) return { label: 'Có nguy cơ trễ',  cls: 'risk', icon: '⚠' };
+  return { label: 'Đúng hẹn', cls: 'ok', icon: '✓' };
+}
+
+/**
+ * Trả về câu hành động dạng dễ hiểu cho nhân viên ít rành công nghệ.
+ * Phân biệt PLANNED (chờ) vs RUNNING (đang).
+ */
+function buildNextActionText(item: QueueItem): string {
+  const cur = item.currentStage;
+  const next = item.nextStage;
+  const status = item.status; // RECEIVED, WAITING, WASHING, DRYING, FOLDING_PACKING, READY ...
+
+  // Đang chạy — chờ hoàn tất
+  if (status === 'WASHING')        return item.machineName ? `Đợi ${item.machineName} xong` : 'Đang giặt — chờ xong';
+  if (status === 'DRYING')         return item.machineName ? `Đợi ${item.machineName} xong` : 'Đang sấy — chờ xong';
+  if (status === 'FOLDING_PACKING') return 'Đang đóng gói';
+  if (status === 'RECEIVED')        return 'Phân loại đồ';
+  if (status === 'WAITING') {
+    // Chờ máy cho công đoạn nào?
+    if (cur === 'WASH' || next === 'WASH') return 'Chờ máy giặt trống';
+    if (cur === 'DRY'  || next === 'DRY')  return 'Chờ máy sấy trống';
+    return 'Chờ máy trống';
   }
+
+  // Dựa vào nextStage
+  if (!next) return 'Chờ xử lý';
+  if (next === 'SORTING')   return 'Phân loại đồ';
+  if (next === 'WASH')      return item.machineName ? `Đưa vào ${item.machineName}` : 'Đưa vào máy giặt';
+  if (next === 'TRANSFER')  return 'Chuyển đồ sang máy sấy';
+  if (next === 'DRY')       return item.machineName ? `Đưa vào ${item.machineName}` : 'Đưa vào máy sấy';
+  if (next === 'PACKING')   return 'Đóng gói đơn';
+  return item.nextAction ?? 'Xem chi tiết';
+}
+
+/**
+ * Nhãn trạng thái hiện tại — phân biệt PLANNED (chờ) / RUNNING (đang).
+ */
+function buildCurrentStateText(item: QueueItem): string {
+  const status = item.status;
+  const mac = item.machineName ? ` · ${item.machineName}` : '';
+  if (status === 'RECEIVED')         return 'Vừa tiếp nhận';
+  if (status === 'WAITING') {
+    const cur = item.currentStage;
+    if (cur === 'WASH') return 'Chờ máy giặt';
+    if (cur === 'DRY')  return 'Chờ máy sấy';
+    return 'Chờ xử lý';
+  }
+  if (status === 'WASHING')          return `Đang giặt${mac}`;
+  if (status === 'DRYING')           return `Đang sấy${mac}`;
+  if (status === 'FOLDING_PACKING')  return 'Đang đóng gói';
+  if (status === 'READY')            return 'Sẵn sàng giao';
+  if (status === 'NOTIFIED')         return 'Đã báo khách';
+  if (status === 'COMPLETED')        return 'Hoàn tất';
+  return item.status ?? 'Không rõ';
 }
 
 function useNow() {
@@ -94,6 +129,9 @@ export default function OperationsQueuePage() {
   } = useApp();
   const now = useNow();
   const deferredOrderSearch = useDeferredValue(orderSearch);
+
+  // Collapse state cho nhóm Hoàn tất — mặc định đóng
+  const [completedOpen, setCompletedOpen] = useState(false);
 
   const openOrderModal = (item: QueueItem) => {
     setOrderModalParams(buildModalParams(item, orders));
@@ -156,7 +194,6 @@ export default function OperationsQueuePage() {
       const key = STAGE_ORDER.includes(stage as typeof STAGE_ORDER[number]) ? stage : 'SORTING';
       map.get(key)!.push(item);
     }
-    // Trong mỗi nhóm: trễ + review lên đầu, sau đó theo rank
     for (const [key, group] of map.entries()) {
       map.set(key, group.sort((a, b) => {
         const urgencyA = a.riskLevel === 'NOT_FEASIBLE' ? 0 : a.operationalState === 'NEEDS_REVIEW' ? 1 : a.riskLevel === 'AT_RISK' ? 2 : 3;
@@ -173,8 +210,8 @@ export default function OperationsQueuePage() {
   );
 
   const summary = queueSnapshot?.summary;
-  const lateCount = visibleItems.filter(i => i.riskLevel === 'NOT_FEASIBLE').length;
-  const riskCount = visibleItems.filter(i => i.riskLevel === 'AT_RISK').length;
+  const lateCount  = visibleItems.filter(i => i.riskLevel === 'NOT_FEASIBLE').length;
+  const riskCount  = visibleItems.filter(i => i.riskLevel === 'AT_RISK').length;
   const reviewCount = visibleItems.filter(i => i.operationalState === 'NEEDS_REVIEW').length;
 
   return (
@@ -184,15 +221,9 @@ export default function OperationsQueuePage() {
         <div className="oq-header-left">
           <h2 className="oq-title">Hàng đợi</h2>
           <div className="oq-summary" aria-label="Tóm tắt">
-            {lateCount > 0 && (
-              <span className="oq-summary-chip danger">🔴 {lateCount} trễ hẹn</span>
-            )}
-            {riskCount > 0 && (
-              <span className="oq-summary-chip risk">⚠️ {riskCount} rủi ro</span>
-            )}
-            {reviewCount > 0 && (
-              <span className="oq-summary-chip review">🔎 {reviewCount} cần kiểm tra</span>
-            )}
+            {lateCount > 0 && <span className="oq-summary-chip danger">🔴 {lateCount} trễ hẹn</span>}
+            {riskCount > 0 && <span className="oq-summary-chip risk">⚠ {riskCount} rủi ro</span>}
+            {reviewCount > 0 && <span className="oq-summary-chip review">🔎 {reviewCount} cần kiểm tra</span>}
             {summary?.availableMachines != null && summary.availableMachines > 0 && (
               <span className="oq-summary-chip ok">✓ {summary.availableMachines} máy trống</span>
             )}
@@ -233,12 +264,12 @@ export default function OperationsQueuePage() {
 
       {!operationsLoading && !operationsError && (allItems.length > 0 || completedOrders.length > 0) && (
         <>
-          {/* ── Đề xuất ── */}
+          {/* ── Đề xuất ưu tiên ── */}
           {recommendations.length > 0 && (
             <div className="card oq-zone-a-card">
               <div className="oq-zone-label">
                 <svg className="icon icon-sm"><use href="#i-cpu" /></svg>
-                Đề xuất xử lý tiếp
+                Nên xử lý tiếp
               </div>
               <div className="oq-recs">
                 {recommendations.map(rec => (
@@ -258,8 +289,8 @@ export default function OperationsQueuePage() {
             const group = groupedByStage.get(stage) ?? [];
             if (group.length === 0) return null;
             const meta = STAGE_META[stage];
-            const groupLate = group.filter(i => i.riskLevel === 'NOT_FEASIBLE').length;
-            const groupRisk = group.filter(i => i.riskLevel === 'AT_RISK').length;
+            const groupLate   = group.filter(i => i.riskLevel === 'NOT_FEASIBLE').length;
+            const groupRisk   = group.filter(i => i.riskLevel === 'AT_RISK').length;
             const groupReview = group.filter(i => i.operationalState === 'NEEDS_REVIEW').length;
 
             return (
@@ -270,7 +301,6 @@ export default function OperationsQueuePage() {
                 role="region"
                 aria-label={`Công đoạn ${STAGE_LABELS[stage]}`}
               >
-                {/* Group header */}
                 <div className="oq-stage-header">
                   <div className="oq-stage-title" style={{ color: meta.color }}>
                     <span className="oq-stage-dot" style={{ background: meta.bg, border: `1.5px solid ${meta.border}` }}>
@@ -281,22 +311,21 @@ export default function OperationsQueuePage() {
                       {group.length}
                     </span>
                   </div>
-                  {/* Cảnh báo nhóm */}
                   <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                    {groupLate > 0 && <span className="oq-summary-chip danger" style={{ fontSize: 10 }}>🔴 {groupLate} trễ</span>}
-                    {groupRisk > 0 && <span className="oq-summary-chip risk" style={{ fontSize: 10 }}>⚠️ {groupRisk} rủi ro</span>}
+                    {groupLate   > 0 && <span className="oq-summary-chip danger" style={{ fontSize: 10 }}>🔴 {groupLate} trễ</span>}
+                    {groupRisk   > 0 && <span className="oq-summary-chip risk"   style={{ fontSize: 10 }}>⚠ {groupRisk} rủi ro</span>}
                     {groupReview > 0 && <span className="oq-summary-chip review" style={{ fontSize: 10 }}>🔎 {groupReview} kiểm tra</span>}
                   </div>
                 </div>
 
-                {/* Danh sách đơn trong nhóm */}
-                <div className="olist" style={{ marginTop: 8 }}>
-                  {group.map(item => (
-                    <StageQueueRow
+                <div className="oq-card-list">
+                  {group.map((item, idx) => (
+                    <TaskCard
                       key={item.orderId}
                       item={item}
                       now={now}
                       stageMeta={meta}
+                      isFirst={idx === 0 && recommendations.length === 0}
                       onOpen={() => openOrderModal(item)}
                     />
                   ))}
@@ -312,36 +341,45 @@ export default function OperationsQueuePage() {
             </div>
           )}
 
-          {/* ── Đơn hoàn tất ── */}
+          {/* ── Đơn hoàn tất — collapse mặc định ── */}
           {(orderFilter === 'all' || orderFilter === 'done') && completedOrders.length > 0 && (
             <div
               className="card oq-stage-group"
               style={{ borderTop: `3px solid #10b981` }}
               role="region"
-              aria-label={`Công đoạn Hoàn tất`}
+              aria-label="Đơn đã hoàn tất"
             >
-              <div className="oq-stage-header">
-                <div className="oq-stage-title" style={{ color: '#047857' }}>
-                  <span className="oq-stage-dot" style={{ background: '#d1fae5', border: `1.5px solid #10b981` }}>
+              {/* Header có nút toggle */}
+              <button
+                type="button"
+                className="oq-completed-toggle"
+                onClick={() => setCompletedOpen(v => !v)}
+                aria-expanded={completedOpen}
+              >
+                <span className="oq-stage-title" style={{ color: '#047857' }}>
+                  <span className="oq-stage-dot" style={{ background: '#d1fae5', border: '1.5px solid #10b981' }}>
                     <svg className="icon"><use href="#i-check" /></svg>
                   </span>
                   Đã hoàn tất
                   <span className="oq-stage-count" style={{ background: '#d1fae5', color: '#047857' }}>
                     {completedOrders.length}
                   </span>
+                </span>
+                <span className="oq-completed-hint">
+                  {completedOpen ? 'Ẩn' : 'Xem'}
+                  <svg className="icon icon-sm" style={{ transform: completedOpen ? 'rotate(180deg)' : 'none', transition: 'transform .2s' }}>
+                    <use href="#i-chevron-down" />
+                  </svg>
+                </span>
+              </button>
+
+              {completedOpen && (
+                <div className="oq-card-list" style={{ marginTop: 10 }}>
+                  {completedOrders.map(item => (
+                    <CompletedRow key={item.orderId} item={item} onOpen={() => openOrderModal(item)} />
+                  ))}
                 </div>
-              </div>
-              <div className="oq-stage-list">
-                {completedOrders.map(item => (
-                  <StageQueueRow
-                    key={item.orderId}
-                    item={item}
-                    now={now}
-                    stageMeta={{ icon: '', bg: '#d1fae5', color: '#047857', border: '#10b981', iconId: 'i-check' }}
-                    onOpen={() => openOrderModal(item)}
-                  />
-                ))}
-              </div>
+              )}
             </div>
           )}
         </>
@@ -350,25 +388,33 @@ export default function OperationsQueuePage() {
   );
 }
 
-// ─── Recommendation Card ───
+// ─── Recommendation Card (⭐ Nên xử lý tiếp) ───
 function RecommendationCard({ item, now, onOpen }: { item: QueueItem; now: Date; onOpen: () => void }) {
   const isRisk = item.riskLevel === 'NOT_FEASIBLE' || item.riskLevel === 'AT_RISK';
+  const slack  = slackText(item.slackMinutes, item.estimatedAt, item.pickupAt);
+  const nextTxt = buildNextActionText(item);
+  const curTxt  = buildCurrentStateText(item);
+
   return (
     <div className={`oq-rec-card${isRisk ? ' risk' : ''}`}>
-      <div className="oq-rec-id">#{item.orderId}</div>
+      <div className="oq-rec-left">
+        <div className="oq-rec-star" aria-label="Ưu tiên xử lý">⭐</div>
+        <div className="oq-rec-id">#{item.orderId}</div>
+      </div>
       <div className="oq-rec-body">
         <div className="oq-rec-name">{item.customer?.name ?? 'Chưa có tên khách'}</div>
-        <div className="oq-rec-meta">
-          {item.machineName && (
-            <span className="chip w" style={{ fontSize: 10 }}>
-              {item.machineName} · {stageLabel(item.nextStage)}
-            </span>
-          )}
-          <span style={{ color: 'var(--ts)', fontSize: 11 }}>
-            Hẹn {formatRelativeTime(item.pickupAt, now)} · {item.weightKg}kg
-          </span>
+        <div className="oq-tc-state">{curTxt} · {SERVICE_LABELS[item.serviceType] ?? item.serviceType} · {item.weightKg}kg</div>
+        <div className="oq-tc-times">
+          <span>Hẹn: <strong>{formatTime(item.pickupAt, 'Chưa hẹn')}</strong></span>
+          <span className="oq-tc-dot">·</span>
+          <span>Dự kiến xong: <strong>{formatTime(item.estimatedAt, 'Chưa tính')}</strong></span>
         </div>
-        {item.priorityReasons.slice(0, 2).map(r => (
+        <div className={`oq-tc-risk ${slack.cls}`}>{slack.icon} {slack.label}</div>
+        <div className="oq-tc-next">
+          <svg className="icon icon-sm"><use href="#i-arrow-right" /></svg>
+          Tiếp theo: <strong>{nextTxt}</strong>
+        </div>
+        {item.priorityReasons.slice(0, 1).map(r => (
           <div key={r} className="oq-rec-reasons">
             <span><svg className="icon icon-sm"><use href="#i-info" /></svg> {r}</span>
           </div>
@@ -381,31 +427,30 @@ function RecommendationCard({ item, now, onOpen }: { item: QueueItem; now: Date;
   );
 }
 
-// ─── Row trong nhóm công đoạn ───
-// isSingleTap: nếu nextStage là manual (SORTING/TRANSFER/PACKING), hiện nút bấm 1-tap
+// ─── Task Card cho mỗi đơn trong nhóm ───
 const MANUAL_STAGES = new Set(['SORTING', 'TRANSFER', 'PACKING']);
 
-function StageQueueRow({
-  item, now, stageMeta, onOpen,
+function TaskCard({
+  item, now, stageMeta, isFirst, onOpen,
 }: {
   item: QueueItem;
   now: Date;
   stageMeta: typeof STAGE_META[string];
+  isFirst: boolean;
   onOpen: () => void;
 }) {
   const { showToast, refreshOperations } = useApp();
-  const isLate = item.riskLevel === 'NOT_FEASIBLE';
-  const isRisk = item.riskLevel === 'AT_RISK';
+  const isLate   = item.riskLevel === 'NOT_FEASIBLE';
+  const isRisk   = item.riskLevel === 'AT_RISK';
   const isReview = item.operationalState === 'NEEDS_REVIEW';
 
-  const riskBorderColor = isLate ? 'var(--rd)' : isRisk ? '#b45309' : isReview ? 'var(--am)' : stageMeta.border;
-  const deadlineDiff = item.pickupAt
-    ? Math.round((new Date(item.pickupAt).getTime() - now.getTime()) / 60_000)
-    : null;
-  const deadlineDanger = deadlineDiff !== null && deadlineDiff < 30;
+  const slack   = slackText(item.slackMinutes, item.estimatedAt, item.pickupAt);
+  const nextTxt = buildNextActionText(item);
+  const curTxt  = buildCurrentStateText(item);
 
-  // Quick-action: chỉ hiện khi nextStage là manual (không cần chọn máy)
-  // và đơn không ở trạng thái NEEDS_REVIEW (tránh bấm nhầm khi cần kiểm tra)
+  // Màu viền trái
+  const borderColor = isLate ? 'var(--rd)' : isRisk ? '#b45309' : isReview ? 'var(--am)' : stageMeta.border;
+
   const canQuickAct = !isReview && item.nextStage && MANUAL_STAGES.has(item.nextStage);
   const { isPending, run } = useKeyedAsyncAction();
   const quickActionKey = `order-workflow:${item.orderId}`;
@@ -415,11 +460,8 @@ function StageQueueRow({
     if (!item.nextStage) return;
     await run(quickActionKey, async () => {
       try {
-        // Gọi cả 2 API liên tiếp để hoàn thành công đoạn thủ công trong 1 nút bấm
         const stageData = await startRun(item.orderId, item.nextStage!, 0);
-        if (stageData?.orderStageId) {
-          await completeRun(stageData.orderStageId);
-        }
+        if (stageData?.orderStageId) await completeRun(stageData.orderStageId);
         showToast(`✓ Đã hoàn tất ${STAGE_LABELS[item.nextStage!] ?? item.nextStage} cho #${item.orderId}`, 'grn');
         void refreshOperations();
       } catch (error) {
@@ -429,19 +471,15 @@ function StageQueueRow({
   };
 
   return (
-    <div
-      className="oq-row-shell"
-      role="group"
-      aria-label={`Thao tác cho đơn #${item.orderId}`}
-    >
+    <div className="oq-row-shell" role="group" aria-label={`Đơn #${item.orderId}`}>
       <button
         type="button"
-        className="orow queue-row oq-row"
-        style={{ borderLeftColor: riskBorderColor, borderLeftWidth: (isLate || isRisk || isReview) ? 3 : undefined }}
+        className={`oq-tc${isFirst ? ' oq-tc-first' : ''}${isLate ? ' oq-tc-late' : isRisk ? ' oq-tc-risk' : ''}`}
+        style={{ borderLeftColor: borderColor }}
         onClick={onOpen}
         aria-label={`Đơn #${item.orderId} – ${item.customer?.name ?? ''}`}
       >
-        {/* Rank badge */}
+        {/* Badge ưu tiên */}
         <span
           className={`opri ${isReview ? 'am' : isLate ? 'rd' : isRisk ? 'am' : item.rank <= 3 ? 'bl' : 'gr'}`}
           title="Thứ tự ưu tiên"
@@ -449,65 +487,45 @@ function StageQueueRow({
           {isReview ? '!' : item.rank}
         </span>
 
-        {/* Tên + chi tiết */}
-        <span className="queue-order">
-          <strong>
-            #{item.orderId} · {item.customer?.name ?? 'Chưa có tên'}
-          </strong>
-          <span>
-            {STATUS_LABELS[item.status] ?? item.status}
-            {item.machineName ? ` · ${item.machineName}` : ''}
-            {' · '}
-            {SERVICE_LABELS[item.serviceType] ?? item.serviceType}
-            {' · '}
-            {item.weightKg}kg
+        {/* Nội dung card */}
+        <span className="oq-tc-body">
+          {/* Dòng 1: Mã + Tên + Badge trạng thái deadline */}
+          <span className="oq-tc-head">
+            <span className="oq-tc-name">#{item.orderId} · {item.customer?.name ?? 'Chưa có tên'}</span>
+            <span className={`oq-tc-badge ${slack.cls}`} aria-label={slack.label}>
+              {slack.icon} {slack.cls === 'late' ? 'DỰ KIẾN TRỄ' : slack.cls === 'risk' ? 'CÓ RỦI RO' : 'ĐÚNG HẸN'}
+            </span>
           </span>
-        </span>
 
-        {/* Facts */}
-        <span className="queue-facts">
-          <span className="queue-fact">
-            <span>Tiếp theo</span>
-            <strong>{stageLabel(item.nextStage)}</strong>
+          {/* Dòng 2: Trạng thái hiện tại */}
+          <span className="oq-tc-state">
+            {curTxt} · {SERVICE_LABELS[item.serviceType] ?? item.serviceType} · {item.weightKg}kg
           </span>
-          <span className="queue-fact">
-            <span>ETA</span>
-            <strong className={isLate ? 'oq-danger-text' : ''}>
-              {formatRelativeTime(item.estimatedAt, now)}
-            </strong>
-          </span>
-          <span className="queue-fact">
-            <span>Lý do</span>
-            <strong>
-              {isReview
-                ? (item.reviewReasons[0] ?? 'Cần kiểm tra')
-                : (item.priorityReasons[0] ?? item.riskMessage ?? '—')
-              }
-            </strong>
-          </span>
-          <span className="queue-fact">
-            {/* Risk badge rõ ràng */}
-            <span>Nguy cơ</span>
-            <strong>
-              {isLate ? <span style={{ color: 'var(--rd)', fontWeight: 800 }}>🔴 Trễ hẹn</span>
-                : isRisk ? <span style={{ color: '#b45309', fontWeight: 700 }}>⚠️ Rủi ro</span>
-                  : isReview ? <span style={{ color: 'var(--am)', fontWeight: 700 }}>🔎 Kiểm tra</span>
-                    : <span style={{ color: 'var(--gn)' }}>✓ Đúng hẹn</span>
-              }
-            </strong>
-          </span>
-        </span>
 
-        {/* Deadline */}
-        <span className={`queue-deadline${deadlineDanger ? ' danger' : ''}`}>
-          <span>Hẹn</span>
-          <strong title={item.pickupAt ?? ''}>
-            {formatRelativeTime(item.pickupAt, now)}
-          </strong>
+          {/* Dòng 3: Giờ hẹn & Dự kiến xong */}
+          <span className="oq-tc-times">
+            <span>Hẹn: <strong>{formatTime(item.pickupAt, 'Chưa hẹn')}</strong></span>
+            <span className="oq-tc-dot">·</span>
+            <span>Dự kiến xong: <strong className={isLate ? 'oq-danger-text' : ''}>{formatTime(item.estimatedAt, 'Chưa tính')}</strong></span>
+            {slack.cls === 'late' && item.slackMinutes != null && (
+              <span className="oq-tc-late-info">Trễ khoảng {Math.abs(item.slackMinutes)} phút</span>
+            )}
+          </span>
+
+          {/* Dòng 4: Hành động tiếp theo */}
+          <span className="oq-tc-next">
+            <svg className="icon icon-sm"><use href="#i-arrow-right" /></svg>
+            Tiếp theo: <strong>{nextTxt}</strong>
+          </span>
+
+          {/* Cảnh báo cần kiểm tra */}
+          {isReview && item.reviewReasons.length > 0 && (
+            <span className="oq-tc-review-hint">🔎 {item.reviewReasons[0]}</span>
+          )}
         </span>
       </button>
 
-      {/* Quick action — chỉ với manual stage, 1 tap không cần modal */}
+      {/* Quick-action: 1 tap cho manual stage */}
       {canQuickAct && (
         <button
           type="button"
@@ -524,5 +542,36 @@ function StageQueueRow({
         </button>
       )}
     </div>
+  );
+}
+
+// ─── Hàng đơn đã hoàn tất (compact) ───
+function CompletedRow({ item, onOpen }: { item: QueueItem; onOpen: () => void }) {
+  const finishedTime = formatTime(item.estimatedAt, 'Không rõ');
+  // Tính xem có trễ không dựa trên estimatedAt vs pickupAt
+  const wasLate = item.estimatedAt && item.pickupAt
+    ? new Date(item.estimatedAt) > new Date(item.pickupAt)
+    : false;
+
+  return (
+    <button
+      type="button"
+      className="oq-done-row"
+      onClick={onOpen}
+      aria-label={`Đơn hoàn tất #${item.orderId} – ${item.customer?.name ?? ''}`}
+    >
+      <span className="oq-done-name">
+        #{item.orderId} · {item.customer?.name ?? 'Chưa có tên'}
+      </span>
+      <span className="oq-done-svc">
+        {SERVICE_LABELS[item.serviceType] ?? item.serviceType} · {item.weightKg}kg
+      </span>
+      <span className="oq-done-time">
+        Xong lúc {finishedTime}
+      </span>
+      <span className={`oq-done-status${wasLate ? ' late' : ''}`}>
+        {wasLate ? '⚠ Trễ hẹn' : '✓ Đúng hẹn'}
+      </span>
+    </button>
   );
 }

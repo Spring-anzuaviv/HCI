@@ -473,3 +473,34 @@ export async function markOutOfService(
   await refreshStoreSchedule(storeId);
   return updated;
 }
+
+/**
+ * Đặt lại máy về AVAILABLE khi máy kẹt NEEDS_REVIEW
+ * (status = RUNNING nhưng không còn OrderStage nào RUNNING gắn với máy).
+ * Chỉ cho phép nếu KHÔNG có stage RUNNING thực sự, để tránh mất dữ liệu.
+ */
+export async function resetToAvailable(machineId: number, storeId: number) {
+  const machine = await prisma.machine.findFirst({
+    where: { machineId, storeId },
+    include: {
+      stages: { where: { status: "RUNNING" } },
+    },
+  });
+  if (!machine) throw new ApiError(404, "NOT_FOUND", "Không tìm thấy máy");
+
+  // Nếu CÓ stage RUNNING thực sự → không cho reset, phải hoàn tất mẻ đó trước
+  if (machine.stages.length > 0) {
+    throw new ApiError(
+      409,
+      "WORKFLOW_CONFLICT",
+      `Máy đang có mẻ ${machine.stages[0].stage} RUNNING (đơn #${machine.stages[0].orderId}). Hoàn tất mẻ này trước khi đặt lại.`,
+    );
+  }
+
+  const updated = await prisma.machine.update({
+    where: { machineId },
+    data: { status: "AVAILABLE" },
+  });
+  await refreshStoreSchedule(storeId);
+  return updated;
+}

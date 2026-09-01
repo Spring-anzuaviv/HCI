@@ -14,6 +14,7 @@ interface AppProviderProps {
   /** Session đã được xác thực từ App — bỏ qua bước gọi /auth/me lần 2 */
   initialStore: StoreSession;
 }
+
 export function AppProvider({ children, initialStore }: AppProviderProps) {
   const [currentPage, setCurrentPageState] = useState<Page>('db');
   const [, startNavigationTransition] = useTransition();
@@ -152,28 +153,28 @@ export function AppProvider({ children, initialStore }: AppProviderProps) {
     return () => window.clearTimeout(id);
   }, [refreshShiftSummary]);
 
-  // Polling máy mỗi 60s để phát hiện mẻ vừa xong
+  // Polling và expose refreshMachines để component có thể gọi thủ công (vd sau khi reset máy)
+  const refreshMachines = useCallback(async () => {
+    if (!store) return;
+    try {
+      const machineData = await apiGet<Record<string, unknown>[]>(`/stores/${store.storeId}/machines`);
+      setMachines(machineData.map(mapApiMachine));
+      setOperationsError('');
+    } catch (error) {
+      setOperationsError(error instanceof Error ? error.message : 'Không thể cập nhật trạng thái máy');
+    }
+  }, [store]);
+
   useEffect(() => {
     if (!store) return;
-    const pollMachines = async () => {
-      // Không poll khi đang có operations refresh in-flight
-      if (opsInflightRef.current) return;
-      try {
-        const machineData = await apiGet<Record<string, unknown>[]>(`/stores/${store.storeId}/machines`);
-        setMachines(machineData.map(mapApiMachine));
-        setOperationsError('');
-      } catch (error) {
-        setOperationsError(error instanceof Error ? error.message : 'Không thể cập nhật trạng thái máy');
-      }
-    };
-    const machineInterval = window.setInterval(() => { void pollMachines(); }, 60_000);
+    const machineInterval = window.setInterval(() => { void refreshMachines(); }, 60_000);
     return () => { window.clearInterval(machineInterval); };
-  }, [store]);
+  }, [store, refreshMachines]);
 
   return (
     <AppContext.Provider value={{
       currentPage, setCurrentPage,
-      machines, setMachines,
+      machines, setMachines, refreshMachines,
       staff, setStaff,
       config, setConfig,
       orders, setOrders, store, refreshOrders, refreshStaff, selectedWorkDate, setSelectedWorkDate, workShifts, shiftSummary, refreshShiftSummary, orderSearch, setOrderSearch, orderFilter, setOrderFilter, queueSnapshot, operationsLoading, queueRefreshing, operationsError, refreshOperations,
@@ -199,8 +200,8 @@ function mapApiOrder(order: any): Order {
     chipLabel: order.currentMachine ? `${order.currentMachine.name} · ${order.currentStage ?? ''} · Dự kiến xong: ${eta}` : undefined,
     machine: order.currentMachine?.name, readyAt: order.readyAt, pickupAt: order.pickupAt, estimatedAt: order.estimatedAt,
     groupCode: order.groupCode, riskLevel: order.riskLevel, currentStage: order.currentStage,
-     currentMachine: order.currentMachine, nextAction: order.nextAction, priorityReason: order.priorityReason, stages: order.stages, groupETA: order.groupETA,
-     rawStatus: order.status,
+    currentMachine: order.currentMachine, nextAction: order.nextAction, priorityReason: order.priorityReason, stages: order.stages, groupETA: order.groupETA,
+    rawStatus: order.status,
   };
 }
 

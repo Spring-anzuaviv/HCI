@@ -62,3 +62,13 @@ export const markOutOfService = asyncRoute(async (req, res) => {
     ),
   );
 });
+
+export const resetMachine = asyncRoute(async (req, res) =>
+  ok(
+    res,
+    await service.resetToAvailable(
+      parseId(req.params.machineId, "machineId"),
+      requireStore(req),
+    ),
+  ),
+);

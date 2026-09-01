@@ -81,11 +81,11 @@ async function loadActiveState(storeId: number, db: any = prisma) {
 function validatePickupChange(order: any, newPickupAt: string, now = new Date()) {
   const pickupAt = new Date(newPickupAt);
   if (Number.isNaN(pickupAt.getTime()) || pickupAt <= now)
-    throw new ApiError(400, "VALIDATION_ERROR", "Giờ lấy mới phải ở tương lai");
+    throw new ApiError(400, "VALIDATION_ERROR", "Giờ lấy mới phải ở tương lai (sau thời điểm hiện tại)");
   if (!order.pickupAt)
     throw new ApiError(409, "SIMULATION_DATA_INCOMPLETE", "Dữ liệu không đầy đủ để mô phỏng: đơn thiếu pickupAt");
-  if (pickupAt >= order.pickupAt)
-    throw new ApiError(400, "VALIDATION_ERROR", "Giờ lấy mới phải sớm hơn giờ lấy hiện tại");
+  // Không yêu cầu newPickupAt phải sớm hơn pickupAt cũ —
+  // "Đôn đơn" cho phép thay đổi giờ hẹn theo bất kỳ hướng nào miễn là > now.
   return pickupAt;
 }
 
@@ -156,11 +156,17 @@ export async function check(orderId: number, storeId: number, newPickupAt: strin
   const { orders, machines } = await loadActiveState(storeId);
   const order = orders.find((item: any) => item.orderId === orderId);
   if (!order) {
-    const completed = await prisma.laundryOrder.findFirst({ where: { orderId, storeId } });
-    if (completed?.status === "COMPLETED")
-      throw new ApiError(409, "ORDER_COMPLETED", "Đơn đã hoàn tất, không thể thay đổi giờ lấy");
-    throw new ApiError(404, "NOT_FOUND", "Không tìm thấy đơn hàng trong cửa hàng");
+    // Kiểm tra xem đơn có tồn tại không — phân biệt COMPLETED/READY vs không tồn tại
+    const found = await prisma.laundryOrder.findFirst({ where: { orderId, storeId } });
+    if (!found)
+      throw new ApiError(404, "NOT_FOUND", "Không tìm thấy đơn hàng trong cửa hàng");
+    if (found.status === "COMPLETED" || found.status === "READY" || found.status === "NOTIFIED")
+      throw new ApiError(409, "ORDER_COMPLETED", "Đơn đã sẵn sàng lấy hoặc hoàn tất, không thể thay đổi giờ lấy");
+    throw new ApiError(404, "NOT_FOUND", "Không tìm thấy đơn hàng đang hoạt động");
   }
+  // Chặn thêm cho đơn READY/NOTIFIED/COMPLETED (phòng trường hợp activeStatuses thay đổi)
+  if (["COMPLETED", "READY", "NOTIFIED"].includes(order.status))
+    throw new ApiError(409, "ORDER_COMPLETED", "Đơn đã sẵn sàng lấy hoặc hoàn tất, không thể thay đổi giờ lấy");
   const pickupAt = validatePickupChange(order, newPickupAt, now);
   const simulation = simulateExpedite(orderId, orders, machines, pickupAt, now);
   const targetImpact = simulation.impacts.find((item) => item.orderId === orderId)!;
@@ -196,7 +202,7 @@ export async function apply(
   simulationToken: string,
 ) {
   if (!reason?.trim())
-    throw new ApiError(400, "VALIDATION_ERROR", "Vui lòng nhập lý do lấy sớm");
+    throw new ApiError(400, "VALIDATION_ERROR", "Vui lòng nhập lý do đôn đơn");
   if (!simulationToken?.trim())
     throw new ApiError(400, "VALIDATION_ERROR", "Thiếu mã xác nhận mô phỏng");
   const now = new Date();
@@ -208,22 +214,27 @@ export async function apply(
     const { orders, machines } = await loadActiveState(storeId, tx);
     const order = orders.find((item: any) => item.orderId === orderId);
     if (!order) {
-      const completed = await tx.laundryOrder.findFirst({ where: { orderId, storeId } });
-      if (completed?.status === "COMPLETED")
-        throw new ApiError(409, "ORDER_COMPLETED", "Đơn đã hoàn tất, không thể thay đổi giờ lấy");
-      throw new ApiError(404, "NOT_FOUND", "Không tìm thấy đơn hàng trong cửa hàng");
+      const found = await tx.laundryOrder.findFirst({ where: { orderId, storeId } });
+      if (!found)
+        throw new ApiError(404, "NOT_FOUND", "Không tìm thấy đơn hàng trong cửa hàng");
+      if (found.status === "COMPLETED" || found.status === "READY" || found.status === "NOTIFIED")
+        throw new ApiError(409, "ORDER_COMPLETED", "Đơn đã sẵn sàng lấy hoặc hoàn tất, không thể thay đổi giờ lấy");
+      throw new ApiError(404, "NOT_FOUND", "Không tìm thấy đơn hàng đang hoạt động");
     }
+    // Kiểm tra thêm trạng thái trong transaction (phòng race condition)
+    if (["COMPLETED", "READY", "NOTIFIED"].includes(order.status))
+      throw new ApiError(409, "ORDER_COMPLETED", "Đơn đã sẵn sàng lấy hoặc hoàn tất, không thể thay đổi giờ lấy");
     const pickupAt = validatePickupChange(order, newPickupAt, now);
     const currentToken = createSimulationToken(orders, machines, orderId, pickupAt);
     if (currentToken !== simulationToken)
       throw new ApiError(409, "QUEUE_CHANGED", "Hàng đợi đã thay đổi, cần mô phỏng lại trước khi xác nhận");
     simulateExpedite(orderId, orders, machines, pickupAt, now);
     const updated = await tx.laundryOrder.updateMany({
-      where: { orderId, storeId, status: { not: "COMPLETED" } },
+      where: { orderId, storeId, status: { notIn: ["COMPLETED", "READY", "NOTIFIED"] } },
       data: { pickupAt },
     });
     if (updated.count !== 1)
-      throw new ApiError(409, "ORDER_COMPLETED", "Đơn đã hoàn tất, không thể thay đổi giờ lấy");
+      throw new ApiError(409, "ORDER_COMPLETED", "Đơn đã sẵn sàng lấy hoặc hoàn tất, không thể thay đổi giờ lấy");
   }, { isolationLevel: "Serializable" });
 
   await refreshStoreSchedule(storeId);

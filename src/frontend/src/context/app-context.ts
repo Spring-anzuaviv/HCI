@@ -25,6 +25,7 @@ export interface AppContextType {
   setCurrentPage: (page: Page) => void;
   machines: Machine[];
   setMachines: Dispatch<SetStateAction<Machine[]>>;
+  refreshMachines: () => Promise<void>;
   staff: Staff[];
   setStaff: Dispatch<SetStateAction<Staff[]>>;
   config: Config;

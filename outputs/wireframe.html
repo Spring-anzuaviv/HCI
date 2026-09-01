@@ -1533,6 +1533,80 @@
     .toast.red {
       border-left: 3px solid var(--rd)
     }
+
+    /* ── TASK CARD (Queue page mới) ── */
+    .oq-card-list { display: flex; flex-direction: column; gap: 7px; margin-top: 10px; }
+
+    .oq-tc {
+      display: flex; align-items: flex-start; gap: 10px;
+      width: 100%; padding: 12px 12px 12px 12px;
+      background: #fff; border: 1.5px solid var(--bd); border-radius: 11px;
+      border-left: 3px solid var(--bd);
+      cursor: pointer; text-align: left; font-family: 'Inter', sans-serif; color: inherit;
+      transition: border-color .15s, background .15s;
+    }
+    .oq-tc:hover { border-color: var(--pm); background: #f9f7ff; }
+    .oq-tc.oq-tc-late { background: #fff9f9; border-left-color: var(--rd); }
+    .oq-tc.oq-tc-risk { background: #fffbeb; border-left-color: #b45309; }
+    .oq-tc.oq-tc-first { background: #faf8ff; border-color: #c4b5fd; }
+
+    .oq-tc-body { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 0; }
+
+    .oq-tc-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .oq-tc-name { font-size: 13px; font-weight: 800; color: var(--tx); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+    .oq-tc-badge {
+      display: inline-flex; align-items: center; gap: 3px;
+      padding: 2px 8px; border-radius: 20px;
+      font-size: 9.5px; font-weight: 800; white-space: nowrap; flex-shrink: 0;
+    }
+    .oq-tc-badge.ok   { background: #dcfce7; color: #166534; }
+    .oq-tc-badge.risk { background: #fef3c7; color: #92400e; }
+    .oq-tc-badge.late { background: #fee2e2; color: #991b1b; }
+
+    .oq-tc-state { font-size: 11.5px; color: var(--ts); line-height: 1.4; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+    .oq-tc-times { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; font-size: 11.5px; color: var(--ts); }
+    .oq-tc-times strong { color: var(--tx); font-weight: 700; }
+    .oq-tc-dot { color: var(--bd); }
+    .oq-tc-late-info { font-size: 11px; font-weight: 700; color: var(--rd); margin-left: 4px; }
+
+    .oq-tc-next { display: flex; align-items: center; gap: 5px; font-size: 11.5px; color: var(--pu); font-weight: 600; margin-top: 1px; }
+    .oq-tc-next strong { font-weight: 800; }
+
+    /* Rec card cập nhật */
+    .oq-rec-left { display: flex; flex-direction: column; align-items: center; gap: 2px; flex-shrink: 0; }
+    .oq-rec-star { font-size: 16px; line-height: 1; }
+    .oq-tc-risk  { font-size: 11px; font-weight: 700; margin-top: 3px; }
+    .oq-tc-risk.ok   { color: #16a34a; }
+    .oq-tc-risk.risk { color: #b45309; }
+    .oq-tc-risk.late { color: var(--rd); }
+
+    /* Toggle hoàn tất */
+    .oq-completed-toggle {
+      display: flex; align-items: center; justify-content: space-between; width: 100%;
+      background: none; border: none; cursor: pointer; padding: 2px 0;
+      font-family: 'Inter', sans-serif; text-align: left;
+    }
+    .oq-completed-toggle:hover { opacity: .82; }
+    .oq-completed-hint { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 700; color: var(--ts); }
+
+    /* Row compact hoàn tất */
+    .oq-done-row {
+      display: grid;
+      grid-template-columns: minmax(140px,1.5fr) minmax(80px,1fr) auto auto;
+      gap: 10px; align-items: center;
+      width: 100%; padding: 9px 12px;
+      background: #f9fafb; border: 1.5px solid #e5e7eb; border-radius: 9px;
+      cursor: pointer; text-align: left; font-family: 'Inter', sans-serif; color: inherit;
+      transition: background .15s;
+    }
+    .oq-done-row:hover { background: #f0fdf4; border-color: #6ee7b7; }
+    .oq-done-name  { font-size: 12px; font-weight: 700; color: var(--tx); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .oq-done-svc   { font-size: 11px; color: var(--ts); }
+    .oq-done-time  { font-size: 11px; color: var(--ts); white-space: nowrap; }
+    .oq-done-status { font-size: 11px; font-weight: 700; color: #16a34a; white-space: nowrap; }
+    .oq-done-status.late { color: var(--rd); }
   </style>
 </head>
 
@@ -1617,6 +1691,10 @@
     <symbol id="i-chevron-right" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
       stroke-linecap="round" stroke-linejoin="round">
       <polyline points="9 18 15 12 9 6" />
+    </symbol>
+    <symbol id="i-chevron-down" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+      stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="6 9 12 15 18 9" />
     </symbol>
     <symbol id="i-zap" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
       stroke-linejoin="round">
@@ -2196,192 +2274,239 @@
           </div>
         </div>
 
-        <!-- ══ QUEUE PAGE (Feature 1 + P5 Handover) ══ -->
+        <!-- ══ QUEUE PAGE (HCI refactor – card layout) ══ -->
         <div id="p-q" class="page">
+          <!-- Header -->
           <div class="oq-header">
             <div class="oq-header-left">
               <h2 class="oq-title">Hàng đợi</h2>
               <div class="oq-summary">
                 <span class="oq-summary-chip danger">🔴 2 trễ hẹn</span>
-                <span class="oq-summary-chip ok">✓ 3 máy trống</span>
+                <span class="oq-summary-chip risk">⚠ 1 rủi ro</span>
+                <span class="oq-summary-chip ok">✓ 2 máy trống</span>
               </div>
             </div>
             <div class="oq-header-right">
-              <span class="queue-updated">Cập nhật lúc 14:00</span>
+              <span class="queue-updated">Cập nhật 14:23</span>
             </div>
           </div>
 
-          <!-- AI suggestion -->
+          <!-- ⭐ Nên xử lý tiếp -->
           <div class="card oq-zone-a-card">
             <div class="oq-zone-label">
-              <svg class="icon icon-sm">
-                <use href="#i-cpu" />
-              </svg> Đề xuất xử lý tiếp
+              <svg class="icon icon-sm"><use href="#i-cpu" /></svg>
+              Nên xử lý tiếp
             </div>
             <div class="oq-recs">
               <div class="oq-rec-card">
-                <div class="oq-rec-id">#3</div>
+                <div class="oq-rec-left">
+                  <div class="oq-rec-star">⭐</div>
+                  <div class="oq-rec-id">#3</div>
+                </div>
                 <div class="oq-rec-body">
                   <div class="oq-rec-name">Lê Văn Nam</div>
-                  <div class="oq-rec-meta">
-                    <svg class="icon icon-sm" style="color:var(--tl)">
-                      <use href="#i-phone" />
-                    </svg>0912 345 678 · Hẹn 18:00 · 3kg giặt thường · Chờ máy
+                  <div class="oq-tc-state">Chờ máy giặt · Chỉ giặt · 3kg</div>
+                  <div class="oq-tc-times" style="margin-top:3px">
+                    <span>Hẹn: <strong>18:00</strong></span>
+                    <span class="oq-tc-dot">·</span>
+                    <span>Dự kiến xong: <strong>17:55</strong></span>
                   </div>
-                  <div class="oq-rec-reasons">
-                    <span><svg class="icon icon-sm">
-                        <use href="#i-info" />
-                      </svg>Lý do: Hẹn sớm nhất trong chờ · Máy 2 phù hợp · Cần ~55 phút</span>
+                  <div class="oq-tc-risk ok">✓ Đúng hẹn</div>
+                  <div class="oq-tc-next">
+                    <svg class="icon icon-sm"><use href="#i-arrow-right" /></svg>
+                    Tiếp theo: <strong>Đưa vào Máy giặt 2</strong>
                   </div>
                 </div>
-                <button class="bp oq-rec-btn" onclick="openOM('Lê Văn Nam','18:00',false,true,true)">Xử lý đơn này <svg
-                    class="icon icon-sm">
-                    <use href="#i-arrow-right" />
-                  </svg></button>
+                <button class="bp oq-rec-btn" onclick="openOM('Lê Văn Nam','18:00',false,'wash',true)">
+                  Xử lý ngay <svg class="icon icon-sm"><use href="#i-arrow-right" /></svg>
+                </button>
               </div>
             </div>
           </div>
 
-
-
-          <!-- Grouped Stages -->
-          <div class="card oq-stage-group">
+          <!-- Nhóm: Giặt 🫧 -->
+          <div class="card oq-stage-group" style="border-top:3px solid #93c5fd">
             <div class="oq-stage-header">
-              <div class="oq-stage-title">
-                <span class="oq-stage-dot" style="background:#f1f5f9; border:1.5px solid #cbd5e1"><svg class="icon">
-                    <use href="#i-sort" />
-                  </svg></span>
-                Đang chờ / Phân loại
-                <span class="oq-stage-count" style="background:#f1f5f9; color:#475569">2</span>
+              <div class="oq-stage-title" style="color:#1d4ed8">
+                <span class="oq-stage-dot" style="background:#dbeafe; border:1.5px solid #93c5fd; font-size:15px">🫧</span>
+                Giặt
+                <span class="oq-stage-count" style="background:#dbeafe; color:#1d4ed8">2</span>
+              </div>
+              <div style="display:flex;gap:6px">
+                <span class="oq-summary-chip danger" style="font-size:10px">🔴 1 trễ</span>
               </div>
             </div>
-            <div class="olist" style="margin-top:10px">
-              <div class="orow" onclick="openOM('Trần Thị Hoa','17:30',true,'combo',true)">
-                <div class="opri rd">3</div>
-                <div style="flex:1">
-                  <div class="oname">Trần Thị Hoa</div>
-                  <div style="display:flex;gap:5px;margin-top:5px;flex-wrap:wrap"><span class="chip wt">Chờ máy · Cần
-                      ~85 phút</span><span class="chip rk">Nguy cơ trễ</span></div>
-                </div>
-                <div class="otime">15/08/2026, 17:30</div>
+
+            <div class="oq-card-list">
+              <!-- Đơn trễ -->
+              <div class="oq-row-shell">
+                <button class="oq-tc oq-tc-late" onclick="openOM('Trần Thị Hoa','17:30',true,'combo',true)">
+                  <span class="opri rd">3</span>
+                  <span class="oq-tc-body">
+                    <span class="oq-tc-head">
+                      <span class="oq-tc-name">#7 · Trần Thị Hoa</span>
+                      <span class="oq-tc-badge late">🔴 DỰ KIẾN TRỄ</span>
+                    </span>
+                    <span class="oq-tc-state">Đang giặt · Máy giặt 1 · Giặt + Sấy · 5kg</span>
+                    <span class="oq-tc-times">
+                      <span>Hẹn: <strong>17:30</strong></span>
+                      <span class="oq-tc-dot">·</span>
+                      <span>Dự kiến xong: <strong style="color:var(--rd)">17:42</strong></span>
+                      <span class="oq-tc-late-info">Trễ khoảng 12 phút</span>
+                    </span>
+                    <span class="oq-tc-next">
+                      <svg class="icon icon-sm"><use href="#i-arrow-right" /></svg>
+                      Tiếp theo: <strong>Đợi Máy giặt 1 xong</strong>
+                    </span>
+                  </span>
+                </button>
               </div>
-              <div class="orow" onclick="openOM('Lê Văn Nam','18:00',true,'dry',true)">
-                <div class="opri rd">4</div>
-                <div style="flex:1">
-                  <div class="oname">Lê Văn Nam</div>
-                  <div style="display:flex;gap:5px;margin-top:5px;flex-wrap:wrap"><span class="chip wt">Chờ máy · Cần
-                      ~30 phút</span><span class="chip rk">Nguy cơ trễ</span></div>
-                </div>
-                <div class="otime">15/08/2026, 18:00</div>
+
+              <!-- Đơn đúng hẹn -->
+              <div class="oq-row-shell">
+                <button class="oq-tc oq-tc-first" onclick="openOM('Nguyễn Minh Tuấn','17:30',false,'wash',false)">
+                  <span class="opri bl">1</span>
+                  <span class="oq-tc-body">
+                    <span class="oq-tc-head">
+                      <span class="oq-tc-name">#5 · Nguyễn Minh Tuấn</span>
+                      <span class="oq-tc-badge ok">✓ ĐÚNG HẸN</span>
+                    </span>
+                    <span class="oq-tc-state">Chờ máy giặt · Chỉ giặt · 3kg</span>
+                    <span class="oq-tc-times">
+                      <span>Hẹn: <strong>17:30</strong></span>
+                      <span class="oq-tc-dot">·</span>
+                      <span>Dự kiến xong: <strong>17:25</strong></span>
+                    </span>
+                    <span class="oq-tc-next">
+                      <svg class="icon icon-sm"><use href="#i-arrow-right" /></svg>
+                      Tiếp theo: <strong>Đưa vào Máy giặt 2</strong>
+                    </span>
+                  </span>
+                </button>
               </div>
             </div>
           </div>
 
-          <div class="card oq-stage-group">
+          <!-- Nhóm: Sấy 💨 -->
+          <div class="card oq-stage-group" style="border-top:3px solid #fcd34d">
             <div class="oq-stage-header">
-              <div class="oq-stage-title">
-                <span class="oq-stage-dot" style="background:#dbeafe; border:1.5px solid #93c5fd"><svg class="icon">
-                    <use href="#i-washer" />
-                  </svg></span>
-                Đang giặt
-                <span class="oq-stage-count" style="background:#dbeafe; color:#1d4ed8">1</span>
-              </div>
-            </div>
-            <div class="olist" style="margin-top:10px">
-              <div class="orow" onclick="openOM('Nguyễn Minh Tuấn','17:30',false,'wash',false)">
-                <div class="opri bl">1</div>
-                <div style="flex:1">
-                  <div class="oname">Nguyễn Minh Tuấn</div>
-                  <div style="display:flex;gap:5px;margin-top:5px;flex-wrap:wrap"><span class="chip w">Máy 1 · Đang giặt
-                      · Dự kiến xong: 18:35</span></div>
-                </div>
-                <div class="otime">15/08/2026, 17:30</div>
-              </div>
-            </div>
-          </div>
-
-          <div class="card oq-stage-group">
-            <div class="oq-stage-header">
-              <div class="oq-stage-title">
-                <span class="oq-stage-dot" style="background:#fef3c7; border:1.5px solid #fcd34d"><svg class="icon">
-                    <use href="#i-zap" />
-                  </svg></span>
-                Đang sấy
+              <div class="oq-stage-title" style="color:#b45309">
+                <span class="oq-stage-dot" style="background:#fef3c7; border:1.5px solid #fcd34d; font-size:15px">💨</span>
+                Sấy
                 <span class="oq-stage-count" style="background:#fef3c7; color:#b45309">1</span>
               </div>
+              <div style="display:flex;gap:6px">
+                <span class="oq-summary-chip risk" style="font-size:10px">⚠ 1 rủi ro</span>
+              </div>
             </div>
-            <div class="olist" style="margin-top:10px">
-              <div class="orow" onclick="openOM('Đinh Quang Hiếu','17:30',false,'combo',false)">
-                <div class="opri am">2</div>
-                <div style="flex:1">
-                  <div class="oname">Đinh Quang Hiếu</div>
-                  <div style="display:flex;gap:5px;margin-top:5px;flex-wrap:wrap"><span class="chip d">Máy 2 · Đang sấy
-                      · Dự kiến xong: 17:40</span></div>
-                </div>
-                <div class="otime">15/08/2026, 17:30</div>
+
+            <div class="oq-card-list">
+              <div class="oq-row-shell">
+                <button class="oq-tc oq-tc-risk" onclick="openOM('Đinh Quang Hiếu','17:30',false,'combo',false)">
+                  <span class="opri am">2</span>
+                  <span class="oq-tc-body">
+                    <span class="oq-tc-head">
+                      <span class="oq-tc-name">#6 · Đinh Quang Hiếu</span>
+                      <span class="oq-tc-badge risk">⚠ CÓ RỦI RO</span>
+                    </span>
+                    <span class="oq-tc-state">Đang sấy · Máy sấy 2 · Giặt + Sấy · 6kg</span>
+                    <span class="oq-tc-times">
+                      <span>Hẹn: <strong>17:30</strong></span>
+                      <span class="oq-tc-dot">·</span>
+                      <span>Dự kiến xong: <strong>17:40</strong></span>
+                    </span>
+                    <span class="oq-tc-next">
+                      <svg class="icon icon-sm"><use href="#i-arrow-right" /></svg>
+                      Tiếp theo: <strong>Đợi Máy sấy 2 xong</strong>
+                    </span>
+                  </span>
+                </button>
               </div>
             </div>
           </div>
 
-
-          <!-- Grouped Stages (Đã hoàn tất) -->
-          <div class="card oq-stage-group">
+          <!-- Nhóm: Đóng gói 📦 -->
+          <div class="card oq-stage-group" style="border-top:3px solid #86efac">
             <div class="oq-stage-header">
-              <div class="oq-stage-title">
-                <span class="oq-stage-dot" style="background:#dcfce7; border:1.5px solid #86efac"><svg class="icon">
-                    <use href="#i-package" />
-                  </svg></span>
-                Đã hoàn tất
-                <span class="oq-stage-count" style="background:#dcfce7; color:#15803d">4</span>
+              <div class="oq-stage-title" style="color:#15803d">
+                <span class="oq-stage-dot" style="background:#dcfce7; border:1.5px solid #86efac; font-size:15px">📦</span>
+                Đóng gói
+                <span class="oq-stage-count" style="background:#dcfce7; color:#15803d">1</span>
               </div>
             </div>
-            <div class="olist" style="margin-top:10px">
-              <div class="orow"
-                onclick="go('n', document.querySelectorAll('.ni')[2]); setTimeout(() => document.getElementById('p-n').scrollTop = 0, 10);"
-                style="cursor:pointer">
-                <div class="opri ok"><svg class="icon icon-sm">
-                    <use href="#i-package" />
-                  </svg></div>
-                <div style="flex:1">
-                  <div class="oname">Đặng Quốc Anh</div>
-                  <div style="display:flex;gap:5px;margin-top:5px;flex-wrap:wrap"><span class="chip ok">Hoàn tất lúc
-                      16:30</span></div>
-                </div>
-                <div class="otime">15/08/2026, 13:45</div>
+
+            <div class="oq-card-list">
+              <div class="oq-row-shell">
+                <button class="oq-tc" style="border-left-color:#86efac" onclick="openOM('Phạm Hữu Nghĩa','18:30',false,'combo',false)">
+                  <span class="opri gr">4</span>
+                  <span class="oq-tc-body">
+                    <span class="oq-tc-head">
+                      <span class="oq-tc-name">#4 · Phạm Hữu Nghĩa</span>
+                      <span class="oq-tc-badge ok">✓ ĐÚNG HẸN</span>
+                    </span>
+                    <span class="oq-tc-state">Vừa hoàn tất sấy · Giặt + Sấy · 4kg</span>
+                    <span class="oq-tc-times">
+                      <span>Hẹn: <strong>18:30</strong></span>
+                      <span class="oq-tc-dot">·</span>
+                      <span>Dự kiến xong: <strong>14:55</strong></span>
+                    </span>
+                    <span class="oq-tc-next">
+                      <svg class="icon icon-sm"><use href="#i-arrow-right" /></svg>
+                      Tiếp theo: <strong>Đóng gói đơn</strong>
+                    </span>
+                  </span>
+                </button>
+                <!-- Quick-action: bấm 1 lần hoàn tất Đóng gói -->
+                <button class="oq-quick-btn" title="Hoàn tất Đóng gói ngay">
+                  <svg class="icon icon-sm"><use href="#i-check" /></svg>
+                </button>
               </div>
-              <div class="orow">
-                <div class="opri ok"><svg class="icon icon-sm">
-                    <use href="#i-package" />
-                  </svg></div>
-                <div style="flex:1">
-                  <div class="oname">Bùi Thanh Tú</div>
-                  <div style="display:flex;gap:5px;margin-top:5px;flex-wrap:wrap"><span class="chip ok">Hoàn tất lúc
-                      11:30</span></div>
-                </div>
-                <div class="otime">15/08/2026, 11:30</div>
-              </div>
-              <div class="orow">
-                <div class="opri ok"><svg class="icon icon-sm">
-                    <use href="#i-package" />
-                  </svg></div>
-                <div style="flex:1">
-                  <div class="oname">Ngô Trọng Trí</div>
-                  <div style="display:flex;gap:5px;margin-top:5px;flex-wrap:wrap"><span class="chip ok">Hoàn tất lúc
-                      09:15</span></div>
-                </div>
-                <div class="otime">15/08/2026, 09:15</div>
-              </div>
-              <div class="orow">
-                <div class="opri ok"><svg class="icon icon-sm">
-                    <use href="#i-package" />
-                  </svg></div>
-                <div style="flex:1">
-                  <div class="oname">Trương Mỹ Linh</div>
-                  <div style="display:flex;gap:5px;margin-top:5px;flex-wrap:wrap"><span class="chip ok">Hoàn tất lúc
-                      18:00</span></div>
-                </div>
-                <div class="otime">14/08/2026, 18:00</div>
-              </div>
+            </div>
+          </div>
+
+          <!-- Đã hoàn tất — collapse mặc định -->
+          <div class="card oq-stage-group" style="border-top:3px solid #10b981">
+            <button class="oq-completed-toggle" onclick="toggleCompleted()">
+              <span class="oq-stage-title" style="color:#047857">
+                <span class="oq-stage-dot" style="background:#d1fae5; border:1.5px solid #10b981">
+                  <svg class="icon"><use href="#i-check" /></svg>
+                </span>
+                Đã hoàn tất
+                <span class="oq-stage-count" style="background:#d1fae5; color:#047857">4</span>
+              </span>
+              <span class="oq-completed-hint" id="completed-hint">
+                Xem
+                <svg class="icon icon-sm" id="completed-chevron" style="transition:transform .2s">
+                  <use href="#i-chevron-down" />
+                </svg>
+              </span>
+            </button>
+
+            <div class="oq-card-list" id="completed-list" style="display:none; margin-top:10px">
+              <button class="oq-done-row" onclick="">
+                <span class="oq-done-name">#1 · Đặng Quốc Anh</span>
+                <span class="oq-done-svc">Giặt + Sấy · 3.5kg</span>
+                <span class="oq-done-time">Xong lúc 16:30</span>
+                <span class="oq-done-status">✓ Đúng hẹn</span>
+              </button>
+              <button class="oq-done-row" onclick="">
+                <span class="oq-done-name">#2 · Bùi Thanh Tú</span>
+                <span class="oq-done-svc">Chỉ giặt · 2kg</span>
+                <span class="oq-done-time">Xong lúc 11:30</span>
+                <span class="oq-done-status">✓ Đúng hẹn</span>
+              </button>
+              <button class="oq-done-row" onclick="">
+                <span class="oq-done-name">#3 · Ngô Trọng Trí</span>
+                <span class="oq-done-svc">Giặt + Sấy · 5kg</span>
+                <span class="oq-done-time">Xong lúc 09:15</span>
+                <span class="oq-done-status late">⚠ Trễ hẹn</span>
+              </button>
+              <button class="oq-done-row" onclick="">
+                <span class="oq-done-name">#4 · Trương Mỹ Linh</span>
+                <span class="oq-done-svc">Chỉ sấy · 1.5kg</span>
+                <span class="oq-done-time">Xong lúc 08:45</span>
+                <span class="oq-done-status">✓ Đúng hẹn</span>
+              </button>
             </div>
           </div>
 
@@ -3839,6 +3964,18 @@
     renderMachines();
     renderShiftCfgs();
     renderStaffList();
+
+    // Toggle nhóm "Đã hoàn tất" trong trang Queue
+    function toggleCompleted() {
+      const list = document.getElementById('completed-list');
+      const hint = document.getElementById('completed-hint');
+      const chevron = document.getElementById('completed-chevron');
+      if (!list) return;
+      const isOpen = list.style.display !== 'none';
+      list.style.display = isOpen ? 'none' : 'flex';
+      if (hint) hint.childNodes[0].textContent = isOpen ? 'Xem ' : 'Ẩn ';
+      if (chevron) chevron.style.transform = isOpen ? '' : 'rotate(180deg)';
+    }
   </script>
 </body>
 
