@@ -233,10 +233,10 @@ body {
 .oq-row-action.oq-action-sorting:hover { background: #5b21b6; }
 .oq-row-action.oq-action-wash { background: #2563eb; }
 .oq-row-action.oq-action-wash:hover { background: #1d4ed8; }
-.oq-row-action.oq-action-transfer { background: #6366f1; }
-.oq-row-action.oq-action-transfer:hover { background: #4f46e5; }
-.oq-row-action.oq-action-dry { background: #2563eb; }
-.oq-row-action.oq-action-dry:hover { background: #1d4ed8; }
+.oq-row-action.oq-action-transfer { background: #ea580c; }
+.oq-row-action.oq-action-transfer:hover { background: #c2410c; }
+.oq-row-action.oq-action-dry { background: #d97706; }
+.oq-row-action.oq-action-dry:hover { background: #b45309; }
 .oq-row-action.oq-action-packing { background: #15803d; }
 .oq-row-action.oq-action-packing:hover { background: #166534; }
 .chip  { font-size: 9.5px; font-weight: 700; padding: 2px 7px; border-radius: 5px; text-transform: uppercase; letter-spacing: .04em; }
@@ -480,11 +480,11 @@ button[aria-busy="true"] { cursor: wait !important; }
 .oq-instruction-text > span { color: #475569; }
 .oq-instruction-text b { color: #1d4ed8; font-weight: 900; }
 .oq-instruction-text i { color: #6d28d9; font-style: normal; font-weight: 900; white-space: nowrap; }
-.oq-reference-action.late { border-color: #94a3b8; background: #f8fafc; }
-.oq-reference-action.late span:first-child, .oq-reference-action.late strong { color: #475569; }
+.oq-reference-action.late { border-color: #fcd34d; background: #fffbeb; }
+.oq-reference-action.late span:first-child, .oq-reference-action.late strong { color: #92400e; }
 .oq-task-timing { display: inline-flex; align-items: center; padding: 3px 7px; border-radius: 5px; font-size: 10px !important; font-weight: 800 !important; letter-spacing: .02em !important; }
 .oq-task-timing.remaining { background: #e0f2fe; color: #0369a1 !important; }
-.oq-task-timing.late { background: #e2e8f0; color: #475569 !important; }
+.oq-task-timing.late { background: #fef3c7; color: #92400e !important; }
 .oq-priority-reason { display: flex; align-items: flex-start; gap: 5px; margin: 9px 0 0 37px; color: var(--ts); font-size: 10.5px; line-height: 1.35; }
 .oq-priority-reason svg { flex: 0 0 auto; color: #64748b; margin-top: 1px; }
 .oq-task-meta { display: flex; flex-wrap: wrap; gap: 5px; margin: 7px 0 0 37px; color: var(--ts); font-size: 10.5px; }
@@ -521,26 +521,26 @@ button[aria-busy="true"] { cursor: wait !important; }
 .oq-state-label { display: flex; align-items: center; gap: 6px; margin-top: 4px; color: var(--ts); font-size: 10px; font-weight: 800; letter-spacing: .04em; }
 .oq-state-label em { padding: 2px 5px; border-radius: 4px; background: #e0f2fe; color: #0369a1; font-size: 8px; font-style: normal; letter-spacing: .05em; }
 .oq-task-priority { color: var(--tl); font-size: 9.5px; font-weight: 800; letter-spacing: .05em; white-space: nowrap; }
-.oq-task-priority.late { color: #475569; }
+.oq-task-priority.late { color: #b45309; }
 .oq-task-priority.risk { color: #475569; }
 .oq-state-sorting .oq-state-icon { background: #f8fafc; color: #7c3aed; }
 .oq-state-wash-ready .oq-state-icon, .oq-state-washing .oq-state-icon { background: #f8fafc; color: #3b82f6; }
-.oq-state-transfer .oq-state-icon { background: #f8fafc; color: #6366f1; }
-.oq-state-dry-ready .oq-state-icon, .oq-state-drying .oq-state-icon { background: #f8fafc; color: #2563eb; }
+.oq-state-transfer .oq-state-icon { background: #f8fafc; color: #ea580c; }
+.oq-state-dry-ready .oq-state-icon, .oq-state-drying .oq-state-icon { background: #f8fafc; color: #d97706; }
 .oq-state-packing .oq-state-icon { background: #f8fafc; color: #22c55e; }
 .oq-state-default .oq-state-icon { background: #f8fafc; color: #64748b; }
-.oq-task-card.late .oq-state-icon { background: #f8fafc; color: #64748b; }
+.oq-task-card.late .oq-state-icon { background: #fffbeb; color: #f59e0b; }
 .oq-task-card.oq-state-sorting { border-color: #7c3aed; }
 .oq-task-card.oq-state-wash-ready, .oq-task-card.oq-state-washing { border-color: #3b82f6; }
-.oq-task-card.oq-state-transfer { border-color: #6366f1; }
-.oq-task-card.oq-state-dry-ready, .oq-task-card.oq-state-drying { border-color: #2563eb; }
+.oq-task-card.oq-state-transfer { border-color: #ea580c; }
+.oq-task-card.oq-state-dry-ready, .oq-task-card.oq-state-drying { border-color: #d97706; }
 .oq-task-card.oq-state-packing { border-color: #22c55e; }
 .oq-task-card.oq-state-sorting .oq-reference-action { border-color: #7c3aed; }
 .oq-task-card.oq-state-wash-ready .oq-reference-action, .oq-task-card.oq-state-washing .oq-reference-action { border-color: #3b82f6; }
-.oq-task-card.oq-state-transfer .oq-reference-action { border-color: #6366f1; }
-.oq-task-card.oq-state-dry-ready .oq-reference-action, .oq-task-card.oq-state-drying .oq-reference-action { border-color: #2563eb; }
+.oq-task-card.oq-state-transfer .oq-reference-action { border-color: #ea580c; }
+.oq-task-card.oq-state-dry-ready .oq-reference-action, .oq-task-card.oq-state-drying .oq-reference-action { border-color: #d97706; }
 .oq-task-card.oq-state-packing .oq-reference-action { border-color: #22c55e; }
-.oq-task-card.late { border-color: #94a3b8; border-left-color: #64748b; }
+.oq-task-card.late { border-color: #fcd34d; border-left-color: #f59e0b; }
 .oq-task-card.risk { border-color: #cbd5e1; border-left-color: #94a3b8; }
 .oq-task-risk { flex: 0 0 auto; border-radius: 5px; padding: 4px 7px; font-size: 9px; font-weight: 900; letter-spacing: .03em; }
 .oq-task-risk.late { background: #fee2e2; color: #b91c1c; }

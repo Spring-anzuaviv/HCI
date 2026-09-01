@@ -60,14 +60,19 @@ function formatTime(value?: string | null) {
   return new Date(value).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
 }
 
+function queueTaskLabel(item: QueueItem) {
+  if (item.status === 'WASHING') return 'Lấy đồ ra khỏi máy giặt';
+  if (item.status === 'DRYING') return 'Lấy đồ ra khỏi máy sấy';
+  if (item.status === 'WAITING' && item.nextStage === 'WASH') return 'Cho đồ vào máy giặt';
+  if (item.status === 'WAITING' && item.nextStage === 'DRY') return 'Cho đồ vào máy sấy';
+  if (item.nextStage === 'TRANSFER') return 'Chuyển đồ sang máy sấy';
+  if (item.nextStage === 'SORTING') return 'Phân loại đồ';
+  if (item.nextStage === 'PACKING') return 'Xếp đồ và đóng gói';
+  return 'Kiểm tra và cập nhật trạng thái';
+}
+
 function queueActionLabel(item: QueueItem) {
-  if (item.status === 'WASHING' || item.status === 'DRYING') return 'Đã lấy đồ ra';
-  if (item.status === 'WAITING' && item.nextStage === 'WASH') return 'Đã cho vào máy giặt';
-  if (item.status === 'WAITING' && item.nextStage === 'DRY') return 'Đã cho vào máy sấy';
-  if (item.nextStage === 'TRANSFER') return 'Đã chuyển sang máy sấy';
-  if (item.nextStage === 'SORTING') return 'Đã phân loại';
-  if (item.nextStage === 'PACKING') return 'Đã xếp đồ xong';
-  return 'Cập nhật trạng thái';
+  return `Xác nhận: ${queueTaskLabel(item).toLowerCase()}`;
 }
 
 export default function MachineCompletionAlert() {
@@ -268,12 +273,13 @@ function ReminderActions({ disabled, onSnooze }: { disabled: boolean; onSnooze: 
 function QueueAlertPanel({ alert, onSnooze, onAction }: { alert: QueueAlert; onSnooze: (minutes: number) => void; onAction: () => Promise<void> }) {
   const [submitting, setSubmitting] = useState(false);
   const { item } = alert;
+  const task = queueTaskLabel(item);
   const action = queueActionLabel(item);
   const submitAction = async () => { setSubmitting(true); try { await onAction(); } finally { setSubmitting(false); } };
   return <div className="completion-panel" tabIndex={-1}>
     <div className="completion-kicker"><CircleAlert className="completion-bell" aria-hidden="true" /> {alert.kind === 'risk' ? 'Cảnh báo deadline · Cần xử lý' : 'Task bị bỏ quên · Cần xử lý'}</div>
     <div className="completion-heading-row"><div><h2>{alert.kind === 'risk' ? `Đơn #${item.orderId} cần ưu tiên` : `Đơn #${item.orderId} đang chờ xử lý`}</h2><p>{item.customer?.name ?? 'Khách hàng'} · {item.riskMessage || 'Việc tiếp theo chưa được xác nhận.'}</p></div><span className="completion-state-badge">{alert.kind === 'risk' ? (item.riskLevel === 'NOT_FEASIBLE' ? 'Đã trễ' : 'Nguy cơ trễ') : 'Bị bỏ quên'}</span></div>
-    <div className="completion-order-grid"><div><span>Trạng thái</span><strong>{item.nextAction || item.status}</strong></div><div><span>Việc cần làm</span><strong>{action}</strong></div><div><span>Hẹn lấy</span><strong>{formatTime(item.pickupAt)}</strong></div><div><span>Lý do ưu tiên</span><strong>{item.priorityReason || 'Cần xử lý tiếp theo'}</strong></div></div>
+    <div className="completion-order-grid"><div><span>Trạng thái</span><strong>{item.nextAction || item.status}</strong></div><div><span>Việc cần làm</span><strong>{task}</strong></div><div><span>Hẹn lấy</span><strong>{formatTime(item.pickupAt)}</strong></div><div><span>Lý do ưu tiên</span><strong>{item.priorityReason || 'Cần xử lý tiếp theo'}</strong></div></div>
     <div className="completion-alert-actions"><button className="bp completion-primary" disabled={submitting} onClick={() => { void submitAction(); }}>{submitting ? 'Đang cập nhật...' : action}</button><ReminderActions disabled={submitting} onSnooze={onSnooze} /></div>
   </div>;
 }

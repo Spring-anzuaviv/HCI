@@ -852,7 +852,8 @@ export function OrderDetailModal() {
     const orderId = p.orderId;
     await runOrderAction(expediteActionKey, async () => {
       try {
-        const pickupDate = new Date();
+        // Giữ nguyên ngày hẹn hiện tại; input chỉ thay đổi giờ/phút.
+        const pickupDate = order?.pickupAt ? new Date(order.pickupAt) : new Date();
         const [h, m] = timeVal.split(':').map(Number);
         pickupDate.setHours(h, m, 0, 0);
         const res = await checkExpedite(orderId, store.storeId, pickupDate.toISOString());
@@ -889,7 +890,7 @@ export function OrderDetailModal() {
     await runOrderAction(expediteActionKey, async () => {
       try {
         await confirmExpedite(orderId, store.storeId, expediteCheck.newPickupAt, expediteReason, expediteCheck.simulationToken);
-        showToast('Đã đôn đơn thành công', 'grn');
+        showToast('Đã cập nhật giờ hẹn lấy', 'grn');
         closeM('om');
         void refreshOperations();
       } catch (error) {
@@ -987,7 +988,7 @@ export function OrderDetailModal() {
 
         {showExpedite && (
           <div style={{ background: '#f8fafc', borderRadius: 9, padding: 14, margin: '11px 0', border: '1px solid #e2e8f0' }}>
-            <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 8, color: '#1e293b' }}>Đôn đơn / Lấy sớm</div>
+            <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 8, color: '#1e293b' }}>Chỉnh giờ hẹn lấy</div>
             
             {order?.pickupAt && (
               <div style={{ fontSize: 12, color: '#64748b', marginBottom: 8 }}>
@@ -996,16 +997,19 @@ export function OrderDetailModal() {
             )}
             
             <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 12 }}>
-              <button className="bs" style={{ padding: '6px 10px', fontSize: 12 }} onClick={() => handleQuickExpedite(-15)} disabled={modalBusy}>-15 phút</button>
-              <button className="bs" style={{ padding: '6px 10px', fontSize: 12 }} onClick={() => handleQuickExpedite(-30)} disabled={modalBusy}>-30 phút</button>
-              <button className="bs" style={{ padding: '6px 10px', fontSize: 12 }} onClick={() => handleQuickExpedite(-60)} disabled={modalBusy}>-1 giờ</button>
+              <button className="bs" style={{ padding: '6px 10px', fontSize: 12 }} onClick={() => handleQuickExpedite(15)} disabled={modalBusy}>+15 phút</button>
+              <button className="bs" style={{ padding: '6px 10px', fontSize: 12 }} onClick={() => handleQuickExpedite(30)} disabled={modalBusy}>+30 phút</button>
+              <button className="bs" style={{ padding: '6px 10px', fontSize: 12 }} onClick={() => handleQuickExpedite(60)} disabled={modalBusy}>+1 giờ</button>
               <input className="finput" type="time" value={expediteTime} onChange={e => handleCustomTimeChange(e.target.value)} disabled={modalBusy} style={{ width: 100 }} />
             </div>
 
             {expediteCheck && (
-              <div style={{ background: expediteCheck.summary?.notFeasibleOrders > 0 ? '#fef2f2' : '#f0fdf4', border: expediteCheck.summary?.notFeasibleOrders > 0 ? '1px solid #fecaca' : '1px solid #bbf7d0', borderRadius: 6, padding: '10px 12px', marginBottom: 12 }}>
+              <div style={{ background: expediteCheck.feasibility === 'ON_TIME' ? '#f0fdf4' : '#fff7ed', border: expediteCheck.feasibility === 'ON_TIME' ? '1px solid #bbf7d0' : '1px solid #fed7aa', borderRadius: 6, padding: '10px 12px', marginBottom: 12 }}>
                 <div style={{ fontSize: 12, color: '#475569', marginBottom: 4 }}>
-                   → Giờ hẹn mới: <strong style={{ color: expediteCheck.summary?.notFeasibleOrders > 0 ? '#b45309' : '#15803d' }}>{new Date(expediteCheck.newPickupAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}</strong>
+                   → Giờ hẹn mới: <strong style={{ color: expediteCheck.feasibility === 'ON_TIME' ? '#15803d' : '#c2410c' }}>{new Date(expediteCheck.newPickupAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}</strong>
+                </div>
+                <div style={{ fontSize: 11, color: expediteCheck.feasibility === 'ON_TIME' ? '#15803d' : '#c2410c', marginBottom: 4 }}>
+                  {expediteCheck.feasibility === 'ON_TIME' ? 'Giờ hẹn mới giúp đơn không còn trễ.' : 'Giờ hẹn này vẫn chưa đủ để loại bỏ tình trạng trễ.'}
                 </div>
                 <div style={{ fontSize: 11, color: '#475569' }}>
                   <strong>Tác động:</strong> {expediteCheck.summary?.affectedOrders || 0} đơn bị ảnh hưởng (Trễ: {expediteCheck.summary?.notFeasibleOrders || 0}, Cảnh báo: {expediteCheck.summary?.atRiskOrders || 0})
@@ -1025,12 +1029,12 @@ export function OrderDetailModal() {
             )}
             
             <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 10 }}>
-              <input className="finput" type="text" value={expediteReason} onChange={e => setExpediteReason(e.target.value)} placeholder="Nhập lý do đôn đơn (vd: Khách cần gấp)..." disabled={modalBusy} style={{ flex: 1 }} />
+              <input className="finput" type="text" value={expediteReason} onChange={e => setExpediteReason(e.target.value)} placeholder="Nhập lý do đổi giờ (vd: Điều chỉnh để tránh trễ)..." disabled={modalBusy} style={{ flex: 1 }} />
             </div>
             <div style={{ display: 'flex', gap: 8 }}>
               <button className="bs" onClick={() => { setShowExpedite(false); setExpediteCheck(null); setExpediteTime(''); setExpediteReason(''); }}>Hủy</button>
-              <button className="bp" style={{ background: '#7c3aed', color: '#fff', flex: 1 }} onClick={handleConfirmExpedite} disabled={modalBusy || !expediteReason || !expediteCheck}>
-                Xác nhận đôn đơn
+              <button className="bp" style={{ background: '#7c3aed', color: '#fff', flex: 1 }} onClick={handleConfirmExpedite} disabled={modalBusy || !expediteReason || !expediteCheck || expediteCheck.feasibility !== 'ON_TIME'}>
+                Xác nhận đổi giờ
               </button>
             </div>
           </div>
@@ -1039,24 +1043,24 @@ export function OrderDetailModal() {
         {/* Action buttons */}
         {/* 
           Logic hiển thị nút:
-          - COMPLETED / READY → chỉ Đóng, không Đôn đơn
-          - stage PLANNED kế tiếp → Đôn đơn + Xử lý ngay
-          - stage RUNNING → Đôn đơn + Hoàn tất công đoạn
+          - COMPLETED / READY → chỉ Đóng, không chỉnh giờ
+          - stage PLANNED kế tiếp → chỉnh giờ + Xử lý ngay
+          - stage RUNNING → chỉnh giờ + Hoàn tất công đoạn
         */}
         <div style={{ display: 'flex', gap: 9, marginTop: 18, justifyContent: 'flex-end', flexWrap: 'wrap' }}>
-          {/* Nhánh 1: Đã hoàn tất hoặc READY — không cho Đôn đơn */}
+          {/* Nhánh 1: Đã hoàn tất hoặc READY — không cho chỉnh giờ */}
           {(isCompleted || order?.status === 'READY' || order?.status === 'NOTIFIED') ? (
             <button className="bs" onClick={() => closeM('om')}>Đóng</button>
 
           ) : nextStageObj?.status === 'PLANNED' ? (
-            /* Nhánh 2: Stage tiếp theo đang PLANNED — cho Đôn đơn + Xử lý ngay */
+            /* Nhánh 2: Stage tiếp theo đang PLANNED — cho chỉnh giờ + Xử lý ngay */
             <>
               <button className="bs" onClick={() => closeM('om')}>Đóng</button>
 
               {!showExpedite && (
                 <button className="bs" onClick={() => setShowExpedite(true)} disabled={modalBusy}>
                    <Zap className="icon icon-sm" aria-hidden="true" />
-                  Đôn đơn
+                  Chỉnh giờ hẹn
                 </button>
               )}
 
@@ -1076,14 +1080,14 @@ export function OrderDetailModal() {
             </>
 
           ) : (
-            /* Nhánh 3: Stage đang RUNNING — cho Đôn đơn + Hoàn tất */
+            /* Nhánh 3: Stage đang RUNNING — cho chỉnh giờ + Hoàn tất */
             <>
               <button className="bs" onClick={() => closeM('om')}>Đóng</button>
 
               {!showExpedite && (
                 <button className="bs" onClick={() => setShowExpedite(true)} disabled={modalBusy}>
                    <Zap className="icon icon-sm" aria-hidden="true" />
-                  Đôn đơn
+                  Chỉnh giờ hẹn
                 </button>
               )}
 
