@@ -198,6 +198,7 @@ Form tách đơn hiện hiển thị ETA từng mẻ và ETA hoàn tất nhóm n
 Đã tách `AppProvider`, context thuần và hook `useApp` thành các module riêng để Vite Fast Refresh không còn invalidate toàn bộ cây giao diện khi sửa context.
 
 Đã thêm mục `Chỉnh ca ngày đang xem` trong Cài đặt. Modal cho phép sửa tên và giờ của từng ca theo ngày, lưu qua API `PATCH /stores/:storeId/shifts/:shiftId`, giữ nguyên phân công nhân viên và tải lại dữ liệu sau khi lưu. Frontend/backend build, frontend lint và bốn test workflow backend đều đạt.
+Đã đối chiếu toàn bộ luồng frontend–API–service–Prisma và cập nhật `System Specification.md` theo implementation hiện tại. Tài liệu đã sửa các khác biệt về phạm vi queue, countdown, thuật toán expedite, nhóm đơn, thông báo Zalo prototype và bổ sung use case đăng nhập, tạo/tách đơn, timeline, quản trị máy/ca cùng thống kê. Các technical debt chưa sửa code (thời lượng stage thủ công, ánh xạ `NOTIFIED`, kiểm tra deadline chủ yếu ở frontend và ca Dashboard hard-code) được ghi rõ là giới hạn.
 
 ## 6. Dependency giữa các artifact
 
