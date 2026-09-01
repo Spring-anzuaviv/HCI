@@ -1,6 +1,9 @@
-# Phỏng vấn 1
+# Phỏng vấn 1: Phỏng vấn chủ tiệm giặt ủi tầm trung
 
-> Các câu hỏi dưới đây được biên soạn lại để gắn với phần trả lời đã trích xuất từ PDF. Phần trả lời giữ nguyên nội dung nguồn.
+## Thông tin người được phỏng vấn
+
+- **Họ tên:** chị Ngọc
+- **Tuổi:** 26 tuổi
 
 ## Câu 1: Công cụ đang sử dụng
 

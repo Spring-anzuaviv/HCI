@@ -1,26 +1,31 @@
 import { useState } from 'react';
 import { login } from '../api/auth';
+import type { StoreSession } from '../api/auth';
 import { ApiRequestError } from '../api/client';
+import { useAsyncAction } from '../hooks/useAsyncAction';
 
 interface LoginPageProps {
-  onLogin: () => void;
+  onLogin: (store: StoreSession) => void;
 }
 
 export default function LoginPage({ onLogin }: LoginPageProps) {
   const [panel, setPanel] = useState<'login' | 'register'>('login');
   const [showPwd, setShowPwd] = useState(false);
   const [showPwdReg, setShowPwdReg] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const { pending: loading, run: runLogin } = useAsyncAction('auth:login');
   const [error, setError] = useState('');
   const [email, setEmail] = useState('admin@washtrack.com');
   const [password, setPassword] = useState('your-password');
 
   const handleLogin = async () => {
-    setLoading(true);
-    setError('');
-    try { await login(email, password); onLogin(); }
-    catch (cause) { setError(cause instanceof ApiRequestError ? cause.message : 'Không thể kết nối máy chủ'); }
-    finally { setLoading(false); }
+    await runLogin(async () => {
+      setError('');
+      try {
+        const result = await login(email, password);
+        onLogin(result.store);
+      }
+      catch (cause) { setError(cause instanceof ApiRequestError ? cause.message : 'Không thể kết nối máy chủ'); }
+    });
   };
 
   const handleRegister = () => {

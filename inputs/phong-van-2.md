@@ -1,4 +1,9 @@
-# Phỏng vấn 2: Dành cho nhân viên vận hành
+# Phỏng vấn 2: Nhân viên vận hành tiệm giặt ủi nhỏ
+
+## Thông tin người được phỏng vấn
+
+- **Họ tên:** chị Thảo
+- **Tuổi:** 30 tuổi
 
 **Mục tiêu:** Chứng minh việc điều phối dựa vào cảm tính/trí nhớ và dễ sai sót
 

@@ -1,7 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useState, useEffect, useMemo } from 'react';
+import { useDeferredValue, useState, useEffect, useMemo } from 'react';
 import { useApp } from '../context/AppContext';
 import { pendingNotifications, notificationPreview, sendNotification, notifiedNotifications, completeOrder } from '../api/notifications';
+import { useKeyedAsyncAction } from '../hooks/useAsyncAction';
 interface NotifyCard {
   id: string;
   initials: string;
@@ -15,10 +16,12 @@ interface NotifyCard {
 
 export default function NotifyPage() {
   const { showToast, store, orderSearch } = useApp();
+  const deferredOrderSearch = useDeferredValue(orderSearch);
 
   const [loading, setLoading] = useState(true);
   const [pendingCards, setPendingCards] = useState<NotifyCard[]>([]);
   const [notifiedList, setNotifiedList] = useState<NotifyCard[]>([]);
+  const { isPending: isSending, run: runSend } = useKeyedAsyncAction();
   const { orders } = useApp();
 
   const processingList = useMemo(() => {
@@ -120,18 +123,14 @@ export default function NotifyPage() {
   }, [store, showToast]);
 
   // Bấm nút Gửi Zalo
-  const sendNotify = async (card: NotifyCard) => {
+  const sendNotify = async (card: NotifyCard) => runSend(card.id, async () => {
     try {
-      // 1. Gọi API /preview để lấy nội dung tin nhắn mẫu
-      const preview = await notificationPreview(Number(card.id));
-      const content: string = preview.content ?? `Chào ${card.name}, đồ của bạn đã sẵn sàng, vui lòng đến nhận!`;
+      const content = card.message || `Chào ${card.name}, đồ của bạn đã sẵn sàng, vui lòng đến nhận!`;
 
-      // 2. Copy nội dung vào clipboard
-      try { await navigator.clipboard.writeText(content); } catch { /* clipboard unavailable */ }
-
-      // 3. Mở Zalo qua link zalo.me
+      // Mở tab ngay trong user gesture để trình duyệt không chặn popup.
       const phoneClean = card.phone.replace(/\s/g, '');
-      window.open(`https://zalo.me/${phoneClean}`, '_blank');
+      window.open(`https://zalo.me/${phoneClean}`, '_blank', 'noopener,noreferrer');
+      try { await navigator.clipboard.writeText(content); } catch { /* clipboard unavailable */ }
 
       // GỌI API CẬP NHẬT TRẠNG THÁI TRONG DATABASE
       await sendNotification(Number(card.id));
@@ -145,9 +144,9 @@ export default function NotifyPage() {
       setNotifiedList(prev => [...prev, { ...card, message: content, sent: true, completedAt: timeStr }]);
     } catch (err) {
       console.error('[Luồng 3] Lỗi khi gửi thông báo:', err);
-      showToast('Có lỗi khi tải nội dung tin nhắn từ API', 'red');
+      showToast('Có lỗi khi chuẩn bị nội dung thông báo', 'red');
     }
-  };
+  });
 
   // Bấm nút Đã giao đồ
   const completeNotify = async (card: NotifyCard) => {
@@ -182,9 +181,9 @@ export default function NotifyPage() {
       </div>
 
       {/* Search result hint */}
-      {orderSearch && (
+      {deferredOrderSearch && (
         <div style={{ fontSize: 12, color: 'var(--tl)', marginBottom: 8 }}>
-          Kết quả tìm kiếm cho <strong>"{orderSearch}"</strong>
+          Kết quả tìm kiếm cho <strong>"{deferredOrderSearch}"</strong>
         </div>
       )}
 
@@ -197,16 +196,16 @@ export default function NotifyPage() {
             Đang tải từ server...
           </div>
         ) : pendingCards.filter(card => {
-          if (!orderSearch) return true;
-          const q = orderSearch.toLowerCase();
+          if (!deferredOrderSearch) return true;
+          const q = deferredOrderSearch.toLowerCase();
           return card.name.toLowerCase().includes(q) || card.phone.includes(q);
         }).length === 0 ? (
           <div style={{ fontSize: '12.5px', color: 'var(--tl)', padding: '12px 0', textAlign: 'center' }}>
-            {orderSearch ? `Không tìm thấy "${orderSearch}" trong danh sách cần thông báo` : 'Không có đơn nào cần thông báo'}
+            {deferredOrderSearch ? `Không tìm thấy "${deferredOrderSearch}" trong danh sách cần thông báo` : 'Không có đơn nào cần thông báo'}
           </div>
         ) : pendingCards.filter(card => {
-          if (!orderSearch) return true;
-          const q = orderSearch.toLowerCase();
+          if (!deferredOrderSearch) return true;
+          const q = deferredOrderSearch.toLowerCase();
           return card.name.toLowerCase().includes(q) || card.phone.includes(q);
         }).map(card => (
           <div key={card.id} className="nc" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: 8 }}>
@@ -219,9 +218,9 @@ export default function NotifyPage() {
                   {card.phone} · Hoàn tất lúc {card.completedAt} · Chưa thông báo
                 </div>
               </div>
-              <button className="by" onClick={() => sendNotify(card)}>
-                <svg className="icon icon-sm"><use href="#i-send" /></svg>
-                Gửi Zalo
+              <button className="by" onClick={() => { void sendNotify(card); }} disabled={isSending(card.id)} aria-busy={isSending(card.id)}>
+                <svg className={`icon icon-sm${isSending(card.id) ? ' oq-spin' : ''}`}><use href={isSending(card.id) ? '#i-loader' : '#i-send'} /></svg>
+                {isSending(card.id) ? 'Đang mở...' : 'Gửi Zalo'}
               </button>
             </div>
             {card.message && (
@@ -237,16 +236,16 @@ export default function NotifyPage() {
         <div className="sdiv" style={{ marginTop: 14 }}>Đã thông báo</div>
         <div id="notified-list">
           {notifiedList.filter(card => {
-            if (!orderSearch) return true;
-            const q = orderSearch.toLowerCase();
+            if (!deferredOrderSearch) return true;
+            const q = deferredOrderSearch.toLowerCase();
             return card.name.toLowerCase().includes(q) || card.phone.includes(q);
           }).length === 0 ? (
             <div style={{ fontSize: '12.5px', color: 'var(--tl)', padding: '12px 0', textAlign: 'center' }}>
-              {orderSearch ? `Không tìm thấy "${orderSearch}"` : 'Chưa có thông báo nào gửi trong ca này'}
+              {deferredOrderSearch ? `Không tìm thấy "${deferredOrderSearch}"` : 'Chưa có thông báo nào gửi trong ca này'}
             </div>
           ) : notifiedList.filter(card => {
-            if (!orderSearch) return true;
-            const q = orderSearch.toLowerCase();
+            if (!deferredOrderSearch) return true;
+            const q = deferredOrderSearch.toLowerCase();
             return card.name.toLowerCase().includes(q) || card.phone.includes(q);
           }).map(card => (
             <div key={card.id} className="nc">
@@ -274,16 +273,16 @@ export default function NotifyPage() {
         {/* Section: Đang xử lý */}
         <div className="sdiv" style={{ marginTop: 14 }}>Đang xử lý – chưa cần thông báo</div>
         {processingList.filter((o: any) => {
-          if (!orderSearch) return true;
-          const q = orderSearch.toLowerCase();
+          if (!deferredOrderSearch) return true;
+          const q = deferredOrderSearch.toLowerCase();
           return o.name.toLowerCase().includes(q);
         }).length === 0 ? (
           <div style={{ fontSize: '12.5px', color: 'var(--tl)', padding: '12px 0', textAlign: 'center' }}>
-            {orderSearch ? `Không tìm thấy "${orderSearch}"` : 'Không có đơn nào đang xử lý'}
+          {deferredOrderSearch ? `Không tìm thấy "${deferredOrderSearch}"` : 'Không có đơn nào đang xử lý'}
           </div>
         ) : processingList.filter((o: any) => {
-          if (!orderSearch) return true;
-          const q = orderSearch.toLowerCase();
+          if (!deferredOrderSearch) return true;
+          const q = deferredOrderSearch.toLowerCase();
           return o.name.toLowerCase().includes(q);
         }).map((o: any) => (
           <div key={o.id} className="nc">

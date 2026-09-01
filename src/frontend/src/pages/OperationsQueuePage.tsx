@@ -1,7 +1,9 @@
-import { useMemo, useRef, useEffect } from 'react';
+import { useDeferredValue, useMemo, useEffect, useState } from 'react';
 import { useApp } from '../context/AppContext';
 import type { ModalOrderParams, QueueItem } from '../types';
 import { filterOrders } from '../utils/orderSearch';
+import { startRun, completeRun } from '../api/orders';
+import { useKeyedAsyncAction } from '../hooks/useAsyncAction';
 
 // ─── Nhãn tĩnh ───
 const SERVICE_LABELS: Record<string, string> = {
@@ -45,7 +47,7 @@ function formatRelativeTime(value: string | null, now: Date, fallback = 'Chưa c
       return `Còn ${diff} phút`;
     }
     return d.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
-  } catch (e) {
+  } catch {
     return fallback;
   }
 }
@@ -56,18 +58,18 @@ function formatTime(value: string | null, fallback = 'Chưa có'): string {
     const d = new Date(value);
     if (isNaN(d.getTime())) return fallback;
     return d.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
-  } catch (e) {
+  } catch {
     return fallback;
   }
 }
 
 function useNow() {
-  const nowRef = useRef(new Date());
+  const [now, setNow] = useState(() => new Date());
   useEffect(() => {
-    const id = window.setInterval(() => { nowRef.current = new Date(); }, 60_000);
+    const id = window.setInterval(() => { setNow(new Date()); }, 60_000);
     return () => window.clearInterval(id);
   }, []);
-  return nowRef.current;
+  return now;
 }
 
 function buildModalParams(item: QueueItem, orders: ReturnType<typeof useApp>['orders']): ModalOrderParams {
@@ -88,9 +90,10 @@ function buildModalParams(item: QueueItem, orders: ReturnType<typeof useApp>['or
 export default function OperationsQueuePage() {
   const {
     orders, openM, setOrderModalParams, orderSearch, orderFilter,
-    queueSnapshot, operationsLoading, operationsError, refreshOperations,
+    queueSnapshot, operationsLoading, queueRefreshing, operationsError, refreshOperations,
   } = useApp();
   const now = useNow();
+  const deferredOrderSearch = useDeferredValue(orderSearch);
 
   const openOrderModal = (item: QueueItem) => {
     setOrderModalParams(buildModalParams(item, orders));
@@ -98,11 +101,11 @@ export default function OperationsQueuePage() {
   };
 
   const visibleOrderIds = useMemo(
-    () => new Set(filterOrders(orders, orderSearch, orderFilter).map(o => o.orderId)),
-    [orders, orderSearch, orderFilter],
+    () => new Set(filterOrders(orders, deferredOrderSearch, orderFilter).map(o => o.orderId)),
+    [orders, deferredOrderSearch, orderFilter],
   );
 
-  const allItems = queueSnapshot?.items ?? [];
+  const allItems = useMemo(() => queueSnapshot?.items ?? [], [queueSnapshot?.items]);
   const visibleItems = useMemo(
     () => allItems.filter(item => visibleOrderIds.has(item.orderId)),
     [allItems, visibleOrderIds],
@@ -179,7 +182,7 @@ export default function OperationsQueuePage() {
       {/* ── Header ── */}
       <div className="oq-header">
         <div className="oq-header-left">
-          <h2 className="oq-title">Hàng đợi đơn hàng</h2>
+          <h2 className="oq-title">Hàng đợi</h2>
           <div className="oq-summary" aria-label="Tóm tắt">
             {lateCount > 0 && (
               <span className="oq-summary-chip danger">🔴 {lateCount} trễ hẹn</span>
@@ -216,7 +219,9 @@ export default function OperationsQueuePage() {
         <div className="card operations-state error" role="alert">
           <strong>Không thể tải hàng đợi</strong>
           <span>{operationsError}</span>
-          <button className="bs" onClick={() => void refreshOperations()}>Thử lại</button>
+          <button className="bs" onClick={() => void refreshOperations()} disabled={queueRefreshing} aria-busy={queueRefreshing}>
+            {queueRefreshing ? 'Đang tải lại...' : 'Thử lại'}
+          </button>
         </div>
       )}
       {!operationsLoading && !operationsError && allItems.length === 0 && completedOrders.length === 0 && (
@@ -377,6 +382,9 @@ function RecommendationCard({ item, now, onOpen }: { item: QueueItem; now: Date;
 }
 
 // ─── Row trong nhóm công đoạn ───
+// isSingleTap: nếu nextStage là manual (SORTING/TRANSFER/PACKING), hiện nút bấm 1-tap
+const MANUAL_STAGES = new Set(['SORTING', 'TRANSFER', 'PACKING']);
+
 function StageQueueRow({
   item, now, stageMeta, onOpen,
 }: {
@@ -385,6 +393,7 @@ function StageQueueRow({
   stageMeta: typeof STAGE_META[string];
   onOpen: () => void;
 }) {
+  const { showToast, refreshOperations } = useApp();
   const isLate = item.riskLevel === 'NOT_FEASIBLE';
   const isRisk = item.riskLevel === 'AT_RISK';
   const isReview = item.operationalState === 'NEEDS_REVIEW';
@@ -395,77 +404,125 @@ function StageQueueRow({
     : null;
   const deadlineDanger = deadlineDiff !== null && deadlineDiff < 30;
 
+  // Quick-action: chỉ hiện khi nextStage là manual (không cần chọn máy)
+  // và đơn không ở trạng thái NEEDS_REVIEW (tránh bấm nhầm khi cần kiểm tra)
+  const canQuickAct = !isReview && item.nextStage && MANUAL_STAGES.has(item.nextStage);
+  const { isPending, run } = useKeyedAsyncAction();
+  const quickActionKey = `order-workflow:${item.orderId}`;
+  const quickLoading = isPending(quickActionKey);
+
+  const handleQuickAct = async () => {
+    if (!item.nextStage) return;
+    await run(quickActionKey, async () => {
+      try {
+        // Gọi cả 2 API liên tiếp để hoàn thành công đoạn thủ công trong 1 nút bấm
+        const stageData = await startRun(item.orderId, item.nextStage!, 0);
+        if (stageData?.orderStageId) {
+          await completeRun(stageData.orderStageId);
+        }
+        showToast(`✓ Đã hoàn tất ${STAGE_LABELS[item.nextStage!] ?? item.nextStage} cho #${item.orderId}`, 'grn');
+        void refreshOperations();
+      } catch (error) {
+        showToast(error instanceof Error ? error.message : 'Lỗi khi thực hiện', 'red');
+      }
+    });
+  };
+
   return (
-    <button
-      className="orow queue-row oq-row"
-      style={{ borderLeftColor: riskBorderColor, borderLeftWidth: (isLate || isRisk || isReview) ? 3 : undefined }}
-      onClick={onOpen}
-      aria-label={`Đơn #${item.orderId} – ${item.customer?.name ?? ''}`}
+    <div
+      className="oq-row-shell"
+      role="group"
+      aria-label={`Thao tác cho đơn #${item.orderId}`}
     >
-      {/* Rank badge */}
-      <span
-        className={`opri ${isReview ? 'am' : isLate ? 'rd' : isRisk ? 'am' : item.rank <= 3 ? 'bl' : 'gr'}`}
-        title="Thứ tự ưu tiên"
+      <button
+        type="button"
+        className="orow queue-row oq-row"
+        style={{ borderLeftColor: riskBorderColor, borderLeftWidth: (isLate || isRisk || isReview) ? 3 : undefined }}
+        onClick={onOpen}
+        aria-label={`Đơn #${item.orderId} – ${item.customer?.name ?? ''}`}
       >
-        {isReview ? '!' : item.rank}
-      </span>
-
-      {/* Tên + chi tiết */}
-      <span className="queue-order">
-        <strong>
-          #{item.orderId} · {item.customer?.name ?? 'Chưa có tên'}
-        </strong>
-        <span>
-          {STATUS_LABELS[item.status] ?? item.status}
-          {item.machineName ? ` · ${item.machineName}` : ''}
-          {' · '}
-          {SERVICE_LABELS[item.serviceType] ?? item.serviceType}
-          {' · '}
-          {item.weightKg}kg
+        {/* Rank badge */}
+        <span
+          className={`opri ${isReview ? 'am' : isLate ? 'rd' : isRisk ? 'am' : item.rank <= 3 ? 'bl' : 'gr'}`}
+          title="Thứ tự ưu tiên"
+        >
+          {isReview ? '!' : item.rank}
         </span>
-      </span>
 
-      {/* Facts */}
-      <span className="queue-facts">
-        <div>
-          <span>Tiếp theo</span>
-          <strong>{stageLabel(item.nextStage)}</strong>
-        </div>
-        <div>
-          <span>ETA</span>
-          <strong className={isLate ? 'oq-danger-text' : ''}>
-            {formatRelativeTime(item.estimatedAt, now)}
-          </strong>
-        </div>
-        <div>
-          <span>Lý do</span>
+        {/* Tên + chi tiết */}
+        <span className="queue-order">
           <strong>
-            {isReview
-              ? (item.reviewReasons[0] ?? 'Cần kiểm tra')
-              : (item.priorityReasons[0] ?? item.riskMessage ?? '—')
-            }
+            #{item.orderId} · {item.customer?.name ?? 'Chưa có tên'}
           </strong>
-        </div>
-        <div>
-          {/* Risk badge rõ ràng */}
-          <span>Nguy cơ</span>
-          <strong>
-            {isLate ? <span style={{ color: 'var(--rd)', fontWeight: 800 }}>🔴 Trễ hẹn</span>
-              : isRisk ? <span style={{ color: '#b45309', fontWeight: 700 }}>⚠️ Rủi ro</span>
-                : isReview ? <span style={{ color: 'var(--am)', fontWeight: 700 }}>🔎 Kiểm tra</span>
-                  : <span style={{ color: 'var(--gn)' }}>✓ Đúng hẹn</span>
-            }
-          </strong>
-        </div>
-      </span>
+          <span>
+            {STATUS_LABELS[item.status] ?? item.status}
+            {item.machineName ? ` · ${item.machineName}` : ''}
+            {' · '}
+            {SERVICE_LABELS[item.serviceType] ?? item.serviceType}
+            {' · '}
+            {item.weightKg}kg
+          </span>
+        </span>
 
-      {/* Deadline */}
-      <span className={`queue-deadline${deadlineDanger ? ' danger' : ''}`}>
-        <span>Hẹn</span>
-        <strong title={item.pickupAt ?? ''}>
-          {formatRelativeTime(item.pickupAt, now)}
-        </strong>
-      </span>
-    </button>
+        {/* Facts */}
+        <span className="queue-facts">
+          <span className="queue-fact">
+            <span>Tiếp theo</span>
+            <strong>{stageLabel(item.nextStage)}</strong>
+          </span>
+          <span className="queue-fact">
+            <span>ETA</span>
+            <strong className={isLate ? 'oq-danger-text' : ''}>
+              {formatRelativeTime(item.estimatedAt, now)}
+            </strong>
+          </span>
+          <span className="queue-fact">
+            <span>Lý do</span>
+            <strong>
+              {isReview
+                ? (item.reviewReasons[0] ?? 'Cần kiểm tra')
+                : (item.priorityReasons[0] ?? item.riskMessage ?? '—')
+              }
+            </strong>
+          </span>
+          <span className="queue-fact">
+            {/* Risk badge rõ ràng */}
+            <span>Nguy cơ</span>
+            <strong>
+              {isLate ? <span style={{ color: 'var(--rd)', fontWeight: 800 }}>🔴 Trễ hẹn</span>
+                : isRisk ? <span style={{ color: '#b45309', fontWeight: 700 }}>⚠️ Rủi ro</span>
+                  : isReview ? <span style={{ color: 'var(--am)', fontWeight: 700 }}>🔎 Kiểm tra</span>
+                    : <span style={{ color: 'var(--gn)' }}>✓ Đúng hẹn</span>
+              }
+            </strong>
+          </span>
+        </span>
+
+        {/* Deadline */}
+        <span className={`queue-deadline${deadlineDanger ? ' danger' : ''}`}>
+          <span>Hẹn</span>
+          <strong title={item.pickupAt ?? ''}>
+            {formatRelativeTime(item.pickupAt, now)}
+          </strong>
+        </span>
+      </button>
+
+      {/* Quick action — chỉ với manual stage, 1 tap không cần modal */}
+      {canQuickAct && (
+        <button
+          type="button"
+          className="oq-quick-btn"
+          onClick={handleQuickAct}
+          disabled={quickLoading}
+          aria-label={`Hoàn tất ${STAGE_LABELS[item.nextStage!]} ngay cho #${item.orderId}`}
+          title={`Bấm 1 lần để hoàn tất ${STAGE_LABELS[item.nextStage!]}`}
+        >
+          {quickLoading
+            ? <svg className="icon icon-sm oq-spin"><use href="#i-loader" /></svg>
+            : <svg className="icon icon-sm"><use href="#i-check" /></svg>
+          }
+        </button>
+      )}
+    </div>
   );
 }

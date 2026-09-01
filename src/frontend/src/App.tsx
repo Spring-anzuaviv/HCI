@@ -1,5 +1,7 @@
-import { useEffect, useState, lazy, Suspense } from 'react';
+import { useCallback, useEffect, useRef, useState, lazy, Suspense } from 'react';
+import type { MouseEvent as ReactMouseEvent, ReactNode } from 'react';
 import { getCurrentStore } from './api/auth';
+import type { StoreSession } from './api/auth';
 import { AppProvider } from './context/AppContext';
 import SVGSprite from './components/SVGSprite';
 // Note: styles are in index.css
@@ -12,16 +14,64 @@ import { AddOrderModal, SettingsModal, MachineModal, EmployeeModal, AssignEmploy
 
 import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
-import QueuePage from './pages/OperationsQueuePage';
-import NotifyPage from './pages/NotifyPage';
-// StatsPage ít dùng — lazy load để không block bundle chính
+// Các trang không phải màn hình đầu tiên chỉ tải khi nhân viên thực sự mở.
+const QueuePage = lazy(() => import('./pages/OperationsQueuePage'));
+const NotifyPage = lazy(() => import('./pages/NotifyPage'));
 const StatsPage = lazy(() => import('./pages/StatsPage'));
 
 import { useApp } from './context/AppContext';
 
 // ─── Inner App (cần context) ───
+function ClickGuard({ children }: { children: ReactNode }) {
+  const lastClickRef = useRef(new WeakMap<Element, number>());
+
+  // Chặn click lặp nhanh cho toàn bộ control điều hướng/mở-đóng popup.
+  // Mutation vẫn có khóa async riêng để giữ disabled đến khi request kết thúc.
+  const guardRepeatedClick = useCallback((event: ReactMouseEvent<HTMLDivElement>) => {
+    const target = event.target as HTMLElement;
+    const control = target.closest('button, [role="button"]');
+    if (!control || !event.currentTarget.contains(control)) return;
+    if (control instanceof HTMLButtonElement && control.disabled) return;
+
+    const now = performance.now();
+    const previous = lastClickRef.current.get(control) ?? 0;
+    if (now - previous < 300) {
+      event.preventDefault();
+      event.stopPropagation();
+      return;
+    }
+    lastClickRef.current.set(control, now);
+  }, []);
+
+  return <div style={{ display: 'contents' }} onClickCapture={guardRepeatedClick}>{children}</div>;
+}
+
 function AppShell() {
-  const { currentPage } = useApp();
+  const { currentPage, openModal } = useApp();
+
+  const activePage = currentPage === 'db'
+    ? <DashboardPage />
+    : currentPage === 'n'
+      ? <NotifyPage />
+      : currentPage === 'stats'
+        ? <StatsPage />
+        : <QueuePage />;
+
+  const activeModal = openModal === 'am'
+    ? <AddOrderModal />
+    : openModal === 'sm'
+      ? <SettingsModal />
+      : openModal?.startsWith('sm-machine')
+        ? <MachineModal />
+        : openModal?.startsWith('sm-staff')
+          ? <EmployeeModal />
+          : openModal?.startsWith('sm-assign')
+            ? <AssignEmployeeModal />
+            : openModal?.startsWith('sm-remove')
+              ? <RemoveEmployeeModal />
+              : openModal === 'om'
+                ? <OrderDetailModal />
+                : null;
 
   return (
     <div className="shell" id="app-shell">
@@ -30,25 +80,15 @@ function AppShell() {
       <main className="main">
         <TopBar />
         <div className="pwrap">
-          {/* Dùng CSS visibility thay vì && để trang không bị unmount khi chuyển tab */}
-          <div hidden={currentPage !== 'db'}><DashboardPage /></div>
-          <div hidden={currentPage !== 'q'}><QueuePage /></div>
-          <div hidden={currentPage !== 'n'}><NotifyPage /></div>
           <Suspense fallback={<div style={{ padding: 30, color: 'var(--ts)' }}>Đang tải...</div>}>
-            <div hidden={currentPage !== 'stats'}><StatsPage /></div>
+            {activePage}
           </Suspense>
         </div>
       </main>
       <RightPanel />
 
-      {/* All Modals */}
-      <AddOrderModal />
-      <SettingsModal />
-      <MachineModal />
-      <EmployeeModal />
-      <AssignEmployeeModal />
-      <RemoveEmployeeModal />
-      <OrderDetailModal />
+      {/* Chỉ mount popup đang dùng để tránh chạy state/effect của mọi popup cùng lúc. */}
+      {activeModal}
       <MachineCompletionAlert />
 
       {/* Toasts */}
@@ -59,26 +99,36 @@ function AppShell() {
 
 // ─── Root App ───
 export default function App() {
-  const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
+  // null = chưa biết, false = chưa đăng nhập, StoreSession = đã đăng nhập
+  const [authState, setAuthState] = useState<StoreSession | null | false>(null);
+  // Tránh gọi API 2 lần khi StrictMode mount 2 lần
+  const checkedRef = useRef(false);
 
   useEffect(() => {
-    getCurrentStore().then(() => setIsLoggedIn(true)).catch(() => setIsLoggedIn(false));
+    if (checkedRef.current) return;
+    checkedRef.current = true;
+    getCurrentStore()
+      .then(store => setAuthState(store))
+      .catch(() => setAuthState(false));
   }, []);
 
-  if (isLoggedIn === null) return <div style={{ padding: 40, fontFamily: 'Inter, sans-serif' }}>Đang kiểm tra phiên đăng nhập...</div>;
+  if (authState === null) return <div style={{ padding: 40, fontFamily: 'Inter, sans-serif' }}>Đang kiểm tra phiên đăng nhập...</div>;
 
-  if (!isLoggedIn) {
+  if (authState === false) {
     return (
-      <>
+      <ClickGuard>
         <SVGSprite />
-        <LoginPage onLogin={() => setIsLoggedIn(true)} />
-      </>
+        <LoginPage onLogin={store => setAuthState(store)} />
+      </ClickGuard>
     );
   }
 
   return (
-    <AppProvider>
-      <AppShell />
-    </AppProvider>
+    <ClickGuard>
+      {/* Truyền initialStore để AppContext không cần gọi /auth/me lần nữa */}
+      <AppProvider initialStore={authState}>
+        <AppShell />
+      </AppProvider>
+    </ClickGuard>
   );
 }

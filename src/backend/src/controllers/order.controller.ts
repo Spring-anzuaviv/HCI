@@ -10,9 +10,7 @@ import * as service from "../services/order.service.js";
 export const get = asyncRoute(async (req, res) => {
   const storeId = requireStore(req);
   const orderId = parseId(req.params.orderId, "orderId");
-  await service.findOrderForStore(orderId, storeId);
-  const order = service.serializeOrders(await service.findStoreOrders(storeId)).find((item: any) => item.orderId === orderId);
-  ok(res, order);
+  ok(res, await service.findSerializedOrderForStore(orderId, storeId));
 });
 export const create = asyncRoute(async (req, res) => {
   const storeId = requireStore(req);
@@ -30,6 +28,23 @@ export const create = asyncRoute(async (req, res) => {
       "Thông tin đơn hàng không hợp lệ",
     );
   ok(res, service.serializeOrder(await service.createOrder(storeId, req.body)));
+});
+export const createBatch = asyncRoute(async (req, res) => {
+  const storeId = requireStore(req);
+  if (parseId(req.params.storeId, "storeId") !== storeId)
+    throw new ApiError(404, "NOT_FOUND", "Không tìm thấy cửa hàng");
+  const orders = req.body?.orders;
+  if (!Array.isArray(orders) || orders.length < 2 || orders.length > 20)
+    throw new ApiError(400, "VALIDATION_ERROR", "Số mẻ phải từ 2 đến 20");
+  for (const order of orders) {
+    if (
+      !order?.customer?.name ||
+      !order?.customer?.phone ||
+      Number(order?.weightKg) <= 0 ||
+      !order?.serviceType
+    ) throw new ApiError(400, "VALIDATION_ERROR", "Thông tin mẻ không hợp lệ");
+  }
+  ok(res, service.serializeOrders(await service.createOrders(storeId, orders)));
 });
 export const updateStatus = asyncRoute(async (req, res) => {
   const order = await service.findOrderForStore(

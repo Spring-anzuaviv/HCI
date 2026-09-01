@@ -9,7 +9,7 @@ interface NavItem {
 
 const NAV_ITEMS: NavItem[] = [
   { id: 'db',     icon: 'i-home',      label: 'Tổng quan' },
-  { id: 'q',      icon: 'i-layers',    label: 'Hàng đợi đơn hàng' },
+  { id: 'q',      icon: 'i-layers',    label: 'Hàng đợi' },
   { id: 'n',      icon: 'i-send',      label: 'Thông báo' },
   { id: 'stats',  icon: 'i-bar-chart', label: 'Thống kê' },
 ];

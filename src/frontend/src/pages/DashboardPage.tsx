@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useDeferredValue, useEffect, useState } from 'react';
 import { useApp } from '../context/AppContext';
 import type { ModalOrderParams } from '../types';
 import { filterOrders } from '../utils/orderSearch';
@@ -34,6 +34,7 @@ const HeroSVG = () => (
 
 export default function DashboardPage() {
   const { setCurrentPage, openM, orders, setOrderModalParams, orderSearch, orderFilter, shiftSummary, queueSnapshot, operationsLoading } = useApp();
+  const deferredOrderSearch = useDeferredValue(orderSearch);
   const [shiftInfo, setShiftInfo] = useState({ name: '', timeRange: '', timeLeft: '', day: '' });
 
   // Tính thông tin ca làm việc
@@ -70,7 +71,7 @@ export default function DashboardPage() {
     openM('om');
   };
 
-  const visibleOrders = filterOrders(orders, orderSearch, orderFilter);
+  const visibleOrders = filterOrders(orders, deferredOrderSearch, orderFilter);
   const visibleIds = new Set(visibleOrders.map(order => order.orderId));
   const pendingOrders = (queueSnapshot?.items ?? [])
     .filter(item => visibleIds.has(item.orderId))

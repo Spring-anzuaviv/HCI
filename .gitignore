@@ -1,14 +1,10 @@
 taskX.md
-<<<<<<< HEAD
 schema.md
 System Specification.md
 docs/
-
-=======
-System Specification.md
-schema.md
-docs/
->>>>>>> MX
+claude/
+gitnexus/
+CLAUDE.md
 # Dependencies
 node_modules/
 

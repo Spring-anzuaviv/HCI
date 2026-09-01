@@ -16,7 +16,7 @@ export default function TopBar() {
   if (parts.length >= 2) initials = (parts[0][0] + parts[1][0]).toUpperCase();
   else if (parts.length === 1) initials = parts[0].substring(0, 2).toUpperCase();
 
-  const showSearch = currentPage === 'db' || currentPage === 'q' || currentPage === 'n';
+  const showSearch = currentPage === 'db' || currentPage === 'q' || currentPage === 'orders' || currentPage === 'n';
   const showFilters = currentPage === 'q' || currentPage === 'orders';
 
   const placeholder =

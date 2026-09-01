@@ -245,7 +245,7 @@ body {
 .queue-order strong { color: var(--tx); font-size: 12px; }
 .queue-order span { color: var(--ts); font-size: 10.5px; margin-top: 4px; }
 .queue-facts { display: grid; grid-template-columns: repeat(4, minmax(78px, 1fr)); gap: 8px; min-width: 0; }
-.queue-facts div { min-width: 0; }
+.queue-fact { display: block; min-width: 0; }
 .queue-facts span, .queue-deadline span { display: block; color: var(--tl); font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
 .queue-facts strong { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--tx); font-size: 10.5px; margin-top: 4px; }
 .queue-facts em { color: var(--pu); font-style: normal; font-weight: 700; }
@@ -276,6 +276,15 @@ select.finput {
   background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%234b5563' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
   background-repeat: no-repeat; background-position: right 12px center; background-size: 16px;
 }
+
+/* Trạng thái khóa thống nhất cho mọi mutation. */
+button:disabled,
+[role="button"][aria-disabled="true"] {
+  cursor: not-allowed !important;
+  opacity: .62;
+  pointer-events: none;
+}
+button[aria-busy="true"] { cursor: wait !important; }
 .finput:focus { border-color: var(--pu); box-shadow: 0 0 0 3px rgba(124,58,237,.1); }
 .stage-time { color: var(--tl); font-size: 8px; margin-top: 2px; }
 .machine-lock-hint { color: var(--ts); font-size: 10px; line-height: 1.4; margin-top: 5px; }
@@ -452,9 +461,25 @@ select.finput {
 .oq-rec-reasons span { display: inline-flex; align-items: center; gap: 4px; color: var(--pu); font-size: 10.5px; font-weight: 600; }
 .oq-rec-btn { min-height: 40px; padding: 0 16px; white-space: nowrap; flex-shrink: 0; }
 
-/* Queue row cải thiện: min-height 48px để dễ touch */
-.oq-row { min-height: 48px; }
+/* Queue row cải thiện: hai nút ngang hàng, không lồng interactive element */
+.oq-row-shell { position: relative; width: 100%; }
+.oq-row { min-height: 48px; padding-right: 56px; }
 .oq-row:focus-visible { outline: 3px solid rgba(124,58,237,.45); outline-offset: 2px; }
+
+/* Quick-action button: hiện khi hover row, 1-tap cho manual stage */
+.oq-quick-btn {
+  position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 36px; height: 36px; border-radius: 50%;
+  background: #16a34a; color: #fff; border: none; cursor: pointer;
+  box-shadow: 0 2px 8px rgba(22,163,74,.35);
+  opacity: 0; transition: opacity .15s, transform .15s, background .1s;
+  z-index: 2;
+}
+.oq-row-shell:hover .oq-quick-btn,
+.oq-row-shell:focus-within .oq-quick-btn { opacity: 1; }
+.oq-quick-btn:hover { background: #15803d; transform: translateY(-50%) scale(1.08); }
+.oq-quick-btn:disabled { background: #86efac; cursor: wait; opacity: 1; }
 
 @media (max-width: 900px) {
   .oq-rec-card { flex-wrap: wrap; }

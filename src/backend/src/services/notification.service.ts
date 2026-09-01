@@ -2,20 +2,41 @@ import { prisma } from "../lib/prisma.js";
 import { ApiError } from "../lib/http.js";
 import { findOrderForStore } from "./order.service.js";
 export async function pending(storeId: number) {
-  const orders = await prisma.laundryOrder.findMany({
-    where: { storeId, status: "READY" },
-    include: { customer: true },
-  });
-  const allGroupedOrders = await prisma.laundryOrder.findMany({
-    where: { storeId, groupCode: { not: null } },
-    select: { groupCode: true, status: true },
-  });
+  const [orders, allGroupedOrders, store] = await Promise.all([
+    prisma.laundryOrder.findMany({
+      where: { storeId, status: "READY" },
+      include: { customer: true },
+    }),
+    prisma.laundryOrder.findMany({
+      where: { storeId, groupCode: { not: null } },
+      select: { groupCode: true, status: true },
+    }),
+    prisma.store.findUnique({ where: { storeId }, select: { name: true } }),
+  ]);
+  const groupReadiness = new Map<string, boolean>();
+  for (const item of allGroupedOrders) {
+    if (!item.groupCode) continue;
+    groupReadiness.set(
+      item.groupCode,
+      (groupReadiness.get(item.groupCode) ?? true) && item.status === "READY",
+    );
+  }
   const completeGroups = new Set(
-    [...new Set(allGroupedOrders.map((item) => item.groupCode))].filter((code) =>
-      allGroupedOrders.filter((item) => item.groupCode === code).every((item) => item.status === "READY"),
-    ),
+    [...groupReadiness.entries()]
+      .filter(([, isReady]) => isReady)
+      .map(([groupCode]) => groupCode),
   );
-  return orders.filter((order) => !order.groupCode || completeGroups.has(order.groupCode));
+  const storeName = store?.name || "cửa hàng";
+  return orders
+    .filter((order) => !order.groupCode || completeGroups.has(order.groupCode))
+    .map((order) => ({
+      ...order,
+      notificationPreview: {
+        channel: "ZALO",
+        recipient: order.customer?.phone ?? "",
+        content: `Chào ${order.customer?.name ?? "bạn"}, đồ của bạn đã sạch và sẵn sàng. Cảm ơn đã tin dùng ${storeName}!`,
+      },
+    }));
 }
 
 export async function notified(storeId: number) {

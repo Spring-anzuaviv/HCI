@@ -288,7 +288,11 @@ export async function startRun(orderId: number, storeId: number, input: any) {
     if (!Number.isInteger(machineId) || machineId <= 0)
       throw new ApiError(400, "VALIDATION_ERROR", "Thiếu máy cần bắt đầu");
     if (order.status !== "WAITING")
-      throw new ApiError(409, "WORKFLOW_CONFLICT", "Đơn không còn ở trạng thái WAITING");
+      throw new ApiError(
+        409,
+        "WORKFLOW_CONFLICT",
+        `Đơn đang ở trạng thái "${order.status}" — cần hoàn tất công đoạn trước (${incompletePrevious.join(", ") || "kiểm tra lại thứ tự"}) trước khi bắt đầu ${stageName}`,
+      );
     const machine = await tx.machine.findFirst({ where: { machineId, storeId } });
     if (!machine) throw new ApiError(404, "NOT_FOUND", "Không tìm thấy máy");
     if (machine.type !== machineType)

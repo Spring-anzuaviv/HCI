@@ -92,41 +92,76 @@ export async function findOrderForStore(orderId: number, storeId: number) {
     );
   return order;
 }
+export async function findSerializedOrderForStore(orderId: number, storeId: number) {
+  const order = await findOrderForStore(orderId, storeId);
+  if (!order.groupCode) {
+    return { ...serializeOrder(order), groupETA: order.estimatedAt };
+  }
+  const group = await prisma.laundryOrder.aggregate({
+    where: { storeId, groupCode: order.groupCode },
+    _max: { estimatedAt: true },
+  });
+  return {
+    ...serializeOrder(order),
+    groupETA: group._max.estimatedAt ?? order.estimatedAt,
+  };
+}
 export async function findStoreOrders(storeId: number) {
   return prisma.laundryOrder.findMany({
     where: { storeId },
     include: orderInclude,
   });
 }
-export async function createOrder(storeId: number, input: any) {
-  getWorkflowStages(input.serviceType);
-  const customer = await prisma.customer.upsert({
-    where: { phone: input.customer.phone },
-    update: { name: input.customer.name },
-    create: { name: input.customer.name, phone: input.customer.phone },
+export async function createOrders(storeId: number, inputs: any[]) {
+  if (inputs.length === 0)
+    throw new ApiError(400, "VALIDATION_ERROR", "Danh sách đơn không được để trống");
+  inputs.forEach((input) => getWorkflowStages(input.serviceType));
+
+  // Ghi toàn bộ mẻ trong một transaction, sau đó chỉ tính schedule một lần.
+  const orderIds = await prisma.$transaction(async (tx) => {
+    const createdIds: number[] = [];
+    for (const input of inputs) {
+      const customer = await tx.customer.upsert({
+        where: { phone: input.customer.phone },
+        update: { name: input.customer.name },
+        create: { name: input.customer.name, phone: input.customer.phone },
+      });
+      const created = await tx.laundryOrder.create({
+        data: {
+          customerId: customer.customerId,
+          storeId,
+          weightKg: Number(input.weightKg),
+          serviceType: input.serviceType,
+          status: "RECEIVED",
+          readyAt: input.readyAt ? new Date(input.readyAt) : new Date(),
+          pickupAt: input.pickupAt ? new Date(input.pickupAt) : null,
+          groupCode: input.groupCode ?? null,
+          stages: {
+            create: getWorkflowStages(input.serviceType).map((stage) => ({
+              stage,
+              machineId: null,
+              status: "PLANNED",
+            })),
+          },
+        },
+        select: { orderId: true },
+      });
+      createdIds.push(created.orderId);
+    }
+    return createdIds;
   });
-  const created = await prisma.laundryOrder.create({
-    data: {
-      customerId: customer.customerId,
-      storeId,
-      weightKg: Number(input.weightKg),
-      serviceType: input.serviceType,
-      status: "RECEIVED",
-      readyAt: input.readyAt ? new Date(input.readyAt) : new Date(),
-      pickupAt: input.pickupAt ? new Date(input.pickupAt) : null,
-      groupCode: input.groupCode ?? null,
-      stages: {
-        create: getWorkflowStages(input.serviceType).map((stage) => ({
-          stage,
-          machineId: null,
-          status: "PLANNED",
-        })),
-      },
-    },
-    include: orderInclude,
-  });
+
   await refreshStoreSchedule(storeId);
-  return findOrderForStore(created.orderId, storeId);
+  return prisma.laundryOrder.findMany({
+    where: { storeId, orderId: { in: orderIds } },
+    include: orderInclude,
+    orderBy: { orderId: "asc" },
+  });
+}
+
+export async function createOrder(storeId: number, input: any) {
+  const [created] = await createOrders(storeId, [input]);
+  return created;
 }
 
 export async function refreshStoreSchedule(storeId: number) {
@@ -137,27 +172,52 @@ export async function refreshStoreSchedule(storeId: number) {
     }),
     prisma.machine.findMany({ where: { storeId } }),
   ]);
+  const originalStageById = new Map(
+    orders.flatMap((order) => order.stages.map((stage) => [stage.orderStageId, stage] as const)),
+  );
+  const originalOrderById = new Map(orders.map((order) => [order.orderId, order]));
   const schedule = generateSchedule(orders, machines);
-  // Recalculating a busy store updates multiple stages and orders. Keep the
-  // write atomic, but allow enough time for PostgreSQL to finish the batch.
+  // Batch tất cả writes thành 1 transaction với Promise.all thay vì await tuần tự.
+  // Điều này giảm đáng kể thời gian chờ khi có nhiều đơn và công đoạn.
   return prisma.$transaction(async (tx) => {
+    const stageUpdates: Promise<unknown>[] = [];
+    const orderUpdates: Promise<unknown>[] = [];
+
     for (const item of schedule) {
       for (const stage of item.stages) {
         if (stage.status !== "PLANNED") continue;
-        await tx.orderStage.update({
-          where: { orderStageId: stage.orderStageId },
-          data: {
-            machineId: stage.machineId,
-            plannedStartAt: stage.plannedStartAt,
-            plannedEndAt: stage.plannedEndAt,
-          },
-        });
+        const original = originalStageById.get(stage.orderStageId);
+        const sameDate = (left: Date | null, right: Date | null) =>
+          left?.getTime() === right?.getTime();
+        if (
+          original &&
+          original.machineId === stage.machineId &&
+          sameDate(original.plannedStartAt, stage.plannedStartAt) &&
+          sameDate(original.plannedEndAt, stage.plannedEndAt)
+        ) continue;
+        stageUpdates.push(
+          tx.orderStage.update({
+            where: { orderStageId: stage.orderStageId },
+            data: {
+              machineId: stage.machineId,
+              plannedStartAt: stage.plannedStartAt,
+              plannedEndAt: stage.plannedEndAt,
+            },
+          })
+        );
       }
-      await tx.laundryOrder.update({
-        where: { orderId: item.orderId },
-        data: { estimatedAt: item.estimatedAt },
-      });
+      const originalOrder = originalOrderById.get(item.orderId);
+      if (originalOrder?.estimatedAt?.getTime() !== item.estimatedAt?.getTime()) {
+        orderUpdates.push(
+          tx.laundryOrder.update({
+            where: { orderId: item.orderId },
+            data: { estimatedAt: item.estimatedAt },
+          })
+        );
+      }
     }
+
+    await Promise.all([...stageUpdates, ...orderUpdates]);
     return schedule;
   }, { maxWait: 10_000, timeout: 30_000 });
 }

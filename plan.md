@@ -187,6 +187,10 @@ Form tách đơn hiện hiển thị ETA từng mẻ và ETA hoàn tất nhóm n
 
 Đã tách phần ETA nhóm thành hai dòng rõ ràng trong row: `Mẻ này` và `Cả nhóm`, tránh việc thời gian bị gộp hoặc khó nhận biết.
 
+### Trạng thái 2026-09-01
+
+Đã tối ưu Software Product cho thao tác tại quầy: khóa mutation theo khóa toàn cục đến khi request hoàn tất, chống click lặp 300 ms cho điều hướng/lọc/popup, chỉ mount trang và modal đang dùng, lazy-load các trang phụ, debounce và hủy deadline preview cũ, gộp dữ liệu vận hành vào một endpoint, tạo đơn tách theo batch và giảm các lần ghi schedule không thay đổi. Frontend/backend build, frontend lint và ba test workflow backend đều đạt. Kiểm tra runtime bằng Chrome DevTools chưa thực hiện được vì MCP trình duyệt không có trong môi trường hiện tại.
+
 ## 6. Dependency giữa các artifact
 
 1. Bằng chứng và phân tích công việc hiện tại hỗ trợ Persona và Scenario 1.

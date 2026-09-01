@@ -1,8 +1,9 @@
-/* eslint-disable @typescript-eslint/no-explicit-any, react-hooks/set-state-in-effect, react-refresh/only-export-components */
-import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
+/* eslint-disable @typescript-eslint/no-explicit-any, react-refresh/only-export-components */
+import React, { createContext, useContext, useState, useCallback, useEffect, useRef, useTransition } from 'react';
 import type { Machine, Staff, Config, Order, Page, ModalOrderParams, OrderFilter, WorkShift, QueueSnapshot } from '../types';
 import { MOCK_STAFF, MOCK_CONFIG } from '../data/mockData';
 import { apiGet } from '../api/client';
+import { getOperations } from '../api/operations';
 import type { StoreSession } from '../api/auth';
 import { listEmployees, listShifts } from '../api/staff';
 import { getShiftSummary, type ShiftSummary } from '../api/summary';
@@ -66,15 +67,23 @@ interface AppContextType {
 
 const AppContext = createContext<AppContextType | null>(null);
 
-export function AppProvider({ children }: { children: React.ReactNode }) {
-  const [currentPage, setCurrentPage] = useState<Page>('db');
+interface AppProviderProps {
+  children: React.ReactNode;
+  /** Session đã được xác thực từ App — bỏ qua bước gọi /auth/me lần 2 */
+  initialStore: StoreSession;
+}
+
+export function AppProvider({ children, initialStore }: AppProviderProps) {
+  const [currentPage, setCurrentPageState] = useState<Page>('db');
+  const [, startNavigationTransition] = useTransition();
   const [machines, setMachines] = useState<Machine[]>([]);
   const [staff, setStaff] = useState<Staff[]>(MOCK_STAFF);
   const [config, setConfig] = useState<Config>(MOCK_CONFIG);
   const [orders, setOrders] = useState<Order[]>([]);
   const [orderSearch, setOrderSearch] = useState('');
   const [orderFilter, setOrderFilter] = useState<OrderFilter>('all');
-  const [store, setStore] = useState<StoreSession | null>(null);
+  // Khởi tạo trực tiếp từ initialStore — không cần gọi /auth/me lần 2
+  const [store] = useState<StoreSession | null>(initialStore);
   const [selectedWorkDate, setSelectedWorkDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [workShifts, setWorkShifts] = useState<WorkShift[]>([]);
   const [shiftSummary, setShiftSummary] = useState<ShiftSummary | null>(null);
@@ -86,6 +95,16 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [openModal, setOpenModal] = useState<string | null>(null);
   const [orderModalParams, setOrderModalParams] = useState<ModalOrderParams | null>(null);
 
+  // ── In-flight guards: tránh nhiều request song song khi user click nhanh ──
+  const opsInflightRef = useRef<Promise<void> | null>(null);
+  const staffInflightRef = useRef<Promise<void> | null>(null);
+  const opsRefreshQueuedRef = useRef(false);
+  const staffRefreshQueuedRef = useRef(false);
+
+  // ── Dùng ref để đọc snapshot hiện tại mà không tạo deps ──
+  const hasSnapshotRef = useRef(false);
+  useEffect(() => { hasSnapshotRef.current = queueSnapshot !== null; }, [queueSnapshot]);
+
   const showToast = useCallback((msg: string, type = 'grn') => {
     const id = Date.now();
     setToasts(prev => [...prev, { id, msg, type }]);
@@ -96,46 +115,81 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const openM = useCallback((id: string) => setOpenModal(id), []);
   const closeM = useCallback((id: string) => { void id; setOpenModal(null); }, []);
+  const setCurrentPage = useCallback((page: Page) => {
+    startNavigationTransition(() => {
+      setCurrentPageState(current => current === page ? current : page);
+    });
+  }, []);
 
+  // ── refreshOperations: deps ổn định, dùng ref để biết có snapshot chưa ──
   const refreshOperations = useCallback(async () => {
     if (!store) return;
-    // Nếu đã có data thì chỉ hiện indicator nhỏ, không che toàn trang
-    if (queueSnapshot) {
+    // Nếu có mutation trong lúc đang tải, gộp thành đúng một lượt tải kế tiếp.
+    if (opsInflightRef.current) {
+      opsRefreshQueuedRef.current = true;
+      await opsInflightRef.current;
+      return;
+    }
+
+    if (hasSnapshotRef.current) {
       setQueueRefreshing(true);
     } else {
       setOperationsLoading(true);
     }
     setOperationsError('');
+    const refreshPromise = (async () => {
+      do {
+        opsRefreshQueuedRef.current = false;
+        try {
+          const data = await getOperations(store.storeId);
+          setOrders(data.orders.map(mapApiOrder));
+          setMachines(data.machines.map(mapApiMachine));
+          setQueueSnapshot(data.queue);
+          hasSnapshotRef.current = true;
+        } catch (error) {
+          setOperationsError(error instanceof Error ? error.message : 'Không thể tải trạng thái vận hành');
+          break;
+        }
+      } while (opsRefreshQueuedRef.current);
+    })();
+    opsInflightRef.current = refreshPromise;
     try {
-      const [data, machineData, queueData] = await Promise.all([
-        apiGet<Record<string, unknown>[]>(`/stores/${store.storeId}/orders?limit=100`),
-        apiGet<Record<string, unknown>[]>(`/stores/${store.storeId}/machines`),
-        apiGet<QueueSnapshot>(`/stores/${store.storeId}/queue`),
-      ]);
-      setOrders(data.map(mapApiOrder));
-      setMachines(machineData.map(mapApiMachine));
-      setQueueSnapshot(queueData);
-    } catch (error) {
-      if (!queueSnapshot) setQueueSnapshot(null);
-      setOperationsError(error instanceof Error ? error.message : 'Không thể tải trạng thái vận hành');
+      await refreshPromise;
     } finally {
       setOperationsLoading(false);
       setQueueRefreshing(false);
+      opsInflightRef.current = null;
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [store, queueSnapshot]);
+  // store là stable (chỉ set 1 lần từ initialStore) — không cần queueSnapshot trong deps
+  }, [store]);
+
   const refreshStaff = useCallback(async () => {
     if (!store) return;
+    if (staffInflightRef.current) {
+      staffRefreshQueuedRef.current = true;
+      await staffInflightRef.current;
+      return;
+    }
+    const refreshPromise = (async () => {
+      do {
+        staffRefreshQueuedRef.current = false;
+        const [employeeData, shiftData] = await Promise.all([listEmployees(store.storeId), listShifts(store.storeId, selectedWorkDate)]);
+        const mappedShifts = shiftData.map((shift: any) => ({ id: shift.shiftId, name: shift.name, start: new Date(shift.startAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }), end: new Date(shift.endAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }), employees: shift.employees?.map((item: any) => ({ id: item.employee.employeeId, name: item.employee.name, phone: item.employee.phone ?? '', role: item.employee.role, shiftId: shift.shiftId, ava: item.employee.name.split(' ').map((part: string) => part[0]).join('').slice(-2).toUpperCase() })) ?? [] }));
+        setWorkShifts(mappedShifts);
+        setConfig(previous => ({ ...previous, shifts: mappedShifts.map(shift => ({ id: shift.id, name: shift.name, start: shift.start, end: shift.end })) }));
+        setStaff(employeeData.map((employee: any) => ({ id: employee.employeeId, name: employee.name, phone: employee.phone ?? '', role: employee.role, shiftId: mappedShifts.find(shift => shift.employees.some((item: { id: number }) => item.id === employee.employeeId))?.id ?? 0, ava: employee.name.split(' ').map((part: string) => part[0]).join('').slice(-2).toUpperCase() })));
+      } while (staffRefreshQueuedRef.current);
+    })();
+    staffInflightRef.current = refreshPromise;
     try {
-      const [employeeData, shiftData] = await Promise.all([listEmployees(store.storeId), listShifts(store.storeId, selectedWorkDate)]);
-      const mappedShifts = shiftData.map((shift: any) => ({ id: shift.shiftId, name: shift.name, start: new Date(shift.startAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }), end: new Date(shift.endAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }), employees: shift.employees?.map((item: any) => ({ id: item.employee.employeeId, name: item.employee.name, phone: item.employee.phone ?? '', role: item.employee.role, shiftId: shift.shiftId, ava: item.employee.name.split(' ').map((part: string) => part[0]).join('').slice(-2).toUpperCase() })) ?? [] }));
-      setWorkShifts(mappedShifts);
-      setConfig(previous => ({ ...previous, shifts: mappedShifts.map(shift => ({ id: shift.id, name: shift.name, start: shift.start, end: shift.end })) }));
-      setStaff(employeeData.map((employee: any) => ({ id: employee.employeeId, name: employee.name, phone: employee.phone ?? '', role: employee.role, shiftId: mappedShifts.find(shift => shift.employees.some((item: { id: number }) => item.id === employee.employeeId))?.id ?? 0, ava: employee.name.split(' ').map((part: string) => part[0]).join('').slice(-2).toUpperCase() })));
+      await refreshPromise;
     } catch (err) {
       console.warn('[refreshStaff] Lỗi khi tải danh sách nhân viên:', err);
+    } finally {
+      staffInflightRef.current = null;
     }
   }, [store, selectedWorkDate]);
+
   const refreshShiftSummary = useCallback(async () => {
     if (!store) return;
     try { setShiftSummary(await getShiftSummary(store.storeId)); } catch (err) { console.warn('[refreshShiftSummary]', err); }
@@ -143,21 +197,26 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const refreshOrders = refreshOperations;
 
-  // The provider is mounted only after App has confirmed the cookie session.
+  // Nhường lượt render đầu tiên cho giao diện rồi tải dữ liệu ở macrotask kế tiếp.
   useEffect(() => {
-    apiGet<StoreSession>('/auth/me').then(setStore).catch(() => undefined);
-  }, []);
-
+    const id = window.setTimeout(() => { void refreshOperations(); }, 0);
+    return () => window.clearTimeout(id);
+  }, [refreshOperations]);
   useEffect(() => {
-    if (store) void refreshOperations();
-  }, [store, refreshOperations]);
-  useEffect(() => { if (store) void refreshStaff(); }, [store, refreshStaff]);
-  useEffect(() => { if (store) void refreshShiftSummary(); }, [store, refreshShiftSummary]);
+    const id = window.setTimeout(() => { void refreshStaff(); }, 0);
+    return () => window.clearTimeout(id);
+  }, [refreshStaff]);
+  useEffect(() => {
+    const id = window.setTimeout(() => { void refreshShiftSummary(); }, 0);
+    return () => window.clearTimeout(id);
+  }, [refreshShiftSummary]);
 
-  // Polling máy mỗi 60s để phát hiện mẻ vừa xong — queue chỉ refresh khi có hành động.
+  // Polling máy mỗi 60s để phát hiện mẻ vừa xong
   useEffect(() => {
     if (!store) return;
     const pollMachines = async () => {
+      // Không poll khi đang có operations refresh in-flight
+      if (opsInflightRef.current) return;
       try {
         const machineData = await apiGet<Record<string, unknown>[]>(`/stores/${store.storeId}/machines`);
         setMachines(machineData.map(mapApiMachine));

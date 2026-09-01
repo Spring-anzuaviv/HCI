@@ -31,6 +31,9 @@ const FALLBACK: StatsData = {
   ],
 };
 
+const STATS_CACHE_TTL_MS = 30_000;
+let statsCache: { data: StatsData; storedAt: number } | null = null;
+
 export default function StatsPage() {
   const { store } = useApp();
   const [stats, setStats] = useState<StatsData | null>(null);
@@ -40,12 +43,22 @@ export default function StatsPage() {
   // Luồng 4 – Lấy thống kê từ Backend
   useEffect(() => {
     const fetchStats = async () => {
+      const cached = statsCache && Date.now() - statsCache.storedAt < STATS_CACHE_TTL_MS
+        ? statsCache.data
+        : null;
+      if (cached) {
+        setStats(cached);
+        setLoading(false);
+        return;
+      }
       try {
         setLoading(true);
         setError(null);
 
         if (!store) return;
-        setStats(await getStats(store.storeId));
+        const result = await getStats(store.storeId);
+        statsCache = { data: result, storedAt: Date.now() };
+        setStats(result);
       } catch {
         setError('Không kết nối được Backend. Kiểm tra server có đang chạy không.');
         setStats(null);
