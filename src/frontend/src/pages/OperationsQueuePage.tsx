@@ -64,6 +64,8 @@ function physicalInstruction(item: QueueItem) {
   if (item.status === 'RECEIVED' || item.nextStage === 'SORTING') return { lead: 'Vui lòng phân loại trước', target: '', time };
   if (item.status === 'WASHING') return { lead: 'Đang giặt tại', target: item.machineName ?? 'máy giặt', time: '' };
   if (item.status === 'DRYING') return { lead: 'Đang sấy tại', target: item.machineName ?? 'máy sấy', time: '' };
+  if (item.status === 'WAITING' && item.nextStage === 'WASH' && !item.machineId) return { lead: 'Đang chờ', target: 'máy giặt hoàn tất', time: '' };
+  if (item.status === 'WAITING' && item.nextStage === 'DRY' && !item.machineId) return { lead: 'Đang chờ', target: 'máy sấy hoàn tất', time: '' };
   if (item.nextStage === 'WASH' || item.nextStage === 'DRY') return { lead: 'Vui lòng đưa vào', target: item.machineName ?? 'máy', time: `trước ${time}` };
   if (item.nextStage === 'TRANSFER') return { lead: 'Vui lòng chuyển sang', target: 'máy sấy', time: `trước ${time}` };
   if (item.status === 'FOLDING_PACKING' || item.nextStage === 'PACKING') return { lead: 'Vui lòng xếp đồ trước', target: '', time };
@@ -98,8 +100,8 @@ function stateMeta(item: QueueItem): { key: string; label: string; icon: LucideI
   if (item.status === 'WASHING') return { key: 'washing', label: 'ĐANG GIẶT', icon: WashingMachine, automatic: true };
   if (item.status === 'DRYING') return { key: 'drying', label: 'ĐANG SẤY', icon: Wind, automatic: true };
   if (item.nextStage === 'TRANSFER') return { key: 'transfer', label: 'CẦN ĐƯA VÀO MÁY SẤY', icon: ArrowRightLeft, automatic: false };
-  if (item.nextStage === 'WASH') return { key: 'wash-ready', label: 'CHỜ ĐƯA VÀO MÁY GIẶT', icon: WashingMachine, automatic: false };
-  if (item.nextStage === 'DRY') return { key: 'dry-ready', label: 'CHỜ ĐƯA VÀO MÁY SẤY', icon: Wind, automatic: false };
+  if (item.nextStage === 'WASH') return { key: 'wash-ready', label: item.machineId ? 'CHỜ ĐƯA VÀO MÁY GIẶT' : 'ĐANG CHỜ MÁY GIẶT', icon: WashingMachine, automatic: false };
+  if (item.nextStage === 'DRY') return { key: 'dry-ready', label: item.machineId ? 'CHỜ ĐƯA VÀO MÁY SẤY' : 'ĐANG CHỜ MÁY SẤY', icon: Wind, automatic: false };
   if (item.status === 'FOLDING_PACKING' || item.nextStage === 'PACKING') return { key: 'packing', label: 'CẦN XẾP ĐỒ', icon: PackageOpen, automatic: false };
   return { key: 'default', label: 'ĐANG XỬ LÝ', icon: CircleCheck, automatic: false };
 }
@@ -173,6 +175,10 @@ function PrimaryAction({ item, onOpen, tone, waitingForMachine, machineDone }: {
     if (!machineDone) return null;
     const machineLabel = item.status === 'WASHING' ? 'MÁY GIẶT' : 'MÁY SẤY';
     return <button type="button" className={`oq-row-action oq-action-${tone}`} disabled={loading} onClick={event => { event.stopPropagation(); void runAction(() => completeRun(item.orderStageId!), `Đã lấy đồ ra khỏi máy cho #${item.orderId}`); }}>{loading ? 'ĐANG LƯU...' : `LẤY ĐỒ RA KHỎI ${machineLabel}`}</button>;
+  }
+  if (item.status === 'WAITING' && (item.nextStage === 'WASH' || item.nextStage === 'DRY') && !item.machineId) {
+    const machineLabel = item.nextStage === 'WASH' ? 'GIẶT' : 'SẤY';
+    return <button type="button" className={`oq-row-action oq-action-${tone} oq-action-waiting`} disabled>CHỜ {machineLabel} XONG</button>;
   }
   if (item.status === 'WAITING' && (item.nextStage === 'WASH' || item.nextStage === 'DRY') && item.machineId) {
     return <button type="button" className={`oq-row-action oq-action-${tone}`} disabled={loading || waitingForMachine} onClick={event => { event.stopPropagation(); void runAction(() => startRun(item.orderId, item.nextStage!, item.machineId!), `Đã đưa #${item.orderId} vào ${item.machineName ?? 'máy'}`); }}>{loading ? 'ĐANG LƯU...' : waitingForMachine ? 'CHỜ MÁY TRỐNG' : `XÁC NHẬN ${actionText(item)}`}</button>;
