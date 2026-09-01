@@ -715,6 +715,34 @@ function expediteImpactLabel(impact: string) {
   return 'Chưa xác định';
 }
 
+function orderTimingWarning(order: any, now: number, fallbackDeadline?: string) {
+  const pickupAt = order?.pickupAt ? new Date(order.pickupAt).getTime() : NaN;
+  const estimatedAt = order?.estimatedAt ? new Date(order.estimatedAt).getTime() : NaN;
+  const pickupLate = Number.isFinite(pickupAt) && now > pickupAt;
+  const progressLate = Number.isFinite(estimatedAt) && now > estimatedAt;
+  const projectedLate = Number.isFinite(estimatedAt) && Number.isFinite(pickupAt) && estimatedAt > pickupAt;
+
+  if (pickupLate) {
+    return {
+      title: 'Cảnh báo trễ hẹn',
+      detail: `Đã quá giờ hẹn ${safeFormatTime(order?.pickupAt, fallbackDeadline || 'chưa có')} · Dự kiến xong ${safeFormatTime(order?.estimatedAt)}`,
+    };
+  }
+  if (progressLate) {
+    return {
+      title: 'Trễ tiến độ',
+      detail: `Dự kiến xong ${safeFormatTime(order?.estimatedAt)} · Còn đến giờ hẹn ${safeFormatTime(order?.pickupAt, fallbackDeadline || 'chưa có')}`,
+    };
+  }
+  if (projectedLate) {
+    return {
+      title: 'Nguy cơ trễ hẹn',
+      detail: `Dự kiến xong ${safeFormatTime(order?.estimatedAt)} · Hẹn ${safeFormatTime(order?.pickupAt, fallbackDeadline || 'chưa có')}`,
+    };
+  }
+  return null;
+}
+
 export function OrderDetailModal() {
   const { openModal, closeM, showToast, orderModalParams, machines, orders, store, refreshOperations, setCurrentPage } = useApp();
   const isOpen = openModal === 'om';
@@ -730,6 +758,13 @@ export function OrderDetailModal() {
   const [expediteTime, setExpediteTime] = useState('');
   const [expediteReason, setExpediteReason] = useState('');
   const [expediteCheck, setExpediteCheck] = useState<any>(null);
+  const [now, setNow] = useState(() => Date.now());
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const timer = window.setInterval(() => setNow(Date.now()), 30_000);
+    return () => window.clearInterval(timer);
+  }, [isOpen]);
 
   // Clear stale detail when a different order is opened.
   // AbortController để huỷ fetch khi modal đóng trước khi response về.
@@ -752,6 +787,7 @@ export function OrderDetailModal() {
 
   // order = detail API (có stage data đầy đủ) > fallback context (hiển ngay)
   const order = detail ?? orderFromContext;
+  const timingWarning = orderTimingWarning(order, now, p?.deadline);
 
   const actualSvc = order?.serviceType === 'WASH_DRY' ? 'combo' : order?.serviceType === 'DRY' ? 'dry' : order?.serviceType === 'WASH' ? 'wash' : p?.svcType;
   const svcLabel = actualSvc === 'combo' ? 'Giặt + Sấy' : actualSvc === 'wash' ? 'Chỉ Giặt' : 'Chỉ Sấy';
@@ -940,14 +976,15 @@ export function OrderDetailModal() {
             const done = i < cur;
             const act = i === cur;
             const stage = stageList.find((item: any) => item.stage === stageKeys[i]);
-            const plannedTime = safeFormatTime(stage?.plannedStartAt, '--:--');
+            const hasActualStart = Boolean(stage?.actualStartedAt);
+            const stageTime = safeFormatTime(stage?.actualStartedAt ?? stage?.plannedStartAt, '--:--');
             return (
               <div key={s} style={{ flex: 1, textAlign: 'center', position: 'relative' }}>
                 <div style={{ width: 26, height: 26, borderRadius: '50%', margin: '0 auto', zIndex: 1, position: 'relative', background: done || act ? '#7c3aed' : '#e2e8f0', color: done || act ? '#fff' : '#9ca3af', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700 }}>
                   {done ? <Check size={14} aria-hidden="true" /> : i + 1}
                 </div>
                 <div style={{ fontSize: '8.5px', color: act ? '#7c3aed' : '#9ca3af', marginTop: 3, fontWeight: act ? 700 : 400 }}>{s}</div>
-                <div className="stage-time">{plannedTime}</div>
+                <div className={`stage-time${hasActualStart ? ' actual' : ''}`} title={hasActualStart ? 'Giờ bắt đầu thực tế' : 'Giờ bắt đầu dự kiến'}>{stageTime}</div>
                 {i < stages.length - 1 && (
                   <div style={{ position: 'absolute', top: 13, left: '50%', width: '100%', height: 2, background: done ? '#7c3aed' : '#e2e8f0' }} />
                 )}
@@ -959,8 +996,8 @@ export function OrderDetailModal() {
         {/* Risk warning */}
           {(order?.riskLevel === 'AT_RISK' || order?.riskLevel === 'NOT_FEASIBLE' || p.atRisk) && (
           <div style={{ background: '#fee2e2', borderRadius: 9, padding: '11px 13px', margin: '11px 0', borderLeft: '3px solid var(--rd)' }}>
-            <div style={{ fontSize: '11.5px', fontWeight: 700, color: 'var(--rd)', marginBottom: 3 }}>Cảnh báo trễ hẹn</div>
-            <div style={{ fontSize: '11.5px', color: '#9ca3af' }}>Dự kiến xong {safeFormatTime(order?.estimatedAt)} · Hẹn {p.deadline || 'chưa có'}</div>
+            <div style={{ fontSize: '11.5px', fontWeight: 700, color: 'var(--rd)', marginBottom: 3 }}>{timingWarning?.title ?? 'Nguy cơ trễ hẹn'}</div>
+            <div style={{ fontSize: '11.5px', color: '#9ca3af' }}>{timingWarning?.detail ?? `Dự kiến xong ${safeFormatTime(order?.estimatedAt)} · Hẹn ${p.deadline || 'chưa có'}`}</div>
           </div>
         )}
 

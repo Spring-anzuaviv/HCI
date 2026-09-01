@@ -212,6 +212,9 @@ Form tách đơn hiện hiển thị ETA từng mẻ và ETA hoàn tất nhóm n
 Đã đưa màu trạng thái về tone UI tổng thể: tím/xanh dương/indigo/xanh lá; bỏ cyan-teal riêng và không thêm màu đỏ vào các card, icon hoặc button trạng thái.
 Đã đổi palette để các công việc có màu phân biệt mạnh hơn: tím phân loại, xanh dương giặt, cam chuyển đồ, vàng hổ phách sấy và xanh lá đóng gói; vẫn giữ đỏ ngoài hệ màu trạng thái.
 Đơn trễ được đánh dấu bằng vàng hổ phách riêng ở viền card, icon, box thời gian và nhãn `ĐÃ TRỄ`, không dùng đỏ.
+Đơn đang giặt/sấy hiển thị riêng thời gian trễ của giờ hẹn và thời gian còn lại/quá thời gian của máy. Đơn chờ máy giặt/sấy hiển thị thời gian phải chờ và khóa nút thao tác cho đến khi máy sẵn sàng.
+Các mốc thời gian trong queue được chuẩn hóa thành tag có nhãn: `TRỄ HẸN`, `MÁY CÒN`, `CHỜ MÁY`, `THAO TÁC CÒN` và `THỜI GIAN`; mỗi tag có màu nền nhẹ riêng để phân biệt loại thời gian.
+Khi countdown của máy giặt/sấy đã hết, card hiển thị lại nút thao tác `LẤY ĐỒ RA KHỎI MÁY GIẶT/SẤY`; trước thời điểm đó nút này được ẩn.
 Đã đối chiếu toàn bộ luồng frontend–API–service–Prisma và cập nhật `System Specification.md` theo implementation hiện tại. Tài liệu đã sửa các khác biệt về phạm vi queue, countdown, thuật toán expedite, nhóm đơn, thông báo Zalo prototype và bổ sung use case đăng nhập, tạo/tách đơn, timeline, quản trị máy/ca cùng thống kê. Các technical debt chưa sửa code (thời lượng stage thủ công, ánh xạ `NOTIFIED`, kiểm tra deadline chủ yếu ở frontend và ca Dashboard hard-code) được ghi rõ là giới hạn.
 
 Đã bổ sung trường ngày hẹn trong modal tạo đơn. Preview, kiểm tra deadline và payload tạo đơn hiện ghép ngày với giờ theo thời điểm cục bộ; ngày quá khứ bị chặn để tránh hiểu nhầm `AM/PM` thành giờ của ngày hiện tại.
@@ -221,6 +224,9 @@ Form tách đơn hiện hiển thị ETA từng mẻ và ETA hoàn tất nhóm n
 Đã cập nhật luồng `Đôn đơn`: nếu đơn thuộc nhóm tách mẻ, mô phỏng và cập nhật giờ hẹn cho toàn bộ mẻ đang hoạt động cùng `groupCode`; kết quả mô phỏng hiển thị từng đơn bị ảnh hưởng với mã đơn, tên khách và mức tác động.
 
 Đã bổ sung nút `Chỉnh giờ hẹn` trong chi tiết đơn: cho phép dời giờ lấy muộn hơn theo các mốc nhanh hoặc giờ nhập thủ công, mô phỏng lịch trước khi lưu và chỉ xác nhận khi kết quả mới là `Đúng giờ`.
+Đã đồng bộ cách gọi thời gian giữa chi tiết đơn và Hàng đợi: phân biệt `Trễ tiến độ`, `Nguy cơ trễ hẹn` và `Cảnh báo trễ hẹn`; không dùng cảnh báo trễ hẹn cho trường hợp mới quá ETA công đoạn nhưng chưa quá giờ khách hẹn.
+Thanh tiến trình chi tiết đơn ưu tiên `actualStartedAt` để hiển thị giờ bắt đầu thực tế; nếu công đoạn chưa bắt đầu thì dùng `plannedStartAt`, kèm tooltip phân biệt hai loại giờ.
+Banner Tổng quan ngoài giờ làm hiển thị giờ hiện tại thay cho giá trị `--`; Tổng quan cũng hiển thị danh sách đơn `AT_RISK` và `NOT_FEASIBLE` bằng cùng `QueueRow` như Hàng đợi.
 
 ## 6. Dependency giữa các artifact
 

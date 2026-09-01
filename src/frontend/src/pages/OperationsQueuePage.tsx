@@ -24,6 +24,26 @@ function formatCountdown(target: string | null, now: number) {
   return { text: minutes < 1 ? 'dưới 1 phút' : `${minutes} phút`, late: diff < 0 };
 }
 
+type TimingTag = { tone: 'late' | 'machine' | 'wait' | 'action'; label: string; value: string };
+
+function timingTags(item: QueueItem, now: number): TimingTag[] {
+  const isRunning = item.status === 'WASHING' || item.status === 'DRYING';
+  const waitingForMachine = item.status === 'WAITING' && (item.nextStage === 'WASH' || item.nextStage === 'DRY');
+  const pickup = formatCountdown(item.pickupAt, now);
+  const machine = formatCountdown(actionTarget(item), now);
+  const tags: TimingTag[] = [];
+
+  if (isRunning && pickup?.late) tags.push({ tone: 'late', label: 'TRỄ HẸN', value: pickup.text });
+  if (isRunning && machine) tags.push({ tone: machine.late ? 'late' : 'machine', label: machine.late ? 'MÁY QUÁ GIỜ' : 'MÁY CÒN', value: machine.text });
+  if (waitingForMachine && machine && !machine.late) tags.push({ tone: 'wait', label: 'CHỜ MÁY', value: machine.text });
+  if (waitingForMachine && machine?.late) tags.push({ tone: 'action', label: 'THAO TÁC CÒN', value: machine.text });
+  if (!isRunning && !waitingForMachine) {
+    const action = formatCountdown(actionTarget(item), now);
+    if (action) tags.push({ tone: action.late ? 'late' : 'action', label: action.late ? 'THAO TÁC TRỄ' : 'THAO TÁC CÒN', value: action.text });
+  }
+  return tags;
+}
+
 function actionText(item: QueueItem) {
   if (item.status === 'RECEIVED' || item.nextStage === 'SORTING') return 'PHÂN LOẠI';
   if (item.status === 'WASHING') return 'LẤY RA KHỎI MÁY GIẶT';
@@ -99,13 +119,17 @@ function taskTone(item: QueueItem) {
 }
 
 export function QueueRow({ item, now, onOpen, onExpedite }: { item: QueueItem; now: number; onOpen: () => void; onExpedite: () => void }) {
-  const countdown = formatCountdown(actionTarget(item), now);
   const risk = riskClass(item);
   const state = stateMeta(item);
   const StateIcon = state.icon;
   const instruction = physicalInstruction(item);
   const tone = taskTone(item);
   const isRunning = item.status === 'WASHING' || item.status === 'DRYING';
+  const waitingForMachine = item.status === 'WAITING' && (item.nextStage === 'WASH' || item.nextStage === 'DRY');
+  const machineCountdown = formatCountdown(actionTarget(item), now);
+  const timeTags = timingTags(item, now);
+  const machineWait = Boolean(machineCountdown && !machineCountdown.late);
+  const machineDone = isRunning && Boolean(machineCountdown?.late);
   return (
     <div className={`oq-task-card oq-state-${state.key}${risk === 'late' ? ' late' : risk === 'risk' ? ' risk' : ''}`} onClick={onOpen} role="button" tabIndex={0} onKeyDown={event => { if (event.key === 'Enter' || event.key === ' ') onOpen(); }}>
       <div className="oq-task-layout">
@@ -120,21 +144,21 @@ export function QueueRow({ item, now, onOpen, onExpedite }: { item: QueueItem; n
           <div className={`oq-reference-action${risk === 'late' ? ' late' : ''}`}>
             <span>{isRunning ? 'TRẠNG THÁI HIỆN TẠI' : 'VIỆC CẦN LÀM'}</span>
             <strong className="oq-instruction-text"><span>{instruction.lead}</span>{instruction.target && <> <b>{instruction.target}</b></>}{instruction.time && <> <i>{instruction.time}</i></>}</strong>
-            <span className={`oq-task-timing ${countdown?.late ? 'late' : 'remaining'}`}>{countdown ? `${countdown.late ? 'Trễ' : 'Còn'} ${countdown.text}` : 'Chưa có thời gian'}</span>
+            <span className="oq-task-timing-group">{timeTags.length > 0 ? timeTags.map(tag => <span className={`oq-task-timing ${tag.tone}`} key={`${tag.label}-${tag.value}`}><b>{tag.label}</b><span>{tag.value}</span></span>) : <span className="oq-task-timing unknown"><b>THỜI GIAN</b><span>Chưa có</span></span>}</span>
           </div>
           <div className="oq-priority-reason"><Info size={13} aria-hidden="true" /> <span>Lý do ưu tiên: {item.priorityReason || 'Theo thứ tự hàng đợi hiện tại'}</span></div>
         </div>
         <div className="oq-task-side">
-          <div className={`oq-task-priority${risk !== 'ok' ? ` ${risk}` : ''}`}>{risk === 'late' ? `ĐÃ TRỄ ${item.taskDelayMinutes} PHÚT` : risk === 'risk' ? 'NGUY CƠ TRỄ GIỜ HẸN' : `ƯU TIÊN ${item.rank}`}</div>
+          <div className={`oq-task-priority${risk !== 'ok' ? ` ${risk}` : ''}`}>{risk === 'late' ? `TRỄ TIẾN ĐỘ ${item.taskDelayMinutes} PHÚT` : risk === 'risk' ? 'NGUY CƠ TRỄ GIỜ HẸN' : `ƯU TIÊN ${item.rank}`}</div>
           <div className="oq-task-pickup">Hẹn lấy <strong>{formatTime(item.pickupAt, 'chưa hẹn')}</strong></div>
-          <div className="oq-task-actions" onClick={event => event.stopPropagation()}><button type="button" className="oq-expedite-button" onClick={onExpedite}>ĐÔN ĐƠN</button><PrimaryAction item={item} onOpen={onOpen} tone={tone} /></div>
+          <div className="oq-task-actions" onClick={event => event.stopPropagation()}><button type="button" className="oq-expedite-button" onClick={onExpedite}>ĐÔN ĐƠN</button><PrimaryAction item={item} onOpen={onOpen} tone={tone} waitingForMachine={waitingForMachine && machineWait} machineDone={machineDone} /></div>
         </div>
       </div>
     </div>
   );
 }
 
-function PrimaryAction({ item, onOpen, tone }: { item: QueueItem; onOpen: () => void; tone: string }) {
+function PrimaryAction({ item, onOpen, tone, waitingForMachine, machineDone }: { item: QueueItem; onOpen: () => void; tone: string; waitingForMachine: boolean; machineDone: boolean }) {
   const { showToast, refreshOperations } = useApp();
   const { isPending, run } = useKeyedAsyncAction();
   const key = `queue-action:${item.orderId}`;
@@ -146,10 +170,12 @@ function PrimaryAction({ item, onOpen, tone }: { item: QueueItem; onOpen: () => 
     });
   };
   if (item.status === 'WASHING' || item.status === 'DRYING') {
-    return null;
+    if (!machineDone) return null;
+    const machineLabel = item.status === 'WASHING' ? 'MÁY GIẶT' : 'MÁY SẤY';
+    return <button type="button" className={`oq-row-action oq-action-${tone}`} disabled={loading} onClick={event => { event.stopPropagation(); void runAction(() => completeRun(item.orderStageId!), `Đã lấy đồ ra khỏi máy cho #${item.orderId}`); }}>{loading ? 'ĐANG LƯU...' : `LẤY ĐỒ RA KHỎI ${machineLabel}`}</button>;
   }
   if (item.status === 'WAITING' && (item.nextStage === 'WASH' || item.nextStage === 'DRY') && item.machineId) {
-    return <button type="button" className={`oq-row-action oq-action-${tone}`} disabled={loading} onClick={event => { event.stopPropagation(); void runAction(() => startRun(item.orderId, item.nextStage!, item.machineId!), `Đã đưa #${item.orderId} vào ${item.machineName ?? 'máy'}`); }}>{loading ? 'ĐANG LƯU...' : `XÁC NHẬN ${actionText(item)}`}</button>;
+    return <button type="button" className={`oq-row-action oq-action-${tone}`} disabled={loading || waitingForMachine} onClick={event => { event.stopPropagation(); void runAction(() => startRun(item.orderId, item.nextStage!, item.machineId!), `Đã đưa #${item.orderId} vào ${item.machineName ?? 'máy'}`); }}>{loading ? 'ĐANG LƯU...' : waitingForMachine ? 'CHỜ MÁY TRỐNG' : `XÁC NHẬN ${actionText(item)}`}</button>;
   }
   if (item.status === 'RECEIVED' || item.status === 'FOLDING_PACKING' || item.nextStage === 'TRANSFER') {
     const label = item.status === 'FOLDING_PACKING' || item.nextStage === 'PACKING' ? 'XÁC NHẬN HOÀN THÀNH' : item.nextStage === 'TRANSFER' ? 'XÁC NHẬN ĐƯA VÀO MÁY SẤY' : 'XÁC NHẬN PHÂN LOẠI';

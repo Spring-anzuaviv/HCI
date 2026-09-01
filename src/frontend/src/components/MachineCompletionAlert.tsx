@@ -83,6 +83,7 @@ export default function MachineCompletionAlert() {
   const [acknowledged, setAcknowledged] = useState<Set<string>>(new Set());
   const previousRiskRef = useRef<Map<number, string>>(new Map());
   const riskBaselineRef = useRef(false);
+  const reminderTimersRef = useRef<Map<string, number>>(new Map());
   const [newRiskKeys, setNewRiskKeys] = useState<string[]>([]);
 
   useEffect(() => {
@@ -90,7 +91,29 @@ export default function MachineCompletionAlert() {
     return () => window.clearInterval(timer);
   }, []);
 
-  const snooze = (key: string, minutes: number) => setSnoozedUntil(previous => ({ ...previous, [key]: Date.now() + minutes * 60 * 1000 }));
+  useEffect(() => () => {
+    reminderTimersRef.current.forEach(timer => window.clearTimeout(timer));
+    reminderTimersRef.current.clear();
+  }, []);
+
+  const snooze = (key: string, minutes: number) => {
+    const reminderAt = Date.now() + minutes * 60 * 1000;
+    const currentTimer = reminderTimersRef.current.get(key);
+    if (currentTimer) window.clearTimeout(currentTimer);
+    const timer = window.setTimeout(() => {
+      setSnoozedUntil(previous => {
+        if ((previous[key] ?? 0) > Date.now()) return previous;
+        const next = { ...previous };
+        delete next[key];
+        return next;
+      });
+      setNow(Date.now());
+      reminderTimersRef.current.delete(key);
+    }, minutes * 60 * 1000);
+    reminderTimersRef.current.set(key, timer);
+    setSnoozedUntil(previous => ({ ...previous, [key]: reminderAt }));
+    showToast(`Đã đặt nhắc lại sau ${minutes} phút`, 'pu');
+  };
   const acknowledge = (key: string) => setAcknowledged(previous => new Set(previous).add(key));
 
   const allDueMachines = useMemo(() => machines

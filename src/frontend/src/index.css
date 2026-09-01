@@ -482,9 +482,21 @@ button[aria-busy="true"] { cursor: wait !important; }
 .oq-instruction-text i { color: #6d28d9; font-style: normal; font-weight: 900; white-space: nowrap; }
 .oq-reference-action.late { border-color: #fcd34d; background: #fffbeb; }
 .oq-reference-action.late span:first-child, .oq-reference-action.late strong { color: #92400e; }
-.oq-task-timing { display: inline-flex; align-items: center; padding: 3px 7px; border-radius: 5px; font-size: 10px !important; font-weight: 800 !important; letter-spacing: .02em !important; }
+.oq-task-timing { display: inline-flex; align-items: center; gap: 5px; padding: 4px 7px; border-radius: 5px; font-size: 10px !important; font-weight: 800 !important; letter-spacing: .02em !important; }
+.oq-task-timing b { font-size: 8px !important; font-weight: 900 !important; letter-spacing: .04em !important; }
+.oq-task-timing > span { font-size: 10px !important; font-weight: 800 !important; letter-spacing: 0 !important; }
+.oq-task-timing-group { display: flex; flex-wrap: wrap; gap: 5px; }
 .oq-task-timing.remaining { background: #e0f2fe; color: #0369a1 !important; }
 .oq-task-timing.late { background: #fef3c7; color: #92400e !important; }
+.oq-task-timing.machine { background: #dbeafe; color: #1d4ed8 !important; }
+.oq-task-timing.wait { background: #e0e7ff; color: #4338ca !important; }
+.oq-task-timing.action { background: #ede9fe; color: #6d28d9 !important; }
+.oq-task-timing.unknown { background: #f1f5f9; color: #64748b !important; }
+.oq-task-timing.late b, .oq-task-timing.late > span { color: #92400e !important; }
+.oq-task-timing.machine b, .oq-task-timing.machine > span { color: #1d4ed8 !important; }
+.oq-task-timing.wait b, .oq-task-timing.wait > span { color: #4338ca !important; }
+.oq-task-timing.action b, .oq-task-timing.action > span { color: #6d28d9 !important; }
+.oq-task-timing.unknown b, .oq-task-timing.unknown > span { color: #64748b !important; }
 .oq-priority-reason { display: flex; align-items: flex-start; gap: 5px; margin: 9px 0 0 37px; color: var(--ts); font-size: 10.5px; line-height: 1.35; }
 .oq-priority-reason svg { flex: 0 0 auto; color: #64748b; margin-top: 1px; }
 .oq-task-meta { display: flex; flex-wrap: wrap; gap: 5px; margin: 7px 0 0 37px; color: var(--ts); font-size: 10.5px; }

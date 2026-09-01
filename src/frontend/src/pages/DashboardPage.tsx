@@ -33,10 +33,14 @@ const HeroSVG = () => (
   </svg>
 );
 
+function currentVietnameseTime() {
+  return new Intl.DateTimeFormat('vi-VN', { hour: '2-digit', minute: '2-digit' }).format(new Date());
+}
+
 export default function DashboardPage() {
   const { setCurrentPage, openM, orders, setOrderModalParams, orderSearch, orderFilter, shiftSummary, queueSnapshot, operationsLoading } = useApp();
   const deferredOrderSearch = useDeferredValue(orderSearch);
-  const [shiftInfo, setShiftInfo] = useState({ name: '', timeRange: '', timeLeft: '', day: '' });
+  const [shiftInfo, setShiftInfo] = useState({ name: '', timeRange: '', timeLeft: `Hiện tại ${currentVietnameseTime()}`, day: '' });
   const [now, setNow] = useState(() => Date.now());
 
   // Tính thông tin ca làm việc
@@ -53,7 +57,7 @@ export default function DashboardPage() {
       else if (hour >= 14 && hour < 18) { name = 'Ca chiều'; timeRange = '14:00 - 18:00'; endHour = 18; }
       else if (hour >= 18 && hour < 22) { name = 'Ca tối'; timeRange = '18:00 - 22:00'; endHour = 22; }
 
-      let timeLeft = '--';
+       let timeLeft = `Hiện tại ${currentVietnameseTime()}`;
       if (name) {
         const minsLeft = endHour * 60 - (hour * 60 + minute);
         const h = Math.floor(minsLeft / 60);
@@ -102,6 +106,7 @@ export default function DashboardPage() {
     .filter(item => visibleIds.has(item.orderId) && item.riskLevel === 'NOT_FEASIBLE');
   const riskOrders = (queueSnapshot?.items ?? [])
     .filter(item => visibleIds.has(item.orderId) && item.riskLevel === 'AT_RISK');
+  const attentionOrders = [...lateOrders, ...riskOrders];
   const stats = {
     today: orders.filter(o => o.status === 'pending').length + orders.filter(o => o.status === 'done').length,
     processing: orders.filter(o => o.status === 'pending').length,
@@ -150,6 +155,18 @@ export default function DashboardPage() {
           <button className="alink" onClick={() => setCurrentPage('q')}>
              Xem ngay <ArrowRight className="icon icon-sm" aria-hidden="true" />
           </button>
+        </div>
+      )}
+
+      {attentionOrders.length > 0 && (
+        <div className="card oq-risk-card">
+          <div className="ctitle oq-reference-title danger">
+            <div className="cico"><AlertTriangle className="icon icon-sm" aria-hidden="true" /></div>
+            Đơn có nguy cơ trễ hẹn
+          </div>
+          <div className="olist">
+            {attentionOrders.map(item => <QueueRow key={item.orderId} item={item} now={now} onOpen={() => openOrderModal(queueModalParams(item))} onExpedite={() => openOrderModal(queueModalParams(item, true))} />)}
+          </div>
         </div>
       )}
 
