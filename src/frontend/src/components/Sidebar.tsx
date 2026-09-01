@@ -1,17 +1,19 @@
 import { useApp } from '../context/useApp';
 import type { Page } from '../types';
+import { BarChart3, House, Layers3, Send, WashingMachine } from 'lucide-react';
+
+const NAV_ICONS = { db: House, q: Layers3, n: Send, stats: BarChart3 } as const;
 
 interface NavItem {
   id: Page;
-  icon: string;
   label: string;
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { id: 'db', icon: 'i-home', label: 'Tổng quan' },
-  { id: 'q', icon: 'i-layers', label: 'Hàng đợi' },
-  { id: 'n', icon: 'i-send', label: 'Thông báo' },
-  { id: 'stats', icon: 'i-bar-chart', label: 'Thống kê' },
+  { id: 'db', label: 'Tổng quan' },
+  { id: 'q', label: 'Hàng đợi' },
+  { id: 'n', label: 'Thông báo' },
+  { id: 'stats', label: 'Thống kê' },
 ];
 
 export default function Sidebar() {
@@ -26,9 +28,7 @@ export default function Sidebar() {
   return (
     <aside className="sidebar">
       <div className="logo-box">
-        <svg className="icon icon-xl" style={{ color: '#5b21b6' }}>
-          <use href="#i-washer" />
-        </svg>
+        <WashingMachine className="icon icon-xl" style={{ color: '#5b21b6' }} aria-hidden="true" />
       </div>
       <div className="logo-name">Wash<br />Track</div>
 
@@ -39,7 +39,7 @@ export default function Sidebar() {
             className={`ni${currentPage === item.id ? ' on' : ''}`}
             onClick={() => setCurrentPage(item.id)}
           >
-            <svg className="icon icon-lg"><use href={`#${item.icon}`} /></svg>
+            {(() => { const Icon = NAV_ICONS[item.id as keyof typeof NAV_ICONS]; return <Icon className="icon icon-lg" aria-hidden="true" />; })()}
             <span className="lbl">{item.label}</span>
           </button>
         ))}

@@ -3,7 +3,8 @@ import { useApp } from '../context/useApp';
 import type { ModalOrderParams } from '../types';
 import { filterOrders } from '../utils/orderSearch';
 import OrderFilterBar from '../components/OrderFilterBar';
-import { QueueOrderRow } from './QueuePage';
+import { QueueRow } from './OperationsQueuePage';
+import { AlertTriangle, ArrowRight, ChevronRight, Clock3, Layers3 } from 'lucide-react';
 
 // ─── Hero SVG (washing machine illustration) ───
 const HeroSVG = () => (
@@ -36,6 +37,7 @@ export default function DashboardPage() {
   const { setCurrentPage, openM, orders, setOrderModalParams, orderSearch, orderFilter, shiftSummary, queueSnapshot, operationsLoading } = useApp();
   const deferredOrderSearch = useDeferredValue(orderSearch);
   const [shiftInfo, setShiftInfo] = useState({ name: '', timeRange: '', timeLeft: '', day: '' });
+  const [now, setNow] = useState(() => Date.now());
 
   // Tính thông tin ca làm việc
   useEffect(() => {
@@ -66,25 +68,40 @@ export default function DashboardPage() {
     return () => clearInterval(timer);
   }, []);
 
+  useEffect(() => {
+    const timer = window.setInterval(() => setNow(Date.now()), 1000);
+    return () => window.clearInterval(timer);
+  }, []);
+
   const openOrderModal = (params: ModalOrderParams) => {
-    setOrderModalParams({ ...params, readOnly: true });
+    setOrderModalParams(params);
     openM('om');
+  };
+
+  const queueModalParams = (item: NonNullable<typeof queueSnapshot>['items'][number], openExpedite = false): ModalOrderParams => {
+    const order = orders.find(value => value.orderId === item.orderId);
+    return {
+      orderId: item.orderId,
+      name: item.customer?.name ?? `Đơn #${item.orderId}`,
+      phone: item.customer?.phone,
+      deadline: item.pickupAt ? new Date(item.pickupAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) : '',
+      atRisk: item.riskLevel === 'AT_RISK' || item.riskLevel === 'NOT_FEASIBLE',
+      svcType: order?.service ?? (item.serviceType === 'WASH_DRY' ? 'combo' : item.serviceType === 'DRY' ? 'dry' : 'wash'),
+      isWaiting: item.status === 'WAITING',
+      recommendedMachineId: item.machineId,
+      openExpedite,
+    };
   };
 
   const visibleOrders = filterOrders(orders, deferredOrderSearch, orderFilter);
   const visibleIds = new Set(visibleOrders.map(order => order.orderId));
-  const pendingOrders = (queueSnapshot?.items ?? [])
+  const topQueueItems = (queueSnapshot?.items ?? [])
     .filter(item => visibleIds.has(item.orderId))
-    .map(item => orders.find(order => order.orderId === item.orderId))
-    .filter((order): order is NonNullable<typeof order> => Boolean(order));
+    .slice(0, 5);
   const lateOrders = (queueSnapshot?.items ?? [])
     .filter(item => visibleIds.has(item.orderId) && item.riskLevel === 'NOT_FEASIBLE');
   const riskOrders = (queueSnapshot?.items ?? [])
     .filter(item => visibleIds.has(item.orderId) && item.riskLevel === 'AT_RISK');
-  const suggestedOrder = queueSnapshot?.recommendation
-    ? orders.find(order => order.orderId === queueSnapshot.recommendation?.orderId)
-    : undefined;
-
   const stats = {
     today: orders.filter(o => o.status === 'pending').length + orders.filter(o => o.status === 'done').length,
     processing: orders.filter(o => o.status === 'pending').length,
@@ -110,7 +127,7 @@ export default function DashboardPage() {
           </p>
           <div className="hero-meta">
             <span className="hm">
-              <svg className="icon icon-sm"><use href="#i-clock" /></svg>
+               <Clock3 className="icon icon-sm" aria-hidden="true" />
               <span id="hero-time-left">{shiftInfo.timeLeft}</span>
             </span>
           </div>
@@ -124,14 +141,14 @@ export default function DashboardPage() {
       {/* Alert */}
       {(lateOrders.length > 0 || riskOrders.length > 0) && (
         <div className="alert">
-          <svg className="icon"><use href="#i-alert" /></svg>
+           <AlertTriangle className="icon" aria-hidden="true" />
           <div className="alert-txt">
             <strong>Cảnh báo:</strong> {lateOrders.length > 0 ? `${lateOrders.length} đơn sẽ trễ hẹn` : ''} 
             {lateOrders.length > 0 && riskOrders.length > 0 ? ' và ' : ''}
             {riskOrders.length > 0 ? `${riskOrders.length} đơn có nguy cơ không kịp giờ hẹn` : ''}
           </div>
           <button className="alink" onClick={() => setCurrentPage('q')}>
-            Xem ngay <svg className="icon icon-sm"><use href="#i-arrow-right" /></svg>
+             Xem ngay <ArrowRight className="icon icon-sm" aria-hidden="true" />
           </button>
         </div>
       )}
@@ -154,33 +171,17 @@ export default function DashboardPage() {
         <div className="card" style={{ flex: 1.45 }}>
           <div className="ch">
             <div className="ctitle">
-              <div className="cico"><svg className="icon icon-sm"><use href="#i-layers" /></svg></div>
+               <div className="cico"><Layers3 className="icon icon-sm" aria-hidden="true" /></div>
               Hàng đợi thông minh
             </div>
             <button className="clink" onClick={() => setCurrentPage('q')}>
-              Xem tất cả <svg className="icon icon-sm"><use href="#i-chevron-right" /></svg>
+               Xem tất cả <ChevronRight className="icon icon-sm" aria-hidden="true" />
             </button>
           </div>
 
-          {/* Đề xuất xử lý tiếp */}
-           {operationsLoading ? <div style={{ color: 'var(--ts)', fontSize: 12, padding: 10 }}>Đang tải đề xuất từ schedule hiện tại...</div> : suggestedOrder ? <div className="sugg">
-            <div className="sugg-lbl">
-              <svg className="icon icon-sm"><use href="#i-cpu" /></svg> Đề xuất xử lý tiếp
-            </div>
-            <div className="sugg-row">
-               <div className="sugg-n">#{suggestedOrder.id}</div>
-              <div className="sugg-info">
-                 <div className="sugg-name">{suggestedOrder.name}</div>
-                 <div className="sugg-meta">{suggestedOrder.kg}kg · Hẹn {suggestedOrder.deadline || 'chưa có'} · {suggestedOrder.isWaiting ? 'Chờ máy' : 'Đang xử lý'}</div>
-              </div>
-                <button className="bp" onClick={() => openOrderModal({ orderId: suggestedOrder.orderId, name: suggestedOrder.name, phone: suggestedOrder.phone, deadline: suggestedOrder.deadline, atRisk: suggestedOrder.atRisk, svcType: suggestedOrder.service, isWaiting: suggestedOrder.isWaiting })}>
-                Xem đơn <svg className="icon icon-sm"><use href="#i-arrow-right" /></svg>
-              </button>
-            </div></div> : <div style={{ color: 'var(--ts)', fontSize: 12, padding: 10 }}>Không có order phù hợp với bộ lọc hiện tại</div>}
-           {/* Order list (top 5) */}
-          <div className="olist">
-             {pendingOrders.slice(0, 5).map(order => <QueueOrderRow key={order.id} order={order} onOpen={order => openOrderModal({ orderId: order.orderId, name: order.name, phone: order.phone, deadline: order.deadline, atRisk: order.atRisk, svcType: order.service, isWaiting: order.isWaiting })} />)}
-          </div>
+           {operationsLoading ? <div style={{ color: 'var(--ts)', fontSize: 12, padding: 10 }}>Đang tải hàng đợi...</div> : topQueueItems.length === 0 ? <div style={{ color: 'var(--ts)', fontSize: 12, padding: 10 }}>Không có đơn phù hợp với bộ lọc hiện tại</div> : <div className="olist">
+              {topQueueItems.map(item => <QueueRow key={item.orderId} item={item} now={now} onOpen={() => openOrderModal(queueModalParams(item))} onExpedite={() => openOrderModal(queueModalParams(item, true))} />)}
+           </div>}
         </div>
       </div>
     </div>

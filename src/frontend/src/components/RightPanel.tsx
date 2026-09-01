@@ -3,6 +3,7 @@ import { useApp } from '../context/useApp';
 import { resetMachine } from '../api/machines';
 import { getStats } from '../api/stats';
 import type { Machine } from '../types';
+import { CircleX, Plus, RefreshCw, WashingMachine } from 'lucide-react';
 
 // ─── Machine Card ───
 function MachineCard({ machine, onEdit }: { machine: Machine; onEdit: (id: number) => void }) {
@@ -59,7 +60,7 @@ function MachineCard({ machine, onEdit }: { machine: Machine; onEdit: (id: numbe
         {label}
       </div>
       <div className="mc-ico">
-        <svg className="icon" style={{ width: 22, height: 22 }}><use href="#i-washer" /></svg>
+         <WashingMachine className="icon" style={{ width: 22, height: 22 }} aria-hidden="true" />
       </div>
       <div className="mc-name">{machine.name}</div>
       <div className="mc-st" style={{ fontSize: 12, fontWeight: 600, marginTop: 2 }}>
@@ -92,7 +93,7 @@ function MachineCard({ machine, onEdit }: { machine: Machine; onEdit: (id: numbe
             lineHeight: 1.4, whiteSpace: 'nowrap',
           }}
         >
-          {resetting ? '...' : '⟳ Đặt lại'}
+           {resetting ? '...' : <><RefreshCw className="icon icon-sm" aria-hidden="true" /> Đặt lại</>}
         </button>
       )}
       {resetError && (
@@ -114,7 +115,7 @@ function StaffSection() {
         <div className="rpt" style={{ marginBottom: 0 }}>Nhân viên trong ca</div>
         <input className="finput" type="date" value={selectedWorkDate} onChange={event => setSelectedWorkDate(event.target.value)} style={{ width: 125, height: 30, fontSize: 11 }} />
         <button className="bs" style={{ padding: '4px 8px', fontSize: '10.5px' }} onClick={() => openM('sm-staff')}>
-          <svg className="icon icon-sm" style={{ color: 'var(--pu)' }}><use href="#i-plus" /></svg>
+           <Plus className="icon icon-sm" style={{ color: 'var(--pu)' }} aria-hidden="true" />
           Thêm NV
         </button>
       </div>
@@ -125,7 +126,7 @@ function StaffSection() {
             <div key={shift.id}>
                <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--ts)', marginBottom: 6, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                  <span>{shift.name} ({shift.start} - {shift.end})</span>
-                 <button className="bs" style={{ padding: '3px 6px', fontSize: 9 }} onClick={() => openM(`sm-assign-${shift.id}`)}>+ Phân ca</button>
+                  <button className="bs" style={{ padding: '3px 6px', fontSize: 9 }} onClick={() => openM(`sm-assign-${shift.id}`)}><Plus className="icon icon-sm" aria-hidden="true" /> Phân ca</button>
               </div>
               <div className="strow">
                 {staffInShift.length === 0
@@ -133,7 +134,7 @@ function StaffSection() {
                    : staffInShift.map(s => (
                     <div key={s.id} className="stav" title={`${s.name} - Nhấn để sửa`} onClick={() => openM(`sm-staff-${s.id}`)} style={{ background: 'var(--pu)', color: '#fff', position: 'relative' }}>
                       {s.ava}
-                      <button aria-label={`Xóa ${s.name} khỏi ca`} onClick={event => { event.stopPropagation(); openM(`sm-remove-${shift.id}-${s.id}`); }} style={{ position: 'absolute', right: -5, top: -5, width: 16, height: 16, border: 0, borderRadius: '50%', background: 'var(--rd)', color: '#fff', fontSize: 11, lineHeight: '16px', padding: 0, cursor: 'pointer' }}>×</button>
+                       <button aria-label={`Xóa ${s.name} khỏi ca`} onClick={event => { event.stopPropagation(); openM(`sm-remove-${shift.id}-${s.id}`); }} style={{ position: 'absolute', right: -5, top: -5, width: 16, height: 16, border: 0, borderRadius: '50%', background: 'var(--rd)', color: '#fff', padding: 0, cursor: 'pointer' }}><CircleX size={14} aria-hidden="true" /></button>
                     </div>
                   ))
                 }
@@ -182,7 +183,7 @@ export default function RightPanel() {
         <div className="frow" style={{ alignItems: 'center', justifyContent: 'space-between', marginBottom: 12, gap: 5 }}>
           <div className="rpt" style={{ marginBottom: 0 }}>Trạng thái máy</div>
           <button className="bs" style={{ padding: '4px 8px', fontSize: '10.5px' }} onClick={() => openM('sm-machine')}>
-            <svg className="icon icon-sm" style={{ color: 'var(--pu)' }}><use href="#i-plus" /></svg>
+             <Plus className="icon icon-sm" style={{ color: 'var(--pu)' }} aria-hidden="true" />
             Thêm máy
           </button>
         </div>

@@ -10,6 +10,8 @@ import {
 } from "./machine-workflow.js";
 import { getWorkflowStages, requiredMachineType } from "./scheduling.service.js";
 import { collapseNotificationGroups } from "./notification.service.js";
+import { getExpediteOrderIds } from "./expedite-workflow.js";
+import { buildQueueSnapshot } from "./queue.service.js";
 
 test("workflow dịch vụ giữ đúng thứ tự công đoạn", () => {
   assert.deepEqual(getWorkflowStages("WASH_DRY"), ["SORTING", "WASH", "TRANSFER", "DRY", "PACKING"]);
@@ -61,4 +63,29 @@ test("đơn tách chỉ tạo một card thông báo cho cả nhóm", () => {
   assert.equal(cards[0].groupCount, 2);
   assert.deepEqual(cards[0].orderIds, [39, 40]);
   assert.equal(cards[1].groupCount, 1);
+});
+
+test("đôn một mẻ áp dụng cho toàn bộ đơn cùng nhóm", () => {
+  const orders = [
+    { orderId: 10, groupCode: "GROUP-10" },
+    { orderId: 11, groupCode: "GROUP-10" },
+    { orderId: 12, groupCode: null },
+  ];
+  assert.deepEqual([...getExpediteOrderIds(orders, 10)], [10, 11]);
+  assert.deepEqual([...getExpediteOrderIds(orders, 12)], [12]);
+});
+
+test("đơn mới chỉ trễ phân loại sau khi hết thời lượng phân loại", () => {
+  const createdAt = new Date("2026-09-01T08:00:00.000Z");
+  const stages = [
+    { orderStageId: 1, stage: "SORTING", status: "PLANNED", plannedStartAt: createdAt, plannedEndAt: new Date("2026-09-01T08:05:00.000Z"), machineId: null },
+    { orderStageId: 2, stage: "WASH", status: "PLANNED", plannedStartAt: new Date("2026-09-01T08:05:00.000Z"), plannedEndAt: new Date("2026-09-01T08:35:00.000Z"), machineId: 1 },
+    { orderStageId: 3, stage: "PACKING", status: "PLANNED", plannedStartAt: new Date("2026-09-01T08:35:00.000Z"), plannedEndAt: new Date("2026-09-01T08:45:00.000Z"), machineId: null },
+  ];
+  const order = { orderId: 80, status: "RECEIVED", serviceType: "WASH", weightKg: 3, createdAt, readyAt: createdAt, pickupAt: new Date("2026-09-01T10:00:00.000Z"), estimatedAt: new Date("2026-09-01T08:50:00.000Z"), stages };
+  const beforeEnd = buildQueueSnapshot([order], [], [], new Date("2026-09-01T08:04:00.000Z")).items[0];
+  const afterEnd = buildQueueSnapshot([order], [], [], new Date("2026-09-01T08:07:00.000Z")).items[0];
+  assert.equal(beforeEnd.taskDelayMinutes, 0);
+  assert.equal(afterEnd.taskDelayMinutes, 2);
+  assert.equal(afterEnd.taskDeadlineAt?.toISOString(), "2026-09-01T08:05:00.000Z");
 });

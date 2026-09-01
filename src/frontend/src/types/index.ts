@@ -120,6 +120,8 @@ export interface QueueItem {
   machineName: string | null;
   plannedStartAt: string | null;
   plannedEndAt: string | null;
+  taskDeadlineAt: string | null;
+  taskDelayMinutes: number;
   riskLevel: QueueRisk;
   slackMinutes: number | null;
   riskMessage: string;
@@ -182,4 +184,5 @@ export interface ModalOrderParams {
   isWaiting: boolean;
   readOnly?: boolean;
   recommendedMachineId?: number | null;
+  openExpedite?: boolean;
 }

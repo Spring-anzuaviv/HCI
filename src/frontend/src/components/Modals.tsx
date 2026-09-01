@@ -1,5 +1,6 @@
 import { useApp } from '../context/useApp';
 import type { ToastItem } from '../context/app-context';
+import { AlertTriangle, CheckCircle2, X } from 'lucide-react';
 
 // ─── Toast Container ───
 export function ToastContainer() {
@@ -12,10 +13,10 @@ export function ToastContainer() {
 }
 
 function Toast({ toast }: { toast: ToastItem }) {
-  const ico = toast.type === 'grn' ? '#i-check-circle' : '#i-alert';
+  const Icon = toast.type === 'grn' ? CheckCircle2 : AlertTriangle;
   return (
     <div className={`toast show ${toast.type}`}>
-      <svg className="icon icon-sm"><use href={ico} /></svg>
+      <Icon className="icon icon-sm" aria-hidden="true" />
       {toast.msg}
     </div>
   );
@@ -41,7 +42,7 @@ export function Modal({ id, title, children, footer, width = 470 }: ModalProps) 
           <div className="mhd">
             <div className="mtitle">{title}</div>
             <button className="mxbtn" onClick={() => closeM(id)}>
-              <svg className="icon icon-sm"><use href="#i-x" /></svg>
+              <X className="icon icon-sm" aria-hidden="true" />
             </button>
           </div>
         )}

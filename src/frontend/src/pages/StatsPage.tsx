@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useApp } from '../context/useApp';
+import { AlertTriangle, BarChart3 } from 'lucide-react';
 import { getStats } from '../api/stats';
 
 interface StatsData {
@@ -83,16 +84,14 @@ export default function StatsPage() {
           </p>
         </div>
         <div className="hero-img">
-          <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>
-          </svg>
+          <BarChart3 width={60} height={60} color="#fff" aria-hidden="true" />
         </div>
       </div>
 
       {/* Báo lỗi kết nối */}
       {error && (
         <div style={{ margin: '12px 16px', padding: '10px 14px', background: '#fef2f2', border: '1px solid #fca5a5', borderRadius: 8, fontSize: 12.5, color: '#b91c1c' }}>
-          ⚠️ {error}
+           <AlertTriangle size={16} aria-hidden="true" /> {error}
         </div>
       )}
 

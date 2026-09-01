@@ -198,7 +198,25 @@ Form tách đơn hiện hiển thị ETA từng mẻ và ETA hoàn tất nhóm n
 Đã tách `AppProvider`, context thuần và hook `useApp` thành các module riêng để Vite Fast Refresh không còn invalidate toàn bộ cây giao diện khi sửa context.
 
 Đã thêm mục `Chỉnh ca ngày đang xem` trong Cài đặt. Modal cho phép sửa tên và giờ của từng ca theo ngày, lưu qua API `PATCH /stores/:storeId/shifts/:shiftId`, giữ nguyên phân công nhân viên và tải lại dữ liệu sau khi lưu. Frontend/backend build, frontend lint và bốn test workflow backend đều đạt.
+Đã cải thiện Software Product cho luồng hàng chờ: danh sách được tổ chức theo việc cần làm tiếp theo, order có nút hành động chính dạng động từ rõ ràng, countdown cập nhật theo mốc schedule và popup máy hoàn tất không còn bước xác nhận trung gian trước khi lấy đồ. Frontend build/lint và bốn test workflow backend đạt.
+Đã làm rõ workflow thao tác vật lý trong hàng chờ: phân loại → đưa vào máy giặt → giặt tự động → lấy ra → đưa vào máy sấy → sấy tự động → lấy ra → xếp đồ → hoàn thành. Queue nhận diện riêng công đoạn `TRANSFER`, hiển thị hướng dẫn theo mốc giờ và các nút xác nhận đúng điểm chuyển trạng thái.
+Đã tách tính trễ công đoạn khỏi thời gian dự phòng giờ hẹn: đơn mới chỉ trễ sau khi hết `SORTING_TIME`, stage máy dùng thời điểm bắt đầu thực tế cộng thời lượng máy, và queue hiển thị `taskDelayMinutes` riêng với `slackMinutes`.
+Đã bổ sung phân biệt trực quan cho từng trạng thái hàng chờ bằng icon Lucide, màu nền và nhãn chữ: phân loại, chờ máy, đang giặt, chuyển sấy, đang sấy, xếp đồ và hoàn thành; trạng thái giặt/sấy được đánh dấu `TỰ ĐỘNG`.
+Đã đổi vùng `Việc cần làm` thành box, tách badge `Còn` và `Trễ` bằng màu xanh dương/cam nhạt, bổ sung lý do ưu tiên và các chip thông tin để tránh dính nội dung. Card hàng đợi có nút `ĐÔN ĐƠN`; chi tiết đơn có thao tác workflow, đôn đơn và hủy đơn, tự chọn máy nền thay vì hiển thị dropdown chọn máy.
+Đã tái bố cục card đơn hàng theo 3 vùng ngang trên desktop: thông tin đơn, việc cần làm/lý do ưu tiên và thời gian/thao tác; tablet dùng 2 cột, mobile xếp dọc để bảo toàn khả năng đọc.
+Đã tách câu nhắc nhở thành các phần màu riêng: hành động trung tính, tên máy xanh đậm và thời gian indigo; tên máy và mốc giờ không còn dính vào phần hướng dẫn chung.
+Đã dùng chung `QueueRow` của trang Hàng đợi cho khu vực hàng đợi trên Tổng quan; Tổng quan chỉ hiển thị 5 đơn đầu theo thứ tự queue và vẫn có liên kết mở toàn bộ hàng đợi. Trang Hàng đợi được tải cùng bundle vì component card được dùng ngay trên Tổng quan.
+Đơn đang giặt/sấy không còn nút hành động xác nhận sớm; box đổi nhãn thành `TRẠNG THÁI HIỆN TẠI`. Nút thao tác của từng công việc dùng màu riêng theo nhóm, còn trạng thái trễ dùng cam thay vì phủ đỏ toàn bộ card.
+Đã thay palette công việc sang màu lạnh; chỉ viền card/box và button khác màu theo công việc, nền/icon giữ trung tính. Trạng thái trễ/rủi ro dùng xám xanh thay vì màu nóng gần đỏ.
+Đã tăng độ phân biệt giữa các màu lạnh và đồng bộ màu icon với viền tương ứng: tím phân loại, xanh dương giặt, cyan chuyển đồ, teal sấy và xanh lá đóng gói.
+Đã đưa màu trạng thái về tone UI tổng thể: tím/xanh dương/indigo/xanh lá; bỏ cyan-teal riêng và không thêm màu đỏ vào các card, icon hoặc button trạng thái.
 Đã đối chiếu toàn bộ luồng frontend–API–service–Prisma và cập nhật `System Specification.md` theo implementation hiện tại. Tài liệu đã sửa các khác biệt về phạm vi queue, countdown, thuật toán expedite, nhóm đơn, thông báo Zalo prototype và bổ sung use case đăng nhập, tạo/tách đơn, timeline, quản trị máy/ca cùng thống kê. Các technical debt chưa sửa code (thời lượng stage thủ công, ánh xạ `NOTIFIED`, kiểm tra deadline chủ yếu ở frontend và ca Dashboard hard-code) được ghi rõ là giới hạn.
+
+Đã bổ sung trường ngày hẹn trong modal tạo đơn. Preview, kiểm tra deadline và payload tạo đơn hiện ghép ngày với giờ theo thời điểm cục bộ; ngày quá khứ bị chặn để tránh hiểu nhầm `AM/PM` thành giờ của ngày hiện tại.
+
+Đã bỏ thao tác `Hủy đơn` khỏi chi tiết đơn hàng và chuẩn hóa phần `Việc cần làm tiếp theo` theo trạng thái thực tế của workflow, đồng nhất với Hàng đợi: phân loại, đưa vào máy, lấy đồ ra, chuyển sang máy sấy hoặc xếp đồ.
+
+Đã cập nhật luồng `Đôn đơn`: nếu đơn thuộc nhóm tách mẻ, mô phỏng và cập nhật giờ hẹn cho toàn bộ mẻ đang hoạt động cùng `groupCode`; kết quả mô phỏng hiển thị từng đơn bị ảnh hưởng với mã đơn, tên khách và mức tác động.
 
 ## 6. Dependency giữa các artifact
 

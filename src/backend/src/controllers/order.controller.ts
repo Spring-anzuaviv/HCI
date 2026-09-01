@@ -67,6 +67,13 @@ export const updateStatus = asyncRoute(async (req, res) => {
     nextAction: service.getNextAction(updated.status),
   });
 });
+export const cancel = asyncRoute(async (req, res) => {
+  const updated = await service.cancelOrder(
+    parseId(req.params.orderId, "orderId"),
+    requireStore(req),
+  );
+  ok(res, { status: updated.status });
+});
 export const list = asyncRoute(async (req, res) => {
   const storeId = requireStore(req);
   if (parseId(req.params.storeId, "storeId") !== storeId)

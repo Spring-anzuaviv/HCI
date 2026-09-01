@@ -1,48 +1,29 @@
 /* eslint-disable react-hooks/set-state-in-effect */
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { apiPatch } from '../api/client';
+import { completeRun, startRun } from '../api/orders';
 import { useApp } from '../context/useApp';
-import type { Machine, MachineCompletionResult } from '../types';
+import { BellRing, CircleAlert } from 'lucide-react';
+import type { Machine, MachineCompletionResult, QueueItem } from '../types';
 
-const ACKNOWLEDGEMENT_KEY = 'laundry.machine-completion.acknowledgements.v1';
-const TAKE_OUT_DURATION_MS = 3 * 60 * 1000;
-const REMINDER_INTERVAL_MS = 5 * 60 * 1000;
+const FORGOTTEN_AFTER_MS = 5 * 60 * 1000;
+const ALERT_CHECK_INTERVAL_MS = 30 * 1000;
 
-type Acknowledgement = { acknowledgedAt: string };
-type Acknowledgements = Record<string, Acknowledgement>;
 type FaultStatus = 'BROKEN' | 'INACTIVE';
+type QueueAlert = { item: QueueItem; key: string; kind: 'risk' | 'forgotten' };
+
+function isAlertHidden(key: string, acknowledged: Set<string>, snoozedUntil: Record<string, number>, now: number) {
+  return acknowledged.has(key) || (snoozedUntil[key] ?? 0) > now;
+}
 
 let chimeContext: AudioContext | null = null;
-
-function readAcknowledgements(): Acknowledgements {
-  try {
-    const value = window.localStorage.getItem(ACKNOWLEDGEMENT_KEY);
-    if (!value) return {};
-    const parsed = JSON.parse(value) as Acknowledgements;
-    return parsed && typeof parsed === 'object' ? parsed : {};
-  } catch {
-    window.localStorage.removeItem(ACKNOWLEDGEMENT_KEY);
-    return {};
-  }
-}
-
-function saveAcknowledgements(value: Acknowledgements) {
-  if (Object.keys(value).length === 0) {
-    window.localStorage.removeItem(ACKNOWLEDGEMENT_KEY);
-    return;
-  }
-  window.localStorage.setItem(ACKNOWLEDGEMENT_KEY, JSON.stringify(value));
-}
 
 async function playCompletionChime() {
   try {
     chimeContext ??= new window.AudioContext();
     await chimeContext.resume();
     const startAt = chimeContext.currentTime;
-    [
-      { offset: 0, frequency: 880 },
-      { offset: 0.28, frequency: 1174.66 },
-    ].forEach(({ offset, frequency }) => {
+    [{ offset: 0, frequency: 880 }, { offset: 0.28, frequency: 1174.66 }].forEach(({ offset, frequency }) => {
       const oscillator = chimeContext!.createOscillator();
       const gain = chimeContext!.createGain();
       const toneAt = startAt + offset;
@@ -57,7 +38,7 @@ async function playCompletionChime() {
       oscillator.stop(toneAt + 0.22);
     });
   } catch {
-    // Trình duyệt có thể chặn âm thanh trước tương tác đầu tiên; cảnh báo trực quan vẫn hoạt động.
+    // Trình duyệt có thể chặn âm thanh trước tương tác đầu tiên.
   }
 }
 
@@ -79,129 +60,143 @@ function formatTime(value?: string | null) {
   return new Date(value).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
 }
 
-function formatCountdown(acknowledgedAt: string, currentTime: number) {
-  const elapsed = currentTime - new Date(acknowledgedAt).getTime();
-  const remainingSeconds = Math.max(0, Math.ceil((TAKE_OUT_DURATION_MS - elapsed) / 1000));
-  const minutes = Math.floor(remainingSeconds / 60).toString().padStart(2, '0');
-  const seconds = (remainingSeconds % 60).toString().padStart(2, '0');
-  return { text: `${minutes}:${seconds}`, expired: remainingSeconds === 0 };
+function queueActionLabel(item: QueueItem) {
+  if (item.status === 'WASHING' || item.status === 'DRYING') return 'Đã lấy đồ ra';
+  if (item.status === 'WAITING' && item.nextStage === 'WASH') return 'Đã cho vào máy giặt';
+  if (item.status === 'WAITING' && item.nextStage === 'DRY') return 'Đã cho vào máy sấy';
+  if (item.nextStage === 'TRANSFER') return 'Đã chuyển sang máy sấy';
+  if (item.nextStage === 'SORTING') return 'Đã phân loại';
+  if (item.nextStage === 'PACKING') return 'Đã xếp đồ xong';
+  return 'Cập nhật trạng thái';
 }
 
 export default function MachineCompletionAlert() {
-  const { machines } = useApp();
+  const { machines, queueSnapshot, refreshOperations, showToast } = useApp();
   const [selectedStageId, setSelectedStageId] = useState<number | null>(null);
-  const [acknowledgements, setAcknowledgements] = useState<Acknowledgements>(readAcknowledgements);
-
-  const dueMachines = useMemo(
-    () => machines
-      .filter(machine =>
-        machine.statusRaw === 'RUNNING' &&
-        machine.completionDue &&
-        machine.currentStage?.status === 'RUNNING',
-      )
-      .sort((left, right) =>
-        new Date(left.finishAt ?? 0).getTime() - new Date(right.finishAt ?? 0).getTime() || left.id - right.id,
-      ),
-    [machines],
-  );
-  const dueKey = dueMachines.map(machine => machine.currentStage!.orderStageId).join(',');
-  const activeMachine = dueMachines.find(machine => machine.currentStage?.orderStageId === selectedStageId)
-    ?? dueMachines[0]
-    ?? null;
+  const [now, setNow] = useState(() => Date.now());
+  const [snoozedUntil, setSnoozedUntil] = useState<Record<string, number>>({});
+  const [acknowledged, setAcknowledged] = useState<Set<string>>(new Set());
+  const previousRiskRef = useRef<Map<number, string>>(new Map());
+  const riskBaselineRef = useRef(false);
+  const [newRiskKeys, setNewRiskKeys] = useState<string[]>([]);
 
   useEffect(() => {
-    const runningStageIds = new Set(
-      machines
-        .filter(machine => machine.currentStage?.status === 'RUNNING')
-        .map(machine => String(machine.currentStage!.orderStageId)),
-    );
-    setAcknowledgements(current => {
-      const next = Object.fromEntries(
-        Object.entries(current).filter(([stageId]) => runningStageIds.has(stageId)),
-      );
-      if (Object.keys(next).length === Object.keys(current).length) return current;
-      saveAcknowledgements(next);
-      return next;
-    });
-  }, [machines]);
+    const timer = window.setInterval(() => setNow(Date.now()), ALERT_CHECK_INTERVAL_MS);
+    return () => window.clearInterval(timer);
+  }, []);
+
+  const snooze = (key: string, minutes: number) => setSnoozedUntil(previous => ({ ...previous, [key]: Date.now() + minutes * 60 * 1000 }));
+  const acknowledge = (key: string) => setAcknowledged(previous => new Set(previous).add(key));
+
+  const allDueMachines = useMemo(() => machines
+    .filter(machine => machine.statusRaw === 'RUNNING' && machine.completionDue && machine.currentStage?.status === 'RUNNING'), [machines]);
+  const dueMachines = useMemo(() => allDueMachines
+    .filter(machine => !isAlertHidden(`machine:${machine.currentStage!.orderStageId}`, acknowledged, snoozedUntil, now))
+    .sort((left, right) => new Date(left.finishAt ?? 0).getTime() - new Date(right.finishAt ?? 0).getTime() || left.id - right.id),
+  [allDueMachines, now, acknowledged, snoozedUntil]);
+  const dueKey = dueMachines.map(machine => machine.currentStage!.orderStageId).join(',');
+  const activeMachine = dueMachines.find(machine => machine.currentStage?.orderStageId === selectedStageId) ?? dueMachines[0] ?? null;
+
+  // Không cảnh báo lại các đơn đã ở trạng thái rủi ro ngay từ lần tải đầu tiên.
+  useEffect(() => {
+    if (!queueSnapshot) return;
+    const current = new Map<number, string>();
+    const newlyRisky: string[] = [];
+    for (const item of queueSnapshot.items) {
+      if (item.riskLevel !== 'AT_RISK' && item.riskLevel !== 'NOT_FEASIBLE') continue;
+      const key = `${item.orderId}:${item.riskLevel}`;
+      current.set(item.orderId, key);
+      if (riskBaselineRef.current && previousRiskRef.current.get(item.orderId) !== key) newlyRisky.push(key);
+    }
+    previousRiskRef.current = current;
+    riskBaselineRef.current = true;
+    if (newlyRisky.length) setNewRiskKeys(previous => [...new Set([...previous, ...newlyRisky])]);
+    else setNewRiskKeys(previous => previous.filter(key => current.has(Number(key.split(':')[0]))));
+  }, [queueSnapshot]);
+
+  const queueAlert = useMemo<QueueAlert | null>(() => {
+    const risky = (queueSnapshot?.items ?? [])
+      .filter(item => newRiskKeys.includes(`${item.orderId}:${item.riskLevel}`))
+      .map(item => ({ item, key: `risk:${item.orderId}:${item.riskLevel}`, kind: 'risk' as const, priority: item.riskLevel === 'NOT_FEASIBLE' ? 1 : 2 }))
+      .filter(alert => !isAlertHidden(alert.key, acknowledged, snoozedUntil, now))
+      .sort((left, right) => left.priority - right.priority)[0];
+    if (risky) return risky;
+
+    const forgotten = (queueSnapshot?.items ?? [])
+      .filter(item => item.status !== 'READY' && item.status !== 'NOTIFIED' && item.taskDeadlineAt)
+      .filter(item => new Date(item.taskDeadlineAt!).getTime() + FORGOTTEN_AFTER_MS <= now)
+      .map(item => ({ item, key: `forgotten:${item.orderId}:${item.nextStage ?? item.status}`, kind: 'forgotten' as const }))
+      .filter(alert => !isAlertHidden(alert.key, acknowledged, snoozedUntil, now))[0];
+    return forgotten ?? null;
+  }, [queueSnapshot, newRiskKeys, now, acknowledged, snoozedUntil]);
 
   useEffect(() => {
     if (!dueKey) return;
+    const announced = JSON.parse(sessionStorage.getItem('washtrack-machine-alerts') ?? '[]') as string[];
+    const newMachine = dueMachines.find(machine => !announced.includes(`machine:${machine.currentStage!.orderStageId}`));
+    if (!newMachine) return;
+    const key = `machine:${newMachine.currentStage!.orderStageId}`;
+    sessionStorage.setItem('washtrack-machine-alerts', JSON.stringify([...announced, key]));
     void playCompletionChime();
-    const retryAfterFirstGesture = () => { void playCompletionChime(); };
-    window.addEventListener('pointerdown', retryAfterFirstGesture, { once: true });
-    const reminderId = window.setInterval(() => { void playCompletionChime(); }, REMINDER_INTERVAL_MS);
-    return () => {
-      window.removeEventListener('pointerdown', retryAfterFirstGesture);
-      window.clearInterval(reminderId);
-    };
-  }, [dueKey]);
+  }, [dueKey, dueMachines]);
 
-  const acknowledge = (orderStageId: number) => {
-    const next = {
-      ...acknowledgements,
-      [String(orderStageId)]: { acknowledgedAt: new Date().toISOString() },
-    };
-    saveAcknowledgements(next);
-    setAcknowledgements(next);
-  };
+  useEffect(() => {
+    if (queueAlert?.kind !== 'risk') return;
+    const key = `washtrack-${queueAlert.key}`;
+    if (sessionStorage.getItem(key)) return;
+    sessionStorage.setItem(key, '1');
+    void playCompletionChime();
+  }, [queueAlert]);
 
-  const clearAcknowledgement = (orderStageId: number) => {
-    const next = { ...acknowledgements };
-    delete next[String(orderStageId)];
-    saveAcknowledgements(next);
-    setAcknowledgements(next);
-  };
-
-  if (!activeMachine?.currentStage) return null;
-  const stageId = activeMachine.currentStage.orderStageId;
+  const activeQueueAlert = activeMachine ? null : queueAlert;
+  if (!activeMachine?.currentStage && !activeQueueAlert) return null;
+  const stageId = activeMachine?.currentStage?.orderStageId;
 
   return (
     <div className="completion-overlay" role="presentation">
-      <section
-        className="completion-dialog"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="machine-completion-title"
-      >
-        {dueMachines.length > 1 && (
-          <div className="completion-machine-tabs" aria-label="Các máy vừa hoàn tất">
-            {dueMachines.map(machine => (
-              <button
-                key={machine.currentStage!.orderStageId}
-                className={machine.currentStage!.orderStageId === stageId ? 'active' : ''}
-                onClick={() => setSelectedStageId(machine.currentStage!.orderStageId)}
-              >
-                {machine.name}
-              </button>
-            ))}
-          </div>
-        )}
-        <CompletionPanel
-          key={stageId}
-          machine={activeMachine}
-          acknowledgement={acknowledgements[String(stageId)]}
-          onAcknowledge={() => acknowledge(stageId)}
-          onClearAcknowledgement={() => clearAcknowledgement(stageId)}
-        />
+      <section className="completion-dialog" role="dialog" aria-modal="true" aria-labelledby="machine-completion-title">
+        {activeMachine ? (
+          <>
+            {dueMachines.length > 1 && (
+              <div className="completion-machine-tabs" aria-label="Các máy vừa hoàn tất">
+                {dueMachines.map(machine => (
+                  <button key={machine.currentStage!.orderStageId} className={machine.currentStage!.orderStageId === stageId ? 'active' : ''} onClick={() => setSelectedStageId(machine.currentStage!.orderStageId)}>
+                    {machine.name}
+                  </button>
+                ))}
+              </div>
+            )}
+            <CompletionPanel key={stageId} machine={activeMachine} onSnooze={minutes => snooze(`machine:${stageId}`, minutes)} onAcknowledge={() => acknowledge(`machine:${stageId}`)} />
+          </>
+        ) : activeQueueAlert ? (
+          <QueueAlertPanel
+            alert={activeQueueAlert}
+            onSnooze={minutes => snooze(activeQueueAlert.key, minutes)}
+            onAction={async () => {
+              const item = activeQueueAlert.item;
+              try {
+                if (item.status === 'WASHING' || item.status === 'DRYING') await completeRun(item.orderStageId!);
+                else if (item.status === 'WAITING' && item.nextStage && item.machineId) await startRun(item.orderId, item.nextStage, item.machineId);
+                else if (item.nextStage) {
+                  const result = await startRun(item.orderId, item.nextStage, 0);
+                  if (result?.orderStageId) await completeRun(result.orderStageId);
+                }
+                acknowledge(activeQueueAlert.key);
+                showToast(`Đã cập nhật trạng thái đơn #${item.orderId}`, 'grn');
+                await refreshOperations();
+              } catch (error) {
+                showToast(error instanceof Error ? error.message : 'Không thể cập nhật trạng thái', 'red');
+              }
+            }}
+          />
+        ) : null}
       </section>
     </div>
   );
 }
 
-function CompletionPanel({
-  machine,
-  acknowledgement,
-  onAcknowledge,
-  onClearAcknowledgement,
-}: {
-  machine: Machine;
-  acknowledgement?: Acknowledgement;
-  onAcknowledge: () => void;
-  onClearAcknowledgement: () => void;
-}) {
+function CompletionPanel({ machine, onSnooze, onAcknowledge }: { machine: Machine; onSnooze: (minutes: number) => void; onAcknowledge: () => void }) {
   const { refreshOperations, showToast } = useApp();
-  const [currentTime, setCurrentTime] = useState(0);
   const [submitting, setSubmitting] = useState(false);
   const [actionError, setActionError] = useState('');
   const [faultChoice, setFaultChoice] = useState<FaultStatus | null>(null);
@@ -209,148 +204,76 @@ function CompletionPanel({
   const stage = machine.currentStage!;
   const customerName = stage.order?.customer?.name ?? 'Không xác định được khách hàng';
   const canComplete = machine.completionActionAllowed !== false;
-  const countdown = acknowledgement
-    ? formatCountdown(
-        acknowledgement.acknowledgedAt,
-        currentTime || new Date(acknowledgement.acknowledgedAt).getTime(),
-      )
-    : null;
 
-  useEffect(() => {
-    panelRef.current?.focus();
-  }, []);
-
-  useEffect(() => {
-    if (!acknowledgement) return;
-    setCurrentTime(Date.now());
-    const intervalId = window.setInterval(() => setCurrentTime(Date.now()), 1000);
-    return () => window.clearInterval(intervalId);
-  }, [acknowledgement]);
+  useEffect(() => { panelRef.current?.focus(); }, []);
 
   const completeStage = async () => {
-    setSubmitting(true);
-    setActionError('');
+    setSubmitting(true); setActionError('');
     try {
       const result = await apiPatch<MachineCompletionResult>(`/order-stages/${stage.orderStageId}/complete`);
-      onClearAcknowledgement();
+      onAcknowledge();
       showToast(`${machine.name} đã trống · Đơn #${stage.order?.orderId ?? stage.orderId} chuyển sang ${result.orderStatus}`, 'grn');
-      if (result.recommendation) {
-        showToast(`Đề xuất tiếp theo: đơn #${result.recommendation.orderId} vào ${machine.name}`, 'pu');
-      }
+      if (result.recommendation) showToast(`Đề xuất tiếp theo: đơn #${result.recommendation.orderId} vào ${machine.name}`, 'pu');
       await refreshOperations();
     } catch (error) {
       setActionError(error instanceof Error ? error.message : 'Không thể hoàn tất công đoạn. Hãy thử lại.');
       await refreshOperations();
-    } finally {
-      setSubmitting(false);
-    }
+    } finally { setSubmitting(false); }
   };
 
   const markFault = async () => {
     if (!faultChoice) return;
-    setSubmitting(true);
-    setActionError('');
+    setSubmitting(true); setActionError('');
     try {
       await apiPatch(`/machines/${machine.id}/status`, { status: faultChoice });
-      onClearAcknowledgement();
-      showToast(
-        `${machine.name} đã được đánh dấu ${faultChoice === 'BROKEN' ? 'hỏng' : 'tạm ngừng'}. Công đoạn vẫn giữ RUNNING để kiểm tra.`,
-        'red',
-      );
+      onAcknowledge();
+      showToast(`${machine.name} đã được đánh dấu ${faultChoice === 'BROKEN' ? 'hỏng' : 'tạm ngừng'}.`, 'red');
       await refreshOperations();
     } catch (error) {
       setActionError(error instanceof Error ? error.message : 'Không thể cập nhật trạng thái máy.');
-    } finally {
-      setSubmitting(false);
-    }
+    } finally { setSubmitting(false); }
   };
 
   return (
     <div className="completion-panel" ref={panelRef} tabIndex={-1}>
-      <div className="completion-kicker">
-        <span className="completion-bell" aria-hidden="true">♪</span>
-        Máy vừa hoàn tất · Âm báo lặp lại mỗi 5 phút
-      </div>
+      <div className="completion-kicker"><BellRing className="completion-bell" aria-hidden="true" /> Máy vừa hoàn tất · Cần lấy đồ ra</div>
       <div className="completion-heading-row">
-        <div>
-          <h2 id="machine-completion-title">{machine.name} đã hoàn thành</h2>
-          <p>Hãy lấy quần áo ra khỏi máy.</p>
-        </div>
+        <div><h2 id="machine-completion-title">{machine.name} đã hoàn thành</h2><p>Hãy lấy quần áo ra khỏi máy.</p></div>
         <span className="completion-state-badge">Cần xử lý</span>
       </div>
-
       <div className="completion-order-grid">
         <div><span>Đơn hàng</span><strong>#{stage.order?.orderId ?? stage.orderId} · {customerName}</strong></div>
         <div><span>Công đoạn</span><strong>{stageLabel(stage.stage)}</strong></div>
         <div><span>Hoàn tất lúc</span><strong>{formatTime(machine.finishAt)}</strong></div>
         <div><span>Việc tiếp theo</span><strong>{nextTask(machine)}</strong></div>
       </div>
-
-      {!canComplete && (
-        <div className="completion-error" role="alert">
-          <strong>Trạng thái cần kiểm tra</strong>
-          <span>{machine.completionBlockedReason ?? 'Dữ liệu đơn và công đoạn chưa đồng bộ. Hệ thống chưa thay đổi dữ liệu.'}</span>
-        </div>
-      )}
-
-      {canComplete && !acknowledgement && (
-        <div className="completion-confirm-step">
-          <span className="completion-step-number">1</span>
-          <div>
-            <strong>Nhận việc lấy đồ</strong>
-            <p>Nhấn xác nhận để bắt đầu countdown ba phút trên thiết bị này.</p>
-          </div>
-          <button className="bp completion-primary" disabled={submitting} onClick={onAcknowledge}>
-            Xác nhận
-          </button>
-        </div>
-      )}
-
-      {canComplete && acknowledgement && countdown && (
-        <div className="completion-takeout-step">
-          <div className={`completion-countdown${countdown.expired ? ' expired' : ''}`} aria-live="polite">
-            <span>{countdown.text}</span>
-            <small>{countdown.expired ? 'Đã đủ thời gian' : 'Lấy đồ khỏi máy'}</small>
-          </div>
-          <div className="completion-takeout-copy">
-            <span className="completion-step-number">2</span>
-            <div>
-              <strong>{countdown.expired ? 'Xác nhận sau khi đã lấy hết đồ' : 'Lấy quần áo ra khỏi máy'}</strong>
-              <p>Countdown chỉ lưu trên trình duyệt. Công đoạn chỉ kết thúc khi bạn nhấn nút bên dưới.</p>
-            </div>
-          </div>
-          <button className="bp completion-primary" disabled={submitting} onClick={() => { void completeStage(); }}>
-            {submitting ? 'Đang cập nhật...' : 'Đã lấy đồ xong'}
-          </button>
-        </div>
-      )}
-
+      {!canComplete && <div className="completion-error" role="alert"><strong>Trạng thái cần kiểm tra</strong><span>{machine.completionBlockedReason ?? 'Dữ liệu đơn và công đoạn chưa đồng bộ.'}</span></div>}
+      {canComplete && <div className="completion-takeout-step">
+        <div className="completion-takeout-copy"><span className="completion-step-number">1</span><div><strong>Lấy quần áo ra khỏi máy</strong><p>Chỉ xác nhận sau khi đã lấy hết đồ.</p></div></div>
+        <button className="bp completion-primary" disabled={submitting} onClick={() => { void completeStage(); }}>{submitting ? 'Đang cập nhật...' : 'Đã lấy đồ xong'}</button>
+        <ReminderActions disabled={submitting} onSnooze={onSnooze} />
+      </div>}
       {actionError && <div className="completion-error" role="alert"><strong>Chưa cập nhật được</strong><span>{actionError}</span></div>}
-
       <div className="completion-fault-area">
-        {!faultChoice ? (
-          <button className="completion-link-button" disabled={submitting} onClick={() => setFaultChoice('BROKEN')}>
-            Máy có lỗi vật lý?
-          </button>
-        ) : (
-          <div className="completion-fault-confirm">
-            <div>
-              <strong>Không giải phóng máy</strong>
-              <p>Stage vẫn RUNNING để tránh mất dấu đơn. Chọn trạng thái máy rồi xác nhận.</p>
-            </div>
-            <div className="completion-fault-options">
-              <button className={faultChoice === 'BROKEN' ? 'selected' : ''} onClick={() => setFaultChoice('BROKEN')}>Hỏng</button>
-              <button className={faultChoice === 'INACTIVE' ? 'selected' : ''} onClick={() => setFaultChoice('INACTIVE')}>Tạm ngừng</button>
-            </div>
-            <div style={{ display: 'flex', gap: 7, justifyContent: 'flex-end', marginTop: 12, borderTop: '1px solid #fee2e2', paddingTop: 12 }}>
-              <button className="bs" disabled={submitting} onClick={() => setFaultChoice(null)}>Hủy thao tác</button>
-              <button className="br" disabled={submitting} onClick={() => { void markFault(); }}>
-                {submitting ? 'Đang lưu...' : 'Xác nhận trạng thái'}
-              </button>
-            </div>
-          </div>
-        )}
+        {!faultChoice ? <button className="completion-link-button" disabled={submitting} onClick={() => setFaultChoice('BROKEN')}>Máy có lỗi vật lý?</button> : <div className="completion-fault-confirm"><div><strong>Không giải phóng máy</strong><p>Stage vẫn giữ nguyên để tránh mất dấu đơn.</p></div><div className="completion-fault-options"><button className={faultChoice === 'BROKEN' ? 'selected' : ''} onClick={() => setFaultChoice('BROKEN')}>Hỏng</button><button className={faultChoice === 'INACTIVE' ? 'selected' : ''} onClick={() => setFaultChoice('INACTIVE')}>Tạm ngừng</button></div><div style={{ display: 'flex', gap: 7, justifyContent: 'flex-end', marginTop: 12, borderTop: '1px solid #fee2e2', paddingTop: 12 }}><button className="bs" disabled={submitting} onClick={() => setFaultChoice(null)}>Hủy thao tác</button><button className="br" disabled={submitting} onClick={() => { void markFault(); }}>{submitting ? 'Đang lưu...' : 'Xác nhận trạng thái'}</button></div></div>}
       </div>
     </div>
   );
+}
+
+function ReminderActions({ disabled, onSnooze }: { disabled: boolean; onSnooze: (minutes: number) => void }) {
+  return <div className="completion-reminder-actions"><button className="bs" disabled={disabled} onClick={() => onSnooze(5)}>Nhắc sau 5 phút</button><button className="bs" disabled={disabled} onClick={() => onSnooze(10)}>Nhắc sau 10 phút</button></div>;
+}
+
+function QueueAlertPanel({ alert, onSnooze, onAction }: { alert: QueueAlert; onSnooze: (minutes: number) => void; onAction: () => Promise<void> }) {
+  const [submitting, setSubmitting] = useState(false);
+  const { item } = alert;
+  const action = queueActionLabel(item);
+  const submitAction = async () => { setSubmitting(true); try { await onAction(); } finally { setSubmitting(false); } };
+  return <div className="completion-panel" tabIndex={-1}>
+    <div className="completion-kicker"><CircleAlert className="completion-bell" aria-hidden="true" /> {alert.kind === 'risk' ? 'Cảnh báo deadline · Cần xử lý' : 'Task bị bỏ quên · Cần xử lý'}</div>
+    <div className="completion-heading-row"><div><h2>{alert.kind === 'risk' ? `Đơn #${item.orderId} cần ưu tiên` : `Đơn #${item.orderId} đang chờ xử lý`}</h2><p>{item.customer?.name ?? 'Khách hàng'} · {item.riskMessage || 'Việc tiếp theo chưa được xác nhận.'}</p></div><span className="completion-state-badge">{alert.kind === 'risk' ? (item.riskLevel === 'NOT_FEASIBLE' ? 'Đã trễ' : 'Nguy cơ trễ') : 'Bị bỏ quên'}</span></div>
+    <div className="completion-order-grid"><div><span>Trạng thái</span><strong>{item.nextAction || item.status}</strong></div><div><span>Việc cần làm</span><strong>{action}</strong></div><div><span>Hẹn lấy</span><strong>{formatTime(item.pickupAt)}</strong></div><div><span>Lý do ưu tiên</span><strong>{item.priorityReason || 'Cần xử lý tiếp theo'}</strong></div></div>
+    <div className="completion-alert-actions"><button className="bp completion-primary" disabled={submitting} onClick={() => { void submitAction(); }}>{submitting ? 'Đang cập nhật...' : action}</button><ReminderActions disabled={submitting} onSnooze={onSnooze} /></div>
+  </div>;
 }

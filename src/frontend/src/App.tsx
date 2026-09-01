@@ -3,7 +3,6 @@ import type { MouseEvent as ReactMouseEvent, ReactNode } from 'react';
 import { getCurrentStore } from './api/auth';
 import type { StoreSession } from './api/auth';
 import { AppProvider } from './context/AppContext';
-import SVGSprite from './components/SVGSprite';
 // Note: styles are in index.css
 import Sidebar from './components/Sidebar';
 import TopBar from './components/TopBar';
@@ -14,8 +13,8 @@ import { AddOrderModal, SettingsModal, ShiftSettingsModal, MachineModal, Employe
 
 import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
+import QueuePage from './pages/OperationsQueuePage';
 // Các trang không phải màn hình đầu tiên chỉ tải khi nhân viên thực sự mở.
-const QueuePage = lazy(() => import('./pages/OperationsQueuePage'));
 const NotifyPage = lazy(() => import('./pages/NotifyPage'));
 const StatsPage = lazy(() => import('./pages/StatsPage'));
 
@@ -77,7 +76,6 @@ function AppShell() {
 
   return (
     <div className="shell" id="app-shell">
-      <SVGSprite />
       <Sidebar />
       <main className="main">
         <TopBar />
@@ -119,7 +117,6 @@ export default function App() {
   if (authState === false) {
     return (
       <ClickGuard>
-        <SVGSprite />
         <LoginPage onLogin={store => setAuthState(store)} />
       </ClickGuard>
     );

@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useCallback, useDeferredValue, useState, useEffect, useMemo } from 'react';
 import { useApp } from '../context/useApp';
+import { Check, LoaderCircle, MessageSquare, Phone, Send } from 'lucide-react';
 import { pendingNotifications, sendNotification, notifiedNotifications, completeOrder } from '../api/notifications';
 import { useKeyedAsyncAction } from '../hooks/useAsyncAction';
 interface NotifyCard {
@@ -175,12 +176,7 @@ export default function NotifyPage() {
           </p>
         </div>
         <div className="hero-img">
-          <svg width="80" height="80" viewBox="0 0 80 80" fill="none">
-            <circle cx="40" cy="40" r="35" fill="rgba(255,255,255,0.2)"/>
-            <g transform="translate(16, 19)" color="var(--tx)">
-              <svg width="44" height="44"><use href="#i-send" /></svg>
-            </g>
-          </svg>
+          <Send width={80} height={80} color="var(--tx)" aria-hidden="true" />
         </div>
       </div>
 
@@ -218,19 +214,19 @@ export default function NotifyPage() {
               <div className="ni2" style={{ flex: 1 }}>
                 <div className="nname">{card.name}</div>
                 <div className="nmeta" style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                  <svg className="icon icon-sm" style={{ color: 'var(--tl)' }}><use href="#i-phone" /></svg>
+                   <Phone className="icon icon-sm" style={{ color: 'var(--tl)' }} aria-hidden="true" />
                   {card.phone} · Hoàn tất lúc {card.completedAt}
                   {card.groupCount > 1 ? ` · Đơn tách ${card.groupCount} mẻ` : ''} · Chưa thông báo
                 </div>
               </div>
               <button className="by" onClick={() => { void sendNotify(card); }} disabled={isActionPending(`notify-send:${cardGroupKey(card)}`)} aria-busy={isActionPending(`notify-send:${cardGroupKey(card)}`)}>
-                <svg className={`icon icon-sm${isActionPending(`notify-send:${cardGroupKey(card)}`) ? ' oq-spin' : ''}`}><use href={isActionPending(`notify-send:${cardGroupKey(card)}`) ? '#i-loader' : '#i-send'} /></svg>
+                 {isActionPending(`notify-send:${cardGroupKey(card)}`) ? <LoaderCircle className="icon icon-sm oq-spin" aria-hidden="true" /> : <Send className="icon icon-sm" aria-hidden="true" />}
                 {isActionPending(`notify-send:${cardGroupKey(card)}`) ? 'Đang mở...' : 'Gửi Zalo'}
               </button>
             </div>
             {card.message && (
               <div style={{ display: 'flex', alignItems: 'flex-start', gap: 7, marginLeft: 46, fontSize: '11px', color: 'var(--ts)', background: '#f8fafc', borderRadius: 8, padding: '7px 11px', width: 'calc(100% - 46px)', boxSizing: 'border-box' }}>
-                <svg className="icon icon-sm" style={{ color: 'var(--tl)', flexShrink: 0, marginTop: 1 }}><use href="#i-message" /></svg>
+                 <MessageSquare className="icon icon-sm" style={{ color: 'var(--tl)', flexShrink: 0, marginTop: 1 }} aria-hidden="true" />
                 <span>"{card.message}"</span>
               </div>
             )}
@@ -263,14 +259,14 @@ export default function NotifyPage() {
                 </div>
                 {card.message && (
                   <div style={{ marginTop: 5, fontSize: '10.5px', color: 'var(--ts)', background: '#f9fafb', padding: '6px 10px', borderRadius: 7, display: 'flex', alignItems: 'flex-start', gap: 5 }}>
-                    <svg className="icon icon-sm" style={{ color: 'var(--tl)', flexShrink: 0, marginTop: 1 }}><use href="#i-message" /></svg>
+                     <MessageSquare className="icon icon-sm" style={{ color: 'var(--tl)', flexShrink: 0, marginTop: 1 }} aria-hidden="true" />
                     "{card.message}"
                   </div>
                 )}
               </div>
               <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 10 }}>
                 <button className="bp" onClick={() => { void completeNotify(card); }} disabled={isActionPending(`notify-complete:${cardGroupKey(card)}`)} aria-busy={isActionPending(`notify-complete:${cardGroupKey(card)}`)} style={{ fontSize: '12px', padding: '7px 12px' }}>
-                  <svg className={`icon icon-sm${isActionPending(`notify-complete:${cardGroupKey(card)}`) ? ' oq-spin' : ''}`}><use href={isActionPending(`notify-complete:${cardGroupKey(card)}`) ? '#i-loader' : '#i-check'} /></svg>
+                   {isActionPending(`notify-complete:${cardGroupKey(card)}`) ? <LoaderCircle className="icon icon-sm oq-spin" aria-hidden="true" /> : <Check className="icon icon-sm" aria-hidden="true" />}
                   {isActionPending(`notify-complete:${cardGroupKey(card)}`) ? 'Đang cập nhật...' : 'Đã giao đồ'}
                 </button>
               </div>

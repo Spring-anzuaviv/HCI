@@ -230,3 +230,18 @@ export async function updateStatus(orderId: number, status: string) {
     },
   });
 }
+
+export async function cancelOrder(orderId: number, storeId: number) {
+  const order = await prisma.laundryOrder.findFirst({
+    where: { orderId, storeId },
+    include: { stages: { where: { status: "RUNNING" }, select: { orderStageId: true } } },
+  });
+  if (!order) throw new ApiError(404, "NOT_FOUND", "Không tìm thấy đơn hàng");
+  if (["COMPLETED", "READY", "NOTIFIED", "CANCELLED"].includes(order.status))
+    throw new ApiError(409, "WORKFLOW_CONFLICT", "Đơn không thể hủy ở trạng thái hiện tại");
+  if (order.stages.length > 0)
+    throw new ApiError(409, "WORKFLOW_CONFLICT", "Không thể hủy đơn đang chạy trong máy");
+  const updated = await prisma.laundryOrder.update({ where: { orderId }, data: { status: "CANCELLED" } });
+  await refreshStoreSchedule(storeId);
+  return updated;
+}

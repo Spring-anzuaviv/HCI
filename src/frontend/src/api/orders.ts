@@ -8,6 +8,9 @@ export const startRun = (orderId: number, stage: string, machineId: number) =>
 export const completeRun = (orderStageId: number) => 
   apiPatch<MachineCompletionResult>(`/order-stages/${orderStageId}/complete`);
 
+export const cancelOrder = (orderId: number) =>
+  apiPatch<{ status: string }>(`/orders/${orderId}/cancel`);
+
 export const checkExpedite = (orderId: number, _storeId: number, newPickupAt: string) => 
   apiPost<any>(`/orders/${orderId}/expedite`, { newPickupAt });
 

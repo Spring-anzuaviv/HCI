@@ -1,5 +1,5 @@
 import { activeStatuses } from "./order.service.js";
-import { getWorkflowStages } from "./scheduling.service.js";
+import { getStageDuration, getWorkflowStages } from "./scheduling.service.js";
 import {
   asQueueDate,
   buildMachineRecommendation,
@@ -87,6 +87,30 @@ function compareDates(left: DateValue, right: DateValue) {
     (asQueueDate(right)?.getTime() ?? Number.POSITIVE_INFINITY);
 }
 
+function getTaskTiming(order: QueueOrder, nextStage: QueueStage | null, machines: QueueMachine[], now: Date) {
+  if (!nextStage) return { taskDeadlineAt: null, taskDelayMinutes: 0 };
+  const machine = nextStage.machineId
+    ? machines.find((item) => item.machineId === nextStage.machineId)
+    : undefined;
+  let taskDeadlineAt: Date | null = null;
+
+  if (nextStage.status === "RUNNING") {
+    const start = nextStage.actualStartedAt ? asQueueDate(nextStage.actualStartedAt) : null;
+    taskDeadlineAt = start && machine ? new Date(start.getTime() + getStageDuration(nextStage.stage, machine) * 60_000) : asQueueDate(nextStage.plannedEndAt);
+  } else if (nextStage.stage === "WASH" || nextStage.stage === "DRY") {
+    // Với stage máy đang chờ, trễ nghĩa là chưa đưa mẻ vào đúng giờ bắt đầu.
+    taskDeadlineAt = asQueueDate(nextStage.plannedStartAt);
+  } else {
+    // Stage thủ công có một khoảng thời gian để hoàn thành, không trễ ngay lúc vừa tạo đơn.
+    taskDeadlineAt = asQueueDate(nextStage.plannedEndAt);
+  }
+
+  return {
+    taskDeadlineAt,
+    taskDelayMinutes: taskDeadlineAt ? Math.max(0, Math.floor((now.getTime() - taskDeadlineAt.getTime()) / 60_000)) : 0,
+  };
+}
+
 export function buildQueueSnapshot(
   allOrders: QueueOrder[],
   machines: QueueMachine[],
@@ -121,6 +145,9 @@ export function buildQueueSnapshot(
       ? machines.find((machine) => machine.machineId === scheduledMachineId) ?? null
       : null;
     const requirement = getRequiredMachineStage(order);
+    const nextStageName = stageState.nextStage?.stage ?? requirement.stageName;
+    const machineRequirement = requirement.stageName === nextStageName ? requirement : null;
+    const taskTiming = getTaskTiming(order, stageState.nextStage, machines, now);
     const operationalState: OperationalState = stageState.reviewReasons.length > 0
       ? "NEEDS_REVIEW"
       : "NORMAL";
@@ -135,27 +162,28 @@ export function buildQueueSnapshot(
       estimatedAt: asQueueDate(order.estimatedAt),
       groupCode: order.groupCode ?? null,
       currentStage: stageState.currentStage,
-      nextStage: requirement.stageName ?? stageState.nextStage?.stage ?? null,
-      orderStageId: requirement.stage?.orderStageId ?? stageState.nextStage?.orderStageId ?? null,
-      machineId: bestCandidate?.machineId ?? scheduledMachineId,
-      machineName: bestCandidate?.machineName ?? scheduledMachine?.name ?? null,
-      requiredMachineType: requirement.requiredMachineType,
+       nextStage: nextStageName,
+       orderStageId: machineRequirement?.stage?.orderStageId ?? stageState.nextStage?.orderStageId ?? null,
+       machineId: machineRequirement ? bestCandidate?.machineId ?? scheduledMachineId : null,
+       machineName: machineRequirement ? bestCandidate?.machineName ?? scheduledMachine?.name ?? null : null,
+       requiredMachineType: machineRequirement?.requiredMachineType ?? null,
       compatibleMachineIds: candidates.map((candidate) => candidate.machineId),
       plannedStartAt: asQueueDate(stageState.nextStage?.plannedStartAt),
-      plannedEndAt: asQueueDate(stageState.nextStage?.plannedEndAt),
+       plannedEndAt: asQueueDate(stageState.nextStage?.plannedEndAt),
+       ...taskTiming,
       ...risk,
       priorityReason: bestCandidate?.priorityReasons[0] ?? risk.riskMessage,
       priorityReasons: bestCandidate?.priorityReasons ?? [risk.riskMessage],
       nextAction: operationalState === "NEEDS_REVIEW"
         ? "Kiểm tra và đồng bộ trạng thái đơn với công đoạn đang chạy"
-        : requirement.stageName
-          ? `Chuẩn bị công đoạn ${requirement.stageName}`
+         : nextStageName
+           ? `Chuẩn bị công đoạn ${nextStageName}`
           : order.status === "READY"
             ? "Kiểm tra thông tin trước khi thông báo khách"
             : "Kiểm tra trạng thái đơn",
       operationalState,
       reviewReasons: stageState.reviewReasons,
-      canStart: operationalState === "NORMAL" && candidates.length > 0,
+       canStart: operationalState === "NORMAL" && (machineRequirement ? candidates.length > 0 : true),
       recommendationBlockedReasons: operationalState === "NORMAL"
         ? []
         : stageState.reviewReasons,

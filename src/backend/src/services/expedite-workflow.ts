@@ -3,6 +3,16 @@ import { checkDeadlineFeasibility, getWorkflowStages } from "./scheduling.servic
 
 export type ExpediteImpact = "ON_TIME" | "AT_RISK" | "NOT_FEASIBLE" | "UNKNOWN";
 
+export function getExpediteOrderIds(orders: any[], orderId: number) {
+  const target = orders.find((order) => order.orderId === orderId);
+  if (!target) return new Set<number>();
+  return new Set(
+    orders
+      .filter((order) => order.orderId === orderId || (target.groupCode && order.groupCode === target.groupCode))
+      .map((order) => order.orderId),
+  );
+}
+
 function asDate(value: unknown) {
   if (!value) return null;
   const date = value instanceof Date ? value : new Date(String(value));

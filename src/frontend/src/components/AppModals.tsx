@@ -8,13 +8,18 @@ import { createEmployee, updateEmployee, updateShift, assignEmployee, unassignEm
 import { updateStoreName } from '../api/store';
 import { startRun, completeRun, checkExpedite, confirmExpedite } from '../api/orders';
 import { useAsyncAction, useKeyedAsyncAction } from '../hooks/useAsyncAction';
+import { AlertTriangle, Check, CheckCircle2, Clock3, Info, LoaderCircle, Plus, Zap, X } from 'lucide-react';
 
 // ─── Modal Thêm đơn hàng ───
 export function AddOrderModal() {
-  const { openModal, closeM, showToast, store, refreshOrders, config } = useApp();
+  const { openModal, closeM, showToast, store, refreshOrders } = useApp();
   const isOpen = openModal === 'am';
 
   const [kg, setKg] = useState(3);
+  const [pickupDateValue, setPickupDateValue] = useState(() => {
+    const date = new Date();
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+  });
   const [time, setTime] = useState('18:00');
   const [svc, setSvc] = useState<'combo' | 'wash' | 'dry'>('combo');
   const [name, setName] = useState('');
@@ -42,37 +47,54 @@ export function AddOrderModal() {
   }, []);
   const [calcResult, setCalcResult] = useState<{ text: string; isRisk: boolean; loading?: boolean } | null>(null);
 
-  const pickupDate = (value: string) => {
-    const date = new Date();
-    const [hour, minute] = value.split(':').map(Number);
-    date.setHours(hour, minute, 0, 0);
+  const pickupDate = (dateValue: string, timeValue: string) => {
+    const date = new Date(`${dateValue}T${timeValue}:00`);
+    if (Number.isNaN(date.getTime())) return '';
     return date.toISOString();
   };
 
-  const checkDeadline = async (newSvc: typeof svc, newKg: number, newTime: string, signal?: AbortSignal) => {
-    if (!newKg || newKg <= 0 || !newTime || !store) return null;
+  const todayValue = () => {
+    const date = new Date();
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+  };
+
+  const checkDateTime = (dateValue: string, timeValue: string) => {
+    const date = new Date(`${dateValue}T${timeValue}:00`);
+    return Number.isNaN(date.getTime()) ? null : date;
+  };
+
+  const checkDeadline = async (newSvc: typeof svc, newKg: number, newDate: string, newTime: string, signal?: AbortSignal) => {
+    if (!newKg || newKg <= 0 || !newDate || !newTime || !store) return null;
+    const pickupAt = pickupDate(newDate, newTime);
+    if (!pickupAt) return null;
     const result = await apiPost<any>(`/stores/${store.storeId}/deadline-check`, {
-      weightKg: newKg, serviceType: newSvc === 'combo' ? 'WASH_DRY' : newSvc.toUpperCase(), pickupAt: pickupDate(newTime),
+      weightKg: newKg, serviceType: newSvc === 'combo' ? 'WASH_DRY' : newSvc.toUpperCase(), pickupAt,
     }, { signal });
     return result;
   };
 
-  const checkDeadlineGroup = async (parts: typeof splitParts, pickupTime: string, signal?: AbortSignal) => {
+  const checkDeadlineGroup = async (parts: typeof splitParts, dateValue: string, pickupTime: string, signal?: AbortSignal) => {
     if (!store) return null;
+    const pickupAt = pickupDate(dateValue, pickupTime);
+    if (!pickupAt) return null;
     return apiPost<any>(`/stores/${store.storeId}/deadline-group-check`, {
-      pickupAt: pickupDate(pickupTime),
+      pickupAt,
       parts: parts.map(part => ({ weightKg: Number(part.weight), serviceType: part.service === 'combo' ? 'WASH_DRY' : part.service.toUpperCase() })),
     }, { signal });
   };
 
-  const updateSplitEstimates = (parts = splitParts, pickupTime = time, enabled = isSplit) => {
+  /*
+   * Date and time are kept separately in the form, but always sent as one
+   * local datetime so 01:50 AM is not accidentally attached to the wrong day.
+   */
+  const updateSplitEstimates = (parts = splitParts, pickupTime = time, dateValue = pickupDateValue, enabled = isSplit) => {
     if (!enabled || !store || !pickupTime) { setSplitEstimates([]); setSplitGroupETA(null); return; }
     if (splitTimerRef.current !== null) window.clearTimeout(splitTimerRef.current);
     splitControllerRef.current?.abort();
     splitTimerRef.current = window.setTimeout(() => {
       const controller = new AbortController();
       splitControllerRef.current = controller;
-      void checkDeadlineGroup(parts, pickupTime, controller.signal)
+        void checkDeadlineGroup(parts, dateValue, pickupTime, controller.signal)
         .then(result => {
           if (controller.signal.aborted) return;
           const estimates = parts.map((_, index) => result?.parts?.[index]?.estimatedAt ?? null);
@@ -88,15 +110,15 @@ export function AddOrderModal() {
     }, 300);
   };
 
-  const updateCalc = (newSvc = svc, newKg = kg, newTime = time) => {
-    if (!newKg || newKg <= 0 || !newTime || !store) { setCalcResult(null); return; }
+  const updateCalc = (newSvc = svc, newKg = kg, newTime = time, dateValue = pickupDateValue) => {
+    if (!newKg || newKg <= 0 || !newTime || !dateValue || !store) { setCalcResult(null); return; }
     setCalcResult({ text: 'Đang kiểm tra lịch máy...', isRisk: false, loading: true });
     if (calcTimerRef.current !== null) window.clearTimeout(calcTimerRef.current);
     calcControllerRef.current?.abort();
     calcTimerRef.current = window.setTimeout(() => {
       const controller = new AbortController();
       calcControllerRef.current = controller;
-      void checkDeadline(newSvc, newKg, newTime, controller.signal)
+      void checkDeadline(newSvc, newKg, dateValue, newTime, controller.signal)
         .then(result => {
           if (controller.signal.aborted) return;
           if (!result) { setCalcResult(null); return; }
@@ -110,7 +132,7 @@ export function AddOrderModal() {
               ? ` · Mất khoảng ${hrs} giờ${mins > 0 ? ` ${mins} phút` : ''} để xử lý`
               : ` · Mất khoảng ${mins} phút để xử lý`;
           }
-          setCalcResult({ isRisk, text: `${isRisk ? '⚠' : result.result === 'UNKNOWN' ? '!' : '✓'} ${result.reason}. Dự kiến xong: ${eta}${durationText}.` });
+           setCalcResult({ isRisk, text: `${result.reason}. Dự kiến xong: ${eta}${durationText}.` });
         })
         .catch(error => {
           if (error?.name === 'AbortError') return;
@@ -120,38 +142,43 @@ export function AddOrderModal() {
   };
 
   const handleSubmit = async () => {
-    if (!name.trim() || !phone.trim() || !kg || !time || !store) { showToast('Vui lòng nhập đủ tên, số điện thoại, khối lượng và giờ hẹn', 'red'); return; }
+    if (!name.trim() || !phone.trim() || !kg || !time || !pickupDateValue || !store) { showToast('Vui lòng nhập đủ tên, số điện thoại, khối lượng, ngày và giờ hẹn', 'red'); return; }
+    const selectedPickup = checkDateTime(pickupDateValue, time);
+    if (!selectedPickup || pickupDateValue < todayValue()) { showToast('Ngày hẹn không được nằm trong quá khứ', 'red'); return; }
     const parts = isSplit ? splitParts : [{ weight: String(kg), service: svc, note }];
     const weights = parts.map(part => Number(part.weight));
     if (isSplit && (weights.some(weight => !Number.isFinite(weight) || weight <= 0) || Math.abs(weights.reduce((sum, weight) => sum + weight, 0) - kg) > 0.01)) {
       showToast('Tổng khối lượng các phần phải bằng khối lượng đơn', 'red'); return;
     }
-    const [hour, minute] = time.split(':').map(Number);
-    const pickupMinutes = hour * 60 + minute;
-    const now = new Date();
-    const currentMinutes = now.getHours() * 60 + now.getMinutes();
-    const shiftEnds = config.shifts.map(shift => {
-      const [hours, minutes] = shift.end.split(':').map(Number);
-      // 00:00 là thời điểm kết thúc ngày, không phải đầu ngày để giới hạn giờ hẹn.
-      return (hours === 0 ? 24 : hours) * 60 + minutes;
-    });
-    const lastShiftEnd = shiftEnds.length ? Math.max(...shiftEnds) : 22 * 60;
-    if (pickupMinutes <= currentMinutes || pickupMinutes > lastShiftEnd) {
-      showToast('Giờ hẹn đã quá hoặc nằm ngoài giờ làm việc của ca', 'red'); return;
-    }
+    /*
+     * Tạm thời bỏ kiểm tra giờ hẹn theo giờ làm việc của ca.
+     * Vẫn giữ deadline-check bên dưới để kiểm tra khả năng hoàn thành đơn.
+     * const [hour, minute] = time.split(':').map(Number);
+     * const pickupMinutes = hour * 60 + minute;
+     * const now = new Date();
+     * const currentMinutes = now.getHours() * 60 + now.getMinutes();
+     * const shiftEnds = config.shifts.map(shift => {
+     *   const [hours, minutes] = shift.end.split(':').map(Number);
+     *   return (hours === 0 ? 24 : hours) * 60 + minutes;
+     * });
+     * const lastShiftEnd = shiftEnds.length ? Math.max(...shiftEnds) : 22 * 60;
+     * if (pickupMinutes <= currentMinutes || pickupMinutes > lastShiftEnd) {
+     *   showToast('Giờ hẹn đã quá hoặc nằm ngoài giờ làm việc của ca', 'red'); return;
+     * }
+     */
     await runSubmit(async () => {
     try {
       const groupCode = isSplit ? `GROUP-${Date.now()}` : undefined;
       if (isSplit) {
-        const check = await checkDeadlineGroup(splitParts, time);
+         const check = await checkDeadlineGroup(splitParts, pickupDateValue, time);
         if (!check || check.result !== 'FEASIBLE') { showToast(check?.reason ?? 'Giờ hẹn không khả thi, đơn chưa được tạo', 'red'); return; }
       } else {
-        const check = await checkDeadline(svc, kg, time);
+         const check = await checkDeadline(svc, kg, pickupDateValue, time);
         if (!check || check.result !== 'FEASIBLE') { showToast(check?.reason ?? 'Giờ hẹn không khả thi, đơn chưa được tạo', 'red'); return; }
       }
       const payloads = parts.map(part => ({
           customer: { name: name.trim(), phone: phone.trim() }, weightKg: Number(part.weight),
-          serviceType: part.service === 'combo' ? 'WASH_DRY' : part.service.toUpperCase(), pickupAt: pickupDate(time),
+           serviceType: part.service === 'combo' ? 'WASH_DRY' : part.service.toUpperCase(), pickupAt: pickupDate(pickupDateValue, time),
           readyAt: new Date().toISOString(), note: part.note, groupCode,
       }));
       const createdOrders: Array<{ estimatedAt?: string }> = isSplit
@@ -167,13 +194,15 @@ export function AddOrderModal() {
     });
   };
 
+  const CalcIcon = calcResult?.loading ? LoaderCircle : calcResult?.isRisk ? AlertTriangle : CheckCircle2;
+
   return (
     <div className={`mov${isOpen ? ' open' : ''}`} id="am" onClick={() => closeM('am')}>
       <div className="modal" onClick={e => e.stopPropagation()}>
         <div className="mhd">
           <div className="mtitle">Thêm đơn hàng mới</div>
           <button className="mxbtn" onClick={() => closeM('am')}>
-            <svg className="icon icon-sm"><use href="#i-x" /></svg>
+             <X className="icon icon-sm" aria-hidden="true" />
           </button>
         </div>
 
@@ -183,8 +212,12 @@ export function AddOrderModal() {
             <input className="finput" type="number" value={kg} onChange={e => { setKg(+e.target.value); updateCalc(svc, +e.target.value, time); if (isSplit) void updateSplitEstimates(splitParts); }} />
           </div>
           <div className="fg">
+            <label className="flbl">Ngày hẹn lấy</label>
+            <input className="finput" type="date" min={todayValue()} value={pickupDateValue} onChange={e => { setPickupDateValue(e.target.value); updateCalc(svc, kg, time, e.target.value); void updateSplitEstimates(splitParts, time, e.target.value); }} />
+          </div>
+          <div className="fg">
             <label className="flbl">Giờ hẹn lấy</label>
-          <input className="finput" type="time" value={time} onChange={e => { setTime(e.target.value); updateCalc(svc, kg, e.target.value); void updateSplitEstimates(splitParts, e.target.value); }} />
+          <input className="finput" type="time" value={time} onChange={e => { setTime(e.target.value); updateCalc(svc, kg, e.target.value, pickupDateValue); void updateSplitEstimates(splitParts, e.target.value, pickupDateValue); }} />
           </div>
         </div>
 
@@ -192,7 +225,7 @@ export function AddOrderModal() {
           <div className="frow" style={{ marginBottom: 11 }}>
             <div className="fg">
               <label className="flbl">Dịch vụ</label>
-              <select className="finput" value={svc} onChange={e => { const v = e.target.value as typeof svc; setSvc(v); updateCalc(v, kg, time); }}>
+              <select className="finput" value={svc} onChange={e => { const v = e.target.value as typeof svc; setSvc(v); updateCalc(v, kg, time, pickupDateValue); }}>
                 <option value="combo">Giặt + Sấy</option>
                 <option value="wash">Chỉ giặt</option>
               <option value="dry">Chỉ sấy</option>
@@ -205,7 +238,7 @@ export function AddOrderModal() {
           borderRadius: 9, padding: '11px 14px', marginBottom: 14,
           fontSize: '11.5px', color: calcResult ? (calcResult.isRisk ? '#991b1b' : '#166534') : 'var(--ts)',
         }}>
-          {calcResult ? calcResult.text : <><strong>Dự tính:</strong> Vui lòng nhập thông tin để hệ thống kiểm tra giờ.</>}
+           {calcResult ? <><CalcIcon className={`icon icon-sm${calcResult.loading ? ' oq-spin' : ''}`} aria-hidden="true" /> {calcResult.text}</> : <><strong>Dự tính:</strong> Vui lòng nhập thông tin để hệ thống kiểm tra giờ.</>}
         </div>}
         {createdSummary.length > 0 && <div className="created-summary">
           <strong>Đã tạo thành công</strong>
@@ -213,7 +246,7 @@ export function AddOrderModal() {
         </div>}
 
         <label className="split-toggle">
-          <input type="checkbox" checked={isSplit} onChange={e => { setIsSplit(e.target.checked); if (e.target.checked) { const parts = [{ weight: String((kg / 2).toFixed(2)), service: svc, note: '' }, { weight: String((kg / 2).toFixed(2)), service: svc, note: '' }]; setSplitParts(parts); void updateSplitEstimates(parts, time, true); } else { setSplitEstimates([]); setSplitGroupETA(null); } }} />
+         <input type="checkbox" checked={isSplit} onChange={e => { setIsSplit(e.target.checked); if (e.target.checked) { const parts = [{ weight: String((kg / 2).toFixed(2)), service: svc, note: '' }, { weight: String((kg / 2).toFixed(2)), service: svc, note: '' }]; setSplitParts(parts); void updateSplitEstimates(parts, time, pickupDateValue, true); } else { setSplitEstimates([]); setSplitGroupETA(null); } }} />
           <span>Tách đơn thành nhiều mẻ</span>
         </label>
         {isSplit && <div className="split-box">
@@ -244,7 +277,7 @@ export function AddOrderModal() {
         <div style={{ display: 'flex', gap: 9, justifyContent: 'flex-end' }}>
           <button className="bs" onClick={() => closeM('am')}>{createdSummary.length ? 'Đóng' : 'Hủy'}</button>
           <button className="bp" onClick={handleSubmit} disabled={submitting} aria-busy={submitting}>
-            <svg className={`icon icon-sm${submitting ? ' oq-spin' : ''}`}><use href={submitting ? '#i-loader' : '#i-plus'} /></svg>
+             {submitting ? <LoaderCircle className="icon icon-sm oq-spin" aria-hidden="true" /> : <Plus className="icon icon-sm" aria-hidden="true" />}
             {submitting ? 'Đang tạo...' : 'Tạo đơn'}
           </button>
         </div>
@@ -295,7 +328,7 @@ export function SettingsModal() {
         <div className="mhd">
           <div className="mtitle">Cài đặt</div>
           <button className="mxbtn" onClick={() => closeM('sm')}>
-            <svg className="icon icon-sm"><use href="#i-x" /></svg>
+           <X className="icon icon-sm" aria-hidden="true" />
           </button>
         </div>
 
@@ -320,7 +353,7 @@ export function SettingsModal() {
         </div>
 
         <button className="bs" style={{ width: '100%', justifyContent: 'flex-start', marginBottom: 18 }} onClick={() => openM('sm-shifts')}>
-          <svg className="icon icon-sm"><use href="#i-clock" /></svg>
+           <Clock3 className="icon icon-sm" aria-hidden="true" />
           Chỉnh ca ngày đang xem
         </button>
 
@@ -331,7 +364,7 @@ export function SettingsModal() {
           <div style={{ display: 'flex', gap: 9 }}>
             <button className="bs" onClick={() => closeM('sm')}>Hủy</button>
             <button className="bp" onClick={saveSettings} disabled={savingSettings} aria-busy={savingSettings}>
-              <svg className={`icon icon-sm${savingSettings ? ' oq-spin' : ''}`}><use href={savingSettings ? '#i-loader' : '#i-check'} /></svg>
+               {savingSettings ? <LoaderCircle className="icon icon-sm oq-spin" aria-hidden="true" /> : <Check className="icon icon-sm" aria-hidden="true" />}
               {savingSettings ? 'Đang lưu...' : 'Lưu cài đặt'}
             </button>
           </div>
@@ -385,7 +418,7 @@ export function ShiftSettingsModal() {
 
   return <div className={`mov${isOpen ? ' open' : ''}`} onClick={() => closeM('sm-shifts')}>
     <div className="modal" onClick={event => event.stopPropagation()}>
-      <div className="mhd"><div className="mtitle">Chỉnh ca ngày {selectedWorkDate}</div><button className="mxbtn" onClick={() => closeM('sm-shifts')}><svg className="icon icon-sm"><use href="#i-x" /></svg></button></div>
+      <div className="mhd"><div className="mtitle">Chỉnh ca ngày {selectedWorkDate}</div><button className="mxbtn" onClick={() => closeM('sm-shifts')}><X className="icon icon-sm" aria-hidden="true" /></button></div>
       {!workShifts.length && <p style={{ fontSize: 13, color: 'var(--ts)' }}>Ngày này chưa có ca để chỉnh.</p>}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
         {workShifts.map(shift => {
@@ -461,7 +494,7 @@ export function EmployeeModal() {
         <div className="mhd">
           <div className="mtitle">{editingId ? 'Cập nhật nhân viên' : 'Thêm nhân viên'}</div>
           <button className="mxbtn" onClick={() => closeM(openModal ?? 'sm-staff')}>
-            <svg className="icon icon-sm"><use href="#i-x" /></svg>
+             <X className="icon icon-sm" aria-hidden="true" />
           </button>
         </div>
 
@@ -507,8 +540,8 @@ export function EmployeeModal() {
           <button className="bp" onClick={() => void save()}
             style={{ flex: 2 }} disabled={saving}>
             {saving
-              ? <><svg className="icon icon-sm oq-spin"><use href="#i-loader" /></svg> Đang lưu...</>
-              : <><svg className="icon icon-sm"><use href="#i-check" /></svg> {editingId ? 'Cập nhật' : 'Lưu nhân viên'}</>
+               ? <><LoaderCircle className="icon icon-sm oq-spin" aria-hidden="true" /> Đang lưu...</>
+               : <><Check className="icon icon-sm" aria-hidden="true" /> {editingId ? 'Cập nhật' : 'Lưu nhân viên'}</>
             }
           </button>
         </div>
@@ -545,7 +578,7 @@ export function AssignEmployeeModal() {
   };
   return <div className={`mov${isOpen ? ' open' : ''}`} onClick={() => closeM(openModal ?? 'sm-assign')}>
     <div className="modal" onClick={event => event.stopPropagation()}>
-      <div className="mhd"><div className="mtitle">Phân nhân viên vào {shift?.name}</div><button className="mxbtn" onClick={() => closeM(openModal ?? 'sm-assign')}><svg className="icon icon-sm"><use href="#i-x" /></svg></button></div>
+      <div className="mhd"><div className="mtitle">Phân nhân viên vào {shift?.name}</div><button className="mxbtn" onClick={() => closeM(openModal ?? 'sm-assign')}><X className="icon icon-sm" aria-hidden="true" /></button></div>
       <label className="flbl">Nhân viên có sẵn</label>
       <select className="finput" value={employeeId} onChange={event => setEmployeeId(Number(event.target.value))} disabled={!available.length || assigning}>{!available.length && <option value={0}>Tất cả nhân viên đã được phân ca</option>}{available.map(employee => <option key={employee.id} value={employee.id}>{employee.name} · {employee.phone || 'Chưa có SĐT'}</option>)}</select>
       <div style={{ display: 'flex', gap: 9, marginTop: 18 }}><button className="bs" onClick={() => closeM(openModal ?? 'sm-assign')} style={{ flex: 1 }}>Hủy</button><button className="bp" onClick={() => void assign()} disabled={!available.length || assigning} aria-busy={assigning} style={{ flex: 2 }}>{assigning ? 'Đang phân ca...' : 'Phân vào ca'}</button></div>
@@ -572,7 +605,7 @@ export function RemoveEmployeeModal() {
       }
     });
   };
-  return <div className={`mov${isOpen ? ' open' : ''}`} onClick={() => closeM(openModal ?? 'sm-remove')}><div className="modal" onClick={event => event.stopPropagation()}><div className="mhd"><div className="mtitle">Xóa nhân viên khỏi ca?</div><button className="mxbtn" onClick={() => closeM(openModal ?? 'sm-remove')}><svg className="icon icon-sm"><use href="#i-x" /></svg></button></div><p style={{ fontSize: 13, color: 'var(--ts)' }}>Chỉ xóa phân ca của ngày đang xem. Hồ sơ nhân viên vẫn được giữ lại.</p><div style={{ display: 'flex', gap: 9, marginTop: 18, justifyContent: 'flex-end' }}><button className="bs" onClick={() => closeM(openModal ?? 'sm-remove')}>Hủy</button><button className="br" onClick={() => void remove()} disabled={removing} aria-busy={removing}>{removing ? 'Đang xóa...' : 'Xóa khỏi ca'}</button></div></div></div>;
+  return <div className={`mov${isOpen ? ' open' : ''}`} onClick={() => closeM(openModal ?? 'sm-remove')}><div className="modal" onClick={event => event.stopPropagation()}><div className="mhd"><div className="mtitle">Xóa nhân viên khỏi ca?</div><button className="mxbtn" onClick={() => closeM(openModal ?? 'sm-remove')}><X className="icon icon-sm" aria-hidden="true" /></button></div><p style={{ fontSize: 13, color: 'var(--ts)' }}>Chỉ xóa phân ca của ngày đang xem. Hồ sơ nhân viên vẫn được giữ lại.</p><div style={{ display: 'flex', gap: 9, marginTop: 18, justifyContent: 'flex-end' }}><button className="bs" onClick={() => closeM(openModal ?? 'sm-remove')}>Hủy</button><button className="br" onClick={() => void remove()} disabled={removing} aria-busy={removing}>{removing ? 'Đang xóa...' : 'Xóa khỏi ca'}</button></div></div></div>;
 }
 
 // ─── Modal Thêm máy ───
@@ -620,7 +653,7 @@ export function MachineModal() {
         <div className="mhd">
           <div className="mtitle">{editingId ? 'Cập nhật máy' : 'Thêm máy'}</div>
           <button className="mxbtn" onClick={() => closeM('sm-machine')}>
-            <svg className="icon icon-sm"><use href="#i-x" /></svg>
+             <X className="icon icon-sm" aria-hidden="true" />
           </button>
         </div>
 
@@ -656,7 +689,7 @@ export function MachineModal() {
           {editingId && <button className="br" onClick={() => void remove()} disabled={savingMachine}>Xóa</button>}
           <button className="bs" onClick={() => closeM(openModal ?? 'sm-machine')} style={{ flex: 1 }}>Hủy</button>
           <button className="bp" onClick={saveMachine} disabled={savingMachine} aria-busy={savingMachine} style={{ flex: 2 }}>
-            <svg className={`icon icon-sm${savingMachine ? ' oq-spin' : ''}`}><use href={savingMachine ? '#i-loader' : '#i-check'} /></svg>
+             {savingMachine ? <LoaderCircle className="icon icon-sm oq-spin" aria-hidden="true" /> : <Check className="icon icon-sm" aria-hidden="true" />}
             {savingMachine ? 'Đang lưu...' : 'Lưu cài đặt'}
           </button>
         </div>
@@ -675,6 +708,13 @@ function safeFormatTime(val: any, fallback = 'Chưa xác định') {
   } catch { return fallback; }
 }
 
+function expediteImpactLabel(impact: string) {
+  if (impact === 'ON_TIME') return 'Đúng giờ';
+  if (impact === 'AT_RISK') return 'Có nguy cơ trễ';
+  if (impact === 'NOT_FEASIBLE') return 'Sẽ trễ hẹn';
+  return 'Chưa xác định';
+}
+
 export function OrderDetailModal() {
   const { openModal, closeM, showToast, orderModalParams, machines, orders, store, refreshOperations, setCurrentPage } = useApp();
   const isOpen = openModal === 'om';
@@ -685,7 +725,6 @@ export function OrderDetailModal() {
   const [detail, setDetail] = useState<any>(null);
   const [detailError, setDetailError] = useState('');
   
-  const [selectedMachineId, setSelectedMachineId] = useState('');
   const { isPending: isOrderActionPending, run: runOrderAction } = useKeyedAsyncAction();
   const [showExpedite, setShowExpedite] = useState(false);
   const [expediteTime, setExpediteTime] = useState('');
@@ -697,7 +736,7 @@ export function OrderDetailModal() {
   // Không show loading skeleton — context đã có data cơ bản để render ngay.
   useEffect(() => {
     setDetail(null); setDetailError('');
-    setSelectedMachineId(''); setExpediteCheck(null); setShowExpedite(false); setExpediteReason('');
+    setExpediteCheck(null); setShowExpedite(Boolean(p?.openExpedite)); setExpediteReason('');
     if (!isOpen || !p?.orderId) return;
 
     const ctrl = new AbortController();
@@ -709,7 +748,7 @@ export function OrderDetailModal() {
       });
 
     return () => ctrl.abort();
-  }, [p?.orderId, isOpen]);
+  }, [p?.orderId, p?.openExpedite, isOpen]);
 
   // order = detail API (có stage data đầy đủ) > fallback context (hiển ngay)
   const order = detail ?? orderFromContext;
@@ -759,26 +798,23 @@ export function OrderDetailModal() {
     [machines, requiredType],
   );
 
-  useEffect(() => {
-    if (availMachines.length > 0 && !selectedMachineId) {
-      if (p?.recommendedMachineId && availMachines.some(m => m.id === p?.recommendedMachineId)) {
-        setSelectedMachineId(String(p.recommendedMachineId));
-      } else {
-        setSelectedMachineId(String(availMachines[0].id));
-      }
-    }
-  }, [availMachines, p?.recommendedMachineId, selectedMachineId, isOpen]);
-
   if (!p) return null;
 
+  const automaticMachineId = p.recommendedMachineId && availMachines.some(m => m.id === p.recommendedMachineId)
+    ? p.recommendedMachineId
+    : availMachines[0]?.id ?? null;
+  const automaticMachineName = nextStageObj?.machine?.name
+    ?? machines.find(machine => machine.id === automaticMachineId)?.name
+    ?? (requiredType === 'WASHER' ? 'máy giặt' : requiredType === 'DRYER' ? 'máy sấy' : 'công đoạn này');
+
   const handleStart = async () => {
-    if (requiredType && !selectedMachineId) { showToast('Vui lòng chọn máy', 'red'); return; }
+    if (requiredType && !automaticMachineId) { showToast('Hiện chưa có máy phù hợp để xử lý', 'red'); return; }
     const orderId = p?.orderId;
     if (!orderId || !store) return;
     await runOrderAction(orderActionKey, async () => {
       closeM('om');
       try {
-        const stageData = await startRun(orderId, nextStageKey ?? '', Number(selectedMachineId) || 0);
+        const stageData = await startRun(orderId, nextStageKey ?? '', automaticMachineId ?? 0);
         if (!requiredType && stageData?.orderStageId) {
           await completeRun(stageData.orderStageId);
           showToast(`Đã hoàn tất ${nextStageLabel}`, 'grn');
@@ -862,13 +898,25 @@ export function OrderDetailModal() {
     });
   };
 
+  const nextActionInstruction = (() => {
+    if (isCompleted || order?.status === 'READY' || order?.status === 'NOTIFIED') return 'Không còn việc cần làm';
+    if (order?.status === 'RECEIVED' || nextStageKey === 'SORTING') return 'Phân loại đồ';
+    if (order?.status === 'WASHING') return `Lấy đồ ra khỏi ${order?.currentMachine?.name ?? 'máy giặt'}`;
+    if (order?.status === 'DRYING') return `Lấy đồ ra khỏi ${order?.currentMachine?.name ?? 'máy sấy'}`;
+    if (nextStageKey === 'TRANSFER') return 'Chuyển đồ sang máy sấy';
+    if (nextStageKey === 'WASH') return `Đưa đồ vào ${nextStageObj?.machine?.name ?? 'máy giặt'}`;
+    if (nextStageKey === 'DRY') return `Đưa đồ vào ${nextStageObj?.machine?.name ?? 'máy sấy'}`;
+    if (order?.status === 'FOLDING_PACKING' || nextStageKey === 'PACKING') return 'Xếp đồ và đóng gói';
+    return detail?.nextAction ?? 'Kiểm tra công đoạn tiếp theo';
+  })();
+
   return (
     <div className={`mov${isOpen ? ' open' : ''}`} id="om" onClick={() => closeM('om')}>
       <div className="modal" onClick={e => e.stopPropagation()}>
         <div className="mhd">
           <div className="mtitle">{order?.customer?.name ?? p.name} – Chi tiết đơn</div>
           <button className="mxbtn" onClick={() => closeM('om')}>
-            <svg className="icon icon-sm"><use href="#i-x" /></svg>
+           <X className="icon icon-sm" aria-hidden="true" />
           </button>
         </div>
 
@@ -895,7 +943,7 @@ export function OrderDetailModal() {
             return (
               <div key={s} style={{ flex: 1, textAlign: 'center', position: 'relative' }}>
                 <div style={{ width: 26, height: 26, borderRadius: '50%', margin: '0 auto', zIndex: 1, position: 'relative', background: done || act ? '#7c3aed' : '#e2e8f0', color: done || act ? '#fff' : '#9ca3af', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700 }}>
-                  {done ? '✓' : i + 1}
+                  {done ? <Check size={14} aria-hidden="true" /> : i + 1}
                 </div>
                 <div style={{ fontSize: '8.5px', color: act ? '#7c3aed' : '#9ca3af', marginTop: 3, fontWeight: act ? 700 : 400 }}>{s}</div>
                 <div className="stage-time">{plannedTime}</div>
@@ -915,12 +963,12 @@ export function OrderDetailModal() {
           </div>
         )}
 
-        <div style={{ fontSize: '11.5px', color: 'var(--ts)', padding: '9px 0', borderTop: '1.5px solid #f1f5f9' }}>
+        <div className="order-fact-list">
           {detailError || (detail ? (
             <>
-              <strong>Dịch vụ:</strong> {svcLabel} {order?.weightKg ?? '--'}kg
-              &nbsp;·&nbsp;
-              <strong>Trạng thái:</strong> {({
+              <span><strong>Dịch vụ</strong> {svcLabel}</span>
+              <span><strong>Khối lượng</strong> {order?.weightKg ?? '--'} kg</span>
+              <span><strong>Trạng thái</strong> {({
                 RECEIVED:       'Tiếp nhận',
                 WAITING:        'Chờ máy',
                 WASHING:        'Đang giặt',
@@ -929,12 +977,13 @@ export function OrderDetailModal() {
                 READY:          'Sẵn sàng lấy',
                 NOTIFIED:       'Đã báo khách',
                 COMPLETED:      'Hoàn tất',
-              } as Record<string,string>)[order?.status ?? ''] ?? order?.status ?? 'Chưa xác định'}
+              } as Record<string,string>)[order?.status ?? ''] ?? order?.status ?? 'Chưa xác định'}</span>
             </>
           ) : 'Đang tải thông tin chi tiết...')}
         </div>
 
-        {detail?.nextAction && <div style={{ background: '#f8fafc', borderRadius: 8, padding: '9px 11px', fontSize: 12 }}><strong>Làm gì tiếp theo:</strong> {detail.nextAction}</div>}
+        {detail?.priorityReason && <div className="order-priority-reason"><Info className="icon icon-sm" aria-hidden="true" /><span><strong>Lý do ưu tiên</strong>{detail.priorityReason}</span></div>}
+        <div className="order-next-action"><strong>Việc cần làm tiếp theo</strong><span>{nextActionInstruction}</span></div>
 
         {showExpedite && (
           <div style={{ background: '#f8fafc', borderRadius: 9, padding: 14, margin: '11px 0', border: '1px solid #e2e8f0' }}>
@@ -961,6 +1010,17 @@ export function OrderDetailModal() {
                 <div style={{ fontSize: 11, color: '#475569' }}>
                   <strong>Tác động:</strong> {expediteCheck.summary?.affectedOrders || 0} đơn bị ảnh hưởng (Trễ: {expediteCheck.summary?.notFeasibleOrders || 0}, Cảnh báo: {expediteCheck.summary?.atRiskOrders || 0})
                 </div>
+                {expediteCheck.impacts?.length > 0 && (
+                  <div style={{ marginTop: 9, borderTop: '1px solid #e2e8f0', paddingTop: 7 }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: '#334155', marginBottom: 4 }}>Các đơn bị ảnh hưởng</div>
+                    {expediteCheck.impacts.map((impact: any) => (
+                      <div key={impact.orderId} style={{ display: 'flex', justifyContent: 'space-between', gap: 8, fontSize: 11, lineHeight: 1.5, padding: '3px 0', color: '#475569' }}>
+                        <span><strong>#{impact.orderId}</strong> · {impact.customer?.name ?? 'Khách hàng'}{impact.isTarget ? ' · Đơn được đôn' : impact.isSameGroup ? ' · Cùng nhóm' : ''}</span>
+                        <span style={{ whiteSpace: 'nowrap', fontWeight: 700, color: impact.proposedImpact === 'NOT_FEASIBLE' ? '#b45309' : impact.proposedImpact === 'AT_RISK' ? '#a16207' : '#15803d' }}>{expediteImpactLabel(impact.proposedImpact)}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
             
@@ -995,39 +1055,22 @@ export function OrderDetailModal() {
 
               {!showExpedite && (
                 <button className="bs" onClick={() => setShowExpedite(true)} disabled={modalBusy}>
-                  <svg className="icon icon-sm"><use href="#i-zap" /></svg>
+                   <Zap className="icon icon-sm" aria-hidden="true" />
                   Đôn đơn
                 </button>
-              )}
-
-              {requiredType && (
-                <select
-                  className="finput"
-                  style={{ width: 160, padding: '7px 10px', height: 35, opacity: modalBusy ? 0.5 : 1 }}
-                  value={selectedMachineId}
-                  onChange={e => setSelectedMachineId(e.target.value)}
-                  disabled={modalBusy}
-                >
-                  {availMachines.map(m => (
-                    <option key={m.id} value={m.id}>
-                      {m.name} {m.st !== 'trong' ? '(Đang bận)' : m.id === p?.recommendedMachineId ? '(Đề xuất)' : '(Trống)'}
-                    </option>
-                  ))}
-                  {availMachines.length === 0 && <option disabled value="">Không có máy trống</option>}
-                </select>
               )}
 
               <button
                 className="bp"
                 onClick={handleStart}
-                disabled={modalBusy || (!!requiredType && !selectedMachineId)}
+                 disabled={modalBusy || (!!requiredType && !automaticMachineId)}
                 style={{ minWidth: 120 }}
               >
                 {modalBusy
-                  ? <><svg className="icon icon-sm oq-spin"><use href="#i-loader" /></svg> Đang gửi...</>
+                   ? <><LoaderCircle className="icon icon-sm oq-spin" aria-hidden="true" /> Đang gửi...</>
                   : !requiredType
-                    ? <><svg className="icon icon-sm"><use href="#i-check" /></svg> Hoàn tất ngay</>
-                    : <><svg className="icon icon-sm"><use href="#i-check" /></svg> Xử lý ngay</>
+                     ? <><Check className="icon icon-sm" aria-hidden="true" /> Hoàn tất ngay</>
+                       : <><Check className="icon icon-sm" aria-hidden="true" /> Đưa vào {automaticMachineName}</>
                 }
               </button>
             </>
@@ -1039,7 +1082,7 @@ export function OrderDetailModal() {
 
               {!showExpedite && (
                 <button className="bs" onClick={() => setShowExpedite(true)} disabled={modalBusy}>
-                  <svg className="icon icon-sm"><use href="#i-zap" /></svg>
+                   <Zap className="icon icon-sm" aria-hidden="true" />
                   Đôn đơn
                 </button>
               )}
@@ -1051,8 +1094,8 @@ export function OrderDetailModal() {
                 style={{ minWidth: 140 }}
               >
                 {modalBusy
-                  ? <><svg className="icon icon-sm oq-spin"><use href="#i-loader" /></svg> Đang gửi...</>
-                  : <><svg className="icon icon-sm"><use href="#i-check" /></svg> Hoàn tất công đoạn</>
+                   ? <><LoaderCircle className="icon icon-sm oq-spin" aria-hidden="true" /> Đang gửi...</>
+                   : <><Check className="icon icon-sm" aria-hidden="true" /> Hoàn tất công đoạn</>
                 }
               </button>
             </>

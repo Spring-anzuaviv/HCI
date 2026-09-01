@@ -6,6 +6,7 @@ import { generateSchedule, checkDeadlineFeasibility } from "./scheduling.service
 import {
   createSimulationToken,
   evaluateScheduleImpact,
+  getExpediteOrderIds,
   getSimulationDataProblems,
 } from "./expedite-workflow.js";
 
@@ -103,8 +104,10 @@ function simulateExpedite(
       "SIMULATION_DATA_INCOMPLETE",
       `Dữ liệu không đầy đủ để mô phỏng: ${problems.join("; ")}`,
     );
+  const expediteOrderIds = getExpediteOrderIds(orders, orderId);
+  const isTargetGroupOrder = (order: any) => expediteOrderIds.has(order.orderId);
   const simulatedOrders = orders.map((order) =>
-    order.orderId === orderId ? { ...order, pickupAt } : order
+    isTargetGroupOrder(order) ? { ...order, pickupAt } : order
   );
   let schedule: any[];
   try {
@@ -125,14 +128,15 @@ function simulateExpedite(
       const currentEstimatedTime = order.estimatedAt?.getTime?.() ?? null;
       const simulatedEstimatedTime = simulated.estimatedAt?.getTime?.() ?? null;
       const etaChanged = currentEstimatedTime !== simulatedEstimatedTime;
-      if (order.orderId !== orderId && !etaChanged && current.impact === proposed.impact)
-        return null;
-      return {
+       if (!isTargetGroupOrder(order) && !etaChanged && current.impact === proposed.impact)
+         return null;
+       return {
         orderId: order.orderId,
         customer: order.customer
           ? { name: order.customer.name, phone: order.customer.phone }
           : null,
-        isTarget: order.orderId === orderId,
+         isTarget: order.orderId === orderId,
+         isSameGroup: isTargetGroupOrder(order) && order.orderId !== orderId,
         currentPickupAt: order.pickupAt,
         proposedPickupAt,
         currentEstimatedAt: order.estimatedAt,
@@ -230,10 +234,17 @@ export async function apply(
       throw new ApiError(409, "QUEUE_CHANGED", "Hàng đợi đã thay đổi, cần mô phỏng lại trước khi xác nhận");
     simulateExpedite(orderId, orders, machines, pickupAt, now);
     const updated = await tx.laundryOrder.updateMany({
-      where: { orderId, storeId, status: { notIn: ["COMPLETED", "READY", "NOTIFIED"] } },
+      where: {
+        storeId,
+        ...(order.groupCode ? { groupCode: order.groupCode } : { orderId }),
+        status: { notIn: ["COMPLETED", "READY", "NOTIFIED"] },
+      },
       data: { pickupAt },
     });
-    if (updated.count !== 1)
+    const expectedUpdatedCount = order.groupCode
+      ? orders.filter((item: any) => item.groupCode === order.groupCode).length
+      : 1;
+    if (updated.count !== expectedUpdatedCount)
       throw new ApiError(409, "ORDER_COMPLETED", "Đơn đã sẵn sàng lấy hoặc hoàn tất, không thể thay đổi giờ lấy");
   }, { isolationLevel: "Serializable" });
 
