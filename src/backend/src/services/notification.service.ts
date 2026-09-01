@@ -22,7 +22,12 @@ export async function preview(
   storeId: number,
   channel = "ZALO",
 ) {
-  const order = await findOrderForStore(orderId, storeId);
+  const [order, store] = await Promise.all([
+    findOrderForStore(orderId, storeId),
+    prisma.store.findUnique({ where: { storeId }, select: { name: true } })
+  ]);
+  const storeName = store?.name || "cửa hàng";
+
   if (order.status !== "READY")
     throw new ApiError(
       409,
@@ -41,7 +46,7 @@ export async function preview(
     orderId,
     channel,
     recipient: order.customer?.phone ?? "",
-      content: `Chào ${order.customer?.name ?? "bạn"}, các đơn trong nhóm ${order.groupCode ?? `L-${orderId}`} đã hoàn tất và sẵn sàng để nhận.`,
+    content: `Chào ${order.customer?.name ?? "bạn"}, đồ của bạn đã sạch và sẵn sàng. Cảm ơn đã tin dùng ${storeName}!`,
   };
 }
 export async function handover(storeId: number) {

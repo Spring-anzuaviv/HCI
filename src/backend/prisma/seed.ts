@@ -16,8 +16,8 @@ async function main() {
 
   const store = await prisma.store.create({
     data: {
-      name: "Nhu Y",
-      address: "Khu vuc mo phong",
+      name: "Như Ý",
+      address: "Khu vực mô phỏng",
       email: "admin@washtrack.com",
       passwordHash: hashPassword("your-password"),
     },

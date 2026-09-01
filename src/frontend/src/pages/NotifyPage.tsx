@@ -81,7 +81,7 @@ export default function NotifyPage() {
             name,
             phone,
             completedAt: readyTime,
-            message: '', // Sẽ lấy khi bấm Gửi qua API /preview
+            message: '',
             sent: false,
             bgColor: o.serviceType === 'WASH_DRY' ? 'var(--pu)'
               : o.serviceType === 'WASH' ? 'var(--bl)'
@@ -89,7 +89,17 @@ export default function NotifyPage() {
           };
         });
 
-        setPendingCards(cards);
+        // Fetch preview message song song cho tất cả đơn
+        const previews = await Promise.allSettled(
+          cards.map(card => notificationPreview(Number(card.id)))
+        );
+        const cardsWithMessage = cards.map((card, i) => {
+          const result = previews[i];
+          const msg = result.status === 'fulfilled' ? (result.value?.content ?? '') : '';
+          return { ...card, message: msg };
+        });
+
+        setPendingCards(cardsWithMessage);
       } catch (err) {
         console.error('[Luồng 3] Lỗi khi tải thông báo:', err);
         showToast('Không tải được danh sách thông báo. Kiểm tra Backend đang chạy chưa.', 'red');
@@ -176,19 +186,27 @@ export default function NotifyPage() {
           const q = orderSearch.toLowerCase();
           return card.name.toLowerCase().includes(q) || card.phone.includes(q);
         }).map(card => (
-          <div key={card.id} className="nc">
-            <div className="nca" style={{ background: card.bgColor }}>{card.initials}</div>
-            <div className="ni2">
-              <div className="nname">{card.name}</div>
-              <div className="nmeta" style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                <svg className="icon icon-sm" style={{ color: 'var(--tl)' }}><use href="#i-phone" /></svg>
-                {card.phone} · Sẵn sàng lúc {card.completedAt} · Chưa thông báo
+          <div key={card.id} className="nc" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: 8 }}>
+            <div style={{ display: 'flex', alignItems: 'center', width: '100%', gap: 10 }}>
+              <div className="nca" style={{ background: card.bgColor }}>{card.initials}</div>
+              <div className="ni2" style={{ flex: 1 }}>
+                <div className="nname">{card.name}</div>
+                <div className="nmeta" style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <svg className="icon icon-sm" style={{ color: 'var(--tl)' }}><use href="#i-phone" /></svg>
+                  {card.phone} · Hoàn tất lúc {card.completedAt} · Chưa thông báo
+                </div>
               </div>
+              <button className="by" onClick={() => sendNotify(card)}>
+                <svg className="icon icon-sm"><use href="#i-send" /></svg>
+                Gửi Zalo
+              </button>
             </div>
-            <button className="by" onClick={() => sendNotify(card)}>
-              <svg className="icon icon-sm"><use href="#i-send" /></svg>
-              Gửi Zalo
-            </button>
+            {card.message && (
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: 7, marginLeft: 46, fontSize: '11px', color: 'var(--ts)', background: '#f8fafc', borderRadius: 8, padding: '7px 11px', width: 'calc(100% - 46px)', boxSizing: 'border-box' }}>
+                <svg className="icon icon-sm" style={{ color: 'var(--tl)', flexShrink: 0, marginTop: 1 }}><use href="#i-message" /></svg>
+                <span>"{card.message}"</span>
+              </div>
+            )}
           </div>
         ))}
 
