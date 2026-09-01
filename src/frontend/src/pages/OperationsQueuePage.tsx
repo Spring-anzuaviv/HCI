@@ -172,8 +172,11 @@ function PrimaryAction({ item, onOpen, tone, waitingForMachine, machineDone }: {
     });
   };
   if (item.status === 'WASHING' || item.status === 'DRYING') {
-    if (!machineDone) return null;
     const machineLabel = item.status === 'WASHING' ? 'MÁY GIẶT' : 'MÁY SẤY';
+    if (!machineDone) {
+      const machineName = (item.machineName ?? machineLabel).toUpperCase();
+      return <button type="button" className={`oq-row-action oq-action-${tone} oq-action-waiting`} disabled>CHỜ {machineName} XONG</button>;
+    }
     return <button type="button" className={`oq-row-action oq-action-${tone}`} disabled={loading} onClick={event => { event.stopPropagation(); void runAction(() => completeRun(item.orderStageId!), `Đã lấy đồ ra khỏi máy cho #${item.orderId}`); }}>{loading ? 'ĐANG LƯU...' : `LẤY ĐỒ RA KHỎI ${machineLabel}`}</button>;
   }
   if (item.status === 'WAITING' && (item.nextStage === 'WASH' || item.nextStage === 'DRY') && !item.machineId) {

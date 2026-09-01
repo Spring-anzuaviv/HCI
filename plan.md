@@ -216,6 +216,7 @@ Form tách đơn hiện hiển thị ETA từng mẻ và ETA hoàn tất nhóm n
 Các mốc thời gian trong queue được chuẩn hóa thành tag có nhãn: `TRỄ HẸN`, `MÁY CÒN`, `CHỜ MÁY`, `THAO TÁC CÒN` và `THỜI GIAN`; mỗi tag có màu nền nhẹ riêng để phân biệt loại thời gian.
 Khi countdown của máy giặt/sấy đã hết, card hiển thị lại nút thao tác `LẤY ĐỒ RA KHỎI MÁY GIẶT/SẤY`; trước thời điểm đó nút này được ẩn.
 Đơn chờ máy nhưng chưa có máy trống hiển thị nút disabled `CHỜ GIẶT XONG` hoặc `CHỜ SẤY XONG`; các nút thao tác chính trong card dùng cùng chiều rộng để giữ alignment, nhưng thu về dạng co giãn trên mobile.
+Đơn đang chạy trong máy cũng hiển thị nút disabled theo đúng tên máy, ví dụ `CHỜ MÁY GIẶT 1 XONG` hoặc `CHỜ MÁY SẤY 2 XONG`; khi máy hoàn tất, nút chuyển thành thao tác lấy đồ ra.
 Đã đối chiếu toàn bộ luồng frontend–API–service–Prisma và cập nhật `System Specification.md` theo implementation hiện tại. Tài liệu đã sửa các khác biệt về phạm vi queue, countdown, thuật toán expedite, nhóm đơn, thông báo Zalo prototype và bổ sung use case đăng nhập, tạo/tách đơn, timeline, quản trị máy/ca cùng thống kê. Các technical debt chưa sửa code (thời lượng stage thủ công, ánh xạ `NOTIFIED`, kiểm tra deadline chủ yếu ở frontend và ca Dashboard hard-code) được ghi rõ là giới hạn.
 
 Đã bổ sung trường ngày hẹn trong modal tạo đơn. Preview, kiểm tra deadline và payload tạo đơn hiện ghép ngày với giờ theo thời điểm cục bộ; ngày quá khứ bị chặn để tránh hiểu nhầm `AM/PM` thành giờ của ngày hiện tại.
