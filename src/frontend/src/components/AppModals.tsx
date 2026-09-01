@@ -724,6 +724,40 @@ export function OrderDetailModal() {
     });
   };
 
+  const handleQuickExpedite = async (minutes: number) => {
+    if (!order?.pickupAt || !p?.orderId || !store) return;
+    const orderId = p.orderId;
+    await runOrderAction(expediteActionKey, async () => {
+      try {
+        const newDate = new Date(order.pickupAt);
+        newDate.setMinutes(newDate.getMinutes() + minutes);
+        setExpediteTime(newDate.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }));
+        const res = await checkExpedite(orderId, store.storeId, newDate.toISOString());
+        setExpediteCheck(res);
+      } catch (error) {
+        showToast(error instanceof Error ? error.message : 'Lỗi kiểm tra giờ', 'red');
+      }
+    });
+  };
+
+  const handleCustomTimeChange = async (timeVal: string) => {
+    setExpediteTime(timeVal);
+    setExpediteCheck(null);
+    if (!timeVal || !p?.orderId || !store) return;
+    const orderId = p.orderId;
+    await runOrderAction(expediteActionKey, async () => {
+      try {
+        const pickupDate = new Date();
+        const [h, m] = timeVal.split(':').map(Number);
+        pickupDate.setHours(h, m, 0, 0);
+        const res = await checkExpedite(orderId, store.storeId, pickupDate.toISOString());
+        setExpediteCheck(res);
+      } catch (error) {
+        showToast(error instanceof Error ? error.message : 'Lỗi kiểm tra giờ', 'red');
+      }
+    });
+  };
+
   const handleComplete = async () => {
     const runningStage = stageList.find((s: any) => s.status === 'RUNNING');
     if (!runningStage) return;
@@ -738,22 +772,6 @@ export function OrderDetailModal() {
         showToast(error instanceof Error ? error.message : 'Lỗi khi hoàn tất', 'red');
       } finally {
         void refreshOperations();
-      }
-    });
-  };
-
-  const handleCheckExpedite = async () => {
-    if (!expediteTime || !p?.orderId || !store) return;
-    const orderId = p.orderId;
-    await runOrderAction(expediteActionKey, async () => {
-      try {
-        const pickupDate = new Date();
-        const [h, m] = expediteTime.split(':').map(Number);
-        pickupDate.setHours(h, m, 0, 0);
-        const res = await checkExpedite(orderId, store.storeId, pickupDate.toISOString());
-        setExpediteCheck(res);
-      } catch (error) {
-        showToast(error instanceof Error ? error.message : 'Lỗi kiểm tra giờ', 'red');
       }
     });
   };
@@ -851,46 +869,41 @@ export function OrderDetailModal() {
 
         {showExpedite && (
           <div style={{ background: '#f8fafc', borderRadius: 9, padding: 14, margin: '11px 0', border: '1px solid #e2e8f0' }}>
-            <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 8, color: '#1e293b' }}>Đôn đơn / Kiểm tra lấy sớm</div>
-
-            {!expediteCheck ? (
-              <div>
-                {order?.pickupAt && (
-                  <div style={{ fontSize: 12, color: '#64748b', marginBottom: 8 }}>
-                    Giờ hẹn hiện tại: <strong>{new Date(order.pickupAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}</strong>
-                  </div>
-                )}
-                <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                  <input className="finput" type="time" value={expediteTime} onChange={e => { setExpediteTime(e.target.value); setExpediteCheck(null); }} disabled={modalBusy} style={{ width: 120 }} />
-                  <button className="bp" onClick={handleCheckExpedite} disabled={modalBusy || !expediteTime}>Kiểm tra</button>
-                  <button className="bs" onClick={() => { setShowExpedite(false); setExpediteTime(''); setExpediteCheck(null); setExpediteReason(''); }}>Hủy</button>
-                </div>
+            <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 8, color: '#1e293b' }}>Đôn đơn / Lấy sớm</div>
+            
+            {order?.pickupAt && (
+              <div style={{ fontSize: 12, color: '#64748b', marginBottom: 8 }}>
+                Giờ hẹn hiện tại: <strong>{new Date(order.pickupAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}</strong>
               </div>
-            ) : (
-              <div>
-                {order?.pickupAt && (
-                  <div style={{ fontSize: 12, color: '#64748b', marginBottom: 6 }}>
-                    Giờ hẹn hiện tại: <strong>{new Date(order.pickupAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}</strong>
-                    {expediteCheck.newPickupAt && (
-                      <> → Giờ hẹn mới: <strong style={{ color: '#1e293b' }}>{new Date(expediteCheck.newPickupAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}</strong></>  
-                    )}
-                  </div>
-                )}
-                <div style={{ fontSize: 12, marginBottom: 10, color: '#475569' }}>
-                  <strong>Kết quả:</strong> {expediteCheck.reason}
-                  {expediteCheck.summary && (
-                    <><br/><strong>Tác động:</strong> {expediteCheck.summary.affectedOrders} đơn bị ảnh hưởng (Trễ: {expediteCheck.summary.notFeasibleOrders}, Cảnh báo: {expediteCheck.summary.atRiskOrders})</>  
-                  )}
+            )}
+            
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 12 }}>
+              <button className="bs" style={{ padding: '6px 10px', fontSize: 12 }} onClick={() => handleQuickExpedite(-15)} disabled={modalBusy}>-15 phút</button>
+              <button className="bs" style={{ padding: '6px 10px', fontSize: 12 }} onClick={() => handleQuickExpedite(-30)} disabled={modalBusy}>-30 phút</button>
+              <button className="bs" style={{ padding: '6px 10px', fontSize: 12 }} onClick={() => handleQuickExpedite(-60)} disabled={modalBusy}>-1 giờ</button>
+              <input className="finput" type="time" value={expediteTime} onChange={e => handleCustomTimeChange(e.target.value)} disabled={modalBusy} style={{ width: 100 }} />
+            </div>
+
+            {expediteCheck && (
+              <div style={{ background: expediteCheck.summary?.notFeasibleOrders > 0 ? '#fef2f2' : '#f0fdf4', border: expediteCheck.summary?.notFeasibleOrders > 0 ? '1px solid #fecaca' : '1px solid #bbf7d0', borderRadius: 6, padding: '10px 12px', marginBottom: 12 }}>
+                <div style={{ fontSize: 12, color: '#475569', marginBottom: 4 }}>
+                   → Giờ hẹn mới: <strong style={{ color: expediteCheck.summary?.notFeasibleOrders > 0 ? '#b45309' : '#15803d' }}>{new Date(expediteCheck.newPickupAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}</strong>
                 </div>
-                <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 10 }}>
-                  <input className="finput" type="text" value={expediteReason} onChange={e => setExpediteReason(e.target.value)} placeholder="Nhập lý do đôn đơn..." disabled={modalBusy} style={{ flex: 1 }} />
-                </div>
-                <div style={{ display: 'flex', gap: 8 }}>
-                  <button className="bs" onClick={() => { setExpediteCheck(null); setExpediteTime(''); setExpediteReason(''); }}>Thử giờ khác</button>
-                  <button className="br" onClick={handleConfirmExpedite} disabled={modalBusy || !expediteReason}>Xác nhận đôn đơn</button>
+                <div style={{ fontSize: 11, color: '#475569' }}>
+                  <strong>Tác động:</strong> {expediteCheck.summary?.affectedOrders || 0} đơn bị ảnh hưởng (Trễ: {expediteCheck.summary?.notFeasibleOrders || 0}, Cảnh báo: {expediteCheck.summary?.atRiskOrders || 0})
                 </div>
               </div>
             )}
+            
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 10 }}>
+              <input className="finput" type="text" value={expediteReason} onChange={e => setExpediteReason(e.target.value)} placeholder="Nhập lý do đôn đơn (vd: Khách cần gấp)..." disabled={modalBusy} style={{ flex: 1 }} />
+            </div>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button className="bs" onClick={() => { setShowExpedite(false); setExpediteCheck(null); setExpediteTime(''); setExpediteReason(''); }}>Hủy</button>
+              <button className="bp" style={{ background: '#7c3aed', color: '#fff', flex: 1 }} onClick={handleConfirmExpedite} disabled={modalBusy || !expediteReason || !expediteCheck}>
+                Xác nhận đôn đơn
+              </button>
+            </div>
           </div>
         )}
 

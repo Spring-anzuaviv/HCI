@@ -183,6 +183,7 @@ export function buildQueueSnapshot(
         : null;
     })
     .filter((item): item is NonNullable<typeof item> => Boolean(item))
+    .filter((item, index, self) => index === self.findIndex((t) => t.orderId === item.orderId))
     .sort((left, right) => left.rank - right.rank || (left.machineId ?? 0) - (right.machineId ?? 0));
 
   const attentionItems = rankedItems.filter((item) =>

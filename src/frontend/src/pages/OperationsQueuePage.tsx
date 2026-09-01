@@ -1,4 +1,4 @@
-import { useDeferredValue, useMemo, useEffect, useState } from 'react';
+import { useDeferredValue, useMemo, useState } from 'react';
 import { useApp } from '../context/useApp';
 import type { ModalOrderParams, QueueItem } from '../types';
 import { filterOrders } from '../utils/orderSearch';
@@ -61,9 +61,9 @@ function buildNextActionText(item: QueueItem): string {
   if (status === 'RECEIVED')        return 'Phân loại đồ';
   if (status === 'WAITING') {
     // Chờ máy cho công đoạn nào?
-    if (cur === 'WASH' || next === 'WASH') return 'Chờ máy giặt trống';
-    if (cur === 'DRY'  || next === 'DRY')  return 'Chờ máy sấy trống';
-    return 'Chờ máy trống';
+    if (cur === 'WASH' || next === 'WASH') return item.machineName ? `Chờ ${item.machineName} trống` : 'Chờ máy giặt trống';
+    if (cur === 'DRY'  || next === 'DRY')  return item.machineName ? `Chờ ${item.machineName} trống` : 'Chờ máy sấy trống';
+    return item.machineName ? `Chờ ${item.machineName} trống` : 'Chờ máy trống';
   }
 
   // Dựa vào nextStage
@@ -98,14 +98,7 @@ function buildCurrentStateText(item: QueueItem): string {
   return item.status ?? 'Không rõ';
 }
 
-function useNow() {
-  const [now, setNow] = useState(() => new Date());
-  useEffect(() => {
-    const id = window.setInterval(() => { setNow(new Date()); }, 60_000);
-    return () => window.clearInterval(id);
-  }, []);
-  return now;
-}
+
 
 function buildModalParams(item: QueueItem, orders: ReturnType<typeof useApp>['orders']): ModalOrderParams {
   const mappedOrder = orders.find(o => o.orderId === item.orderId);
@@ -127,7 +120,6 @@ export default function OperationsQueuePage() {
     orders, openM, setOrderModalParams, orderSearch, orderFilter,
     queueSnapshot, operationsLoading, queueRefreshing, operationsError, refreshOperations,
   } = useApp();
-  const now = useNow();
   const deferredOrderSearch = useDeferredValue(orderSearch);
 
   // Collapse state cho nhóm Hoàn tất — mặc định đóng
@@ -276,7 +268,6 @@ export default function OperationsQueuePage() {
                   <RecommendationCard
                     key={`${rec.orderId}-${rec.machineId}`}
                     item={rec}
-                    now={now}
                     onOpen={() => openOrderModal(rec)}
                   />
                 ))}
@@ -319,13 +310,11 @@ export default function OperationsQueuePage() {
                 </div>
 
                 <div className="oq-card-list">
-                  {group.map((item, idx) => (
+                  {group.map((item) => (
                     <TaskCard
                       key={item.orderId}
                       item={item}
-                      now={now}
                       stageMeta={meta}
-                      isFirst={idx === 0 && recommendations.length === 0}
                       onOpen={() => openOrderModal(item)}
                     />
                   ))}
@@ -388,58 +377,128 @@ export default function OperationsQueuePage() {
   );
 }
 
+// ─── Component Nút bấm hành động nhanh ───
+function PrimaryAction({ item, onOpen }: { item: QueueItem, onOpen: () => void }) {
+  const { showToast, refreshOperations } = useApp();
+  const { isPending, run } = useKeyedAsyncAction();
+  const actionKey = `primary-act:${item.orderId}`;
+  const loading = isPending(actionKey);
+
+  const status = item.status;
+  const isMachineRunning = status === 'WASHING' || status === 'DRYING';
+  const isWaitingForMachine = status === 'WAITING' && (item.nextStage === 'WASH' || item.nextStage === 'DRY');
+  const isManualStage = status === 'RECEIVED' || status === 'FOLDING_PACKING';
+
+  const handleStartRun = async (machineId: number) => {
+    if (!item.nextStage) return;
+    await run(actionKey, async () => {
+      try {
+        await startRun(item.orderId, item.nextStage!, machineId);
+        showToast(`Đã bắt đầu ${STAGE_LABELS[item.nextStage!] ?? item.nextStage} cho #${item.orderId}`, 'grn');
+        void refreshOperations();
+      } catch (error) { showToast(error instanceof Error ? error.message : 'Lỗi khi bắt đầu', 'red'); }
+    });
+  };
+
+  const handleCompleteRun = async () => {
+    if (!item.orderStageId) { showToast('Lỗi: Không tìm thấy ID công đoạn', 'red'); return; }
+    await run(actionKey, async () => {
+      try {
+        await completeRun(item.orderStageId!);
+        showToast(`✓ Đã hoàn thành mẻ cho #${item.orderId}`, 'grn');
+        void refreshOperations();
+      } catch (error) { showToast(error instanceof Error ? error.message : 'Lỗi khi hoàn tất', 'red'); }
+    });
+  };
+
+  const handleCompleteManual = async () => {
+    if (!item.nextStage) return;
+    await run(actionKey, async () => {
+      try {
+        const stageData = await startRun(item.orderId, item.nextStage!, 0);
+        if (stageData?.orderStageId) await completeRun(stageData.orderStageId);
+        showToast(`✓ Đã hoàn tất ${STAGE_LABELS[item.nextStage!] ?? item.nextStage} cho #${item.orderId}`, 'grn');
+        void refreshOperations();
+      } catch (error) { showToast(error instanceof Error ? error.message : 'Lỗi khi hoàn tất', 'red'); }
+    });
+  };
+
+  if (isMachineRunning) {
+    return (
+      <button className="bp" onClick={handleCompleteRun} disabled={loading}>
+         {loading ? 'Đang xử lý...' : '✓ Hoàn thành mẻ'}
+      </button>
+    );
+  }
+  if (isWaitingForMachine) {
+    if (item.machineId) {
+      return (
+        <button className="bp" onClick={() => handleStartRun(item.machineId!)} disabled={loading}>
+          {loading ? 'Đang xử lý...' : `▶ Bắt đầu với ${item.machineName}`}
+        </button>
+      );
+    }
+    // Waiting for machine but no recommendation/free machine
+    return <button className="bp" onClick={onOpen} disabled={loading}>▶ Chọn máy</button>;
+  }
+  if (isManualStage && item.nextStage) {
+    return (
+      <button className="bp" onClick={handleCompleteManual} disabled={loading}>
+        {loading ? 'Đang xử lý...' : `✓ Đã ${STAGE_LABELS[item.nextStage].toLowerCase()}`}
+      </button>
+    );
+  }
+
+  // Fallback / READY / NOTIFIED etc.
+  return <button className="bs" onClick={onOpen}>Xử lý đơn</button>;
+}
+
 // ─── Recommendation Card (⭐ Nên xử lý tiếp) ───
-function RecommendationCard({ item, now, onOpen }: { item: QueueItem; now: Date; onOpen: () => void }) {
+function RecommendationCard({ item, onOpen }: { item: QueueItem; onOpen: () => void }) {
   const isRisk = item.riskLevel === 'NOT_FEASIBLE' || item.riskLevel === 'AT_RISK';
   const slack  = slackText(item.slackMinutes, item.estimatedAt, item.pickupAt);
   const nextTxt = buildNextActionText(item);
   const curTxt  = buildCurrentStateText(item);
 
   return (
-    <div className={`oq-rec-card${isRisk ? ' risk' : ''}`}>
-      <div className="oq-rec-left">
-        <div className="oq-rec-star" aria-label="Ưu tiên xử lý">⭐</div>
-        <div className="oq-rec-id">#{item.orderId}</div>
-      </div>
-      <div className="oq-rec-body">
-        <div className="oq-rec-name">{item.customer?.name ?? 'Chưa có tên khách'}</div>
-        <div className="oq-tc-state">{curTxt} · {SERVICE_LABELS[item.serviceType] ?? item.serviceType} · {item.weightKg}kg</div>
-        <div className="oq-tc-times">
-          <span>Hẹn: <strong>{formatTime(item.pickupAt, 'Chưa hẹn')}</strong></span>
-          <span className="oq-tc-dot">·</span>
-          <span>Dự kiến xong: <strong>{formatTime(item.estimatedAt, 'Chưa tính')}</strong></span>
+    <div className={`oq-tc-new${isRisk ? ' risk' : ''}`}>
+      <div className="oq-tc-clickable" onClick={onOpen}>
+        <div className="oq-tc-header">
+           <span className="oq-tc-title">⭐ #{item.orderId} · {item.customer?.name ?? 'Khách'}</span>
+           <span className={`oq-tc-badge ${slack.cls}`}>{slack.icon} {slack.label}</span>
         </div>
-        <div className={`oq-tc-risk ${slack.cls}`}>{slack.icon} {slack.label}</div>
-        <div className="oq-tc-next">
-          <svg className="icon icon-sm"><use href="#i-arrow-right" /></svg>
-          Tiếp theo: <strong>{nextTxt}</strong>
+        <div className="oq-tc-status">
+           {curTxt} · {SERVICE_LABELS[item.serviceType] ?? item.serviceType} · {item.weightKg}kg
         </div>
-        {item.priorityReasons.slice(0, 1).map(r => (
-          <div key={r} className="oq-rec-reasons">
-            <span><svg className="icon icon-sm"><use href="#i-info" /></svg> {r}</span>
-          </div>
-        ))}
+        <div className="oq-tc-time">
+           Hẹn: {formatTime(item.pickupAt, 'Chưa hẹn')} · Dự kiến xong: {formatTime(item.estimatedAt, 'Chưa tính')}
+        </div>
+        <div className="oq-tc-next" style={{ fontWeight: 600, color: '#4f46e5', marginTop: 4 }}>
+           Tiếp theo: {nextTxt}
+        </div>
+        {item.priorityReasons.length > 0 && (
+           <div style={{ fontSize: '11px', color: '#b45309', marginTop: 4 }}>
+             <svg className="icon icon-sm"><use href="#i-info" /></svg> {item.priorityReasons[0]}
+           </div>
+        )}
       </div>
-      <button className="bp oq-rec-btn" onClick={onOpen} aria-label={`Xử lý ngay đơn #${item.orderId}`}>
-        Xử lý ngay <svg className="icon icon-sm"><use href="#i-arrow-right" /></svg>
-      </button>
+      
+      <div className="oq-tc-actions" style={{ display: 'flex', gap: 6, marginTop: 10, padding: '0 12px 12px' }}>
+         <PrimaryAction item={item} onOpen={onOpen} />
+         <button className="bs" style={{ padding: '0 10px', fontSize: 16 }} onClick={onOpen} title="Xem chi tiết">⋯</button>
+      </div>
     </div>
   );
 }
 
 // ─── Task Card cho mỗi đơn trong nhóm ───
-const MANUAL_STAGES = new Set(['SORTING', 'TRANSFER', 'PACKING']);
-
 function TaskCard({
-  item, now, stageMeta, isFirst, onOpen,
+  item, stageMeta, onOpen,
 }: {
   item: QueueItem;
-  now: Date;
   stageMeta: typeof STAGE_META[string];
-  isFirst: boolean;
   onOpen: () => void;
 }) {
-  const { showToast, refreshOperations } = useApp();
   const isLate   = item.riskLevel === 'NOT_FEASIBLE';
   const isRisk   = item.riskLevel === 'AT_RISK';
   const isReview = item.operationalState === 'NEEDS_REVIEW';
@@ -447,99 +506,36 @@ function TaskCard({
   const slack   = slackText(item.slackMinutes, item.estimatedAt, item.pickupAt);
   const nextTxt = buildNextActionText(item);
   const curTxt  = buildCurrentStateText(item);
-
-  // Màu viền trái
   const borderColor = isLate ? 'var(--rd)' : isRisk ? '#b45309' : isReview ? 'var(--am)' : stageMeta.border;
 
-  const canQuickAct = !isReview && item.nextStage && MANUAL_STAGES.has(item.nextStage);
-  const { isPending, run } = useKeyedAsyncAction();
-  const quickActionKey = `order-workflow:${item.orderId}`;
-  const quickLoading = isPending(quickActionKey);
-
-  const handleQuickAct = async () => {
-    if (!item.nextStage) return;
-    await run(quickActionKey, async () => {
-      try {
-        const stageData = await startRun(item.orderId, item.nextStage!, 0);
-        if (stageData?.orderStageId) await completeRun(stageData.orderStageId);
-        showToast(`✓ Đã hoàn tất ${STAGE_LABELS[item.nextStage!] ?? item.nextStage} cho #${item.orderId}`, 'grn');
-        void refreshOperations();
-      } catch (error) {
-        showToast(error instanceof Error ? error.message : 'Lỗi khi thực hiện', 'red');
-      }
-    });
-  };
-
   return (
-    <div className="oq-row-shell" role="group" aria-label={`Đơn #${item.orderId}`}>
-      <button
-        type="button"
-        className={`oq-tc${isFirst ? ' oq-tc-first' : ''}${isLate ? ' oq-tc-late' : isRisk ? ' oq-tc-risk' : ''}`}
-        style={{ borderLeftColor: borderColor }}
-        onClick={onOpen}
-        aria-label={`Đơn #${item.orderId} – ${item.customer?.name ?? ''}`}
-      >
-        {/* Badge ưu tiên */}
-        <span
-          className={`opri ${isReview ? 'am' : isLate ? 'rd' : isRisk ? 'am' : item.rank <= 3 ? 'bl' : 'gr'}`}
-          title="Thứ tự ưu tiên"
-        >
-          {isReview ? '!' : item.rank}
-        </span>
-
-        {/* Nội dung card */}
-        <span className="oq-tc-body">
-          {/* Dòng 1: Mã + Tên + Badge trạng thái deadline */}
-          <span className="oq-tc-head">
-            <span className="oq-tc-name">#{item.orderId} · {item.customer?.name ?? 'Chưa có tên'}</span>
-            <span className={`oq-tc-badge ${slack.cls}`} aria-label={slack.label}>
-              {slack.icon} {slack.cls === 'late' ? 'DỰ KIẾN TRỄ' : slack.cls === 'risk' ? 'CÓ RỦI RO' : 'ĐÚNG HẸN'}
-            </span>
-          </span>
-
-          {/* Dòng 2: Trạng thái hiện tại */}
-          <span className="oq-tc-state">
-            {curTxt} · {SERVICE_LABELS[item.serviceType] ?? item.serviceType} · {item.weightKg}kg
-          </span>
-
-          {/* Dòng 3: Giờ hẹn & Dự kiến xong */}
-          <span className="oq-tc-times">
-            <span>Hẹn: <strong>{formatTime(item.pickupAt, 'Chưa hẹn')}</strong></span>
-            <span className="oq-tc-dot">·</span>
-            <span>Dự kiến xong: <strong className={isLate ? 'oq-danger-text' : ''}>{formatTime(item.estimatedAt, 'Chưa tính')}</strong></span>
-            {slack.cls === 'late' && item.slackMinutes != null && (
-              <span className="oq-tc-late-info">Trễ khoảng {Math.abs(item.slackMinutes)} phút</span>
-            )}
-          </span>
-
-          {/* Dòng 4: Hành động tiếp theo */}
-          <span className="oq-tc-next">
-            <svg className="icon icon-sm"><use href="#i-arrow-right" /></svg>
-            Tiếp theo: <strong>{nextTxt}</strong>
-          </span>
-
-          {/* Cảnh báo cần kiểm tra */}
-          {isReview && item.reviewReasons.length > 0 && (
-            <span className="oq-tc-review-hint">🔎 {item.reviewReasons[0]}</span>
-          )}
-        </span>
-      </button>
-
-      {/* Quick-action: 1 tap cho manual stage */}
-      {canQuickAct && (
-        <button
-          type="button"
-          className="oq-quick-btn"
-          onClick={handleQuickAct}
-          disabled={quickLoading}
-          aria-label={`Hoàn tất ${STAGE_LABELS[item.nextStage!]} ngay cho #${item.orderId}`}
-          title={`Bấm 1 lần để hoàn tất ${STAGE_LABELS[item.nextStage!]}`}
-        >
-          {quickLoading
-            ? <svg className="icon icon-sm oq-spin"><use href="#i-loader" /></svg>
-            : <svg className="icon icon-sm"><use href="#i-check" /></svg>
-          }
-        </button>
+    <div className={`oq-tc-new${isLate ? ' late' : isRisk ? ' risk' : ''}`} style={{ borderLeft: `4px solid ${borderColor}` }}>
+      <div className="oq-tc-clickable" onClick={onOpen}>
+        <div className="oq-tc-header">
+           <span className="oq-tc-title">#{item.orderId} · {item.customer?.name ?? 'Khách'}</span>
+           <span className={`oq-tc-badge ${slack.cls}`}>{slack.icon} {slack.label}</span>
+        </div>
+        <div className="oq-tc-status">
+           {curTxt} · {SERVICE_LABELS[item.serviceType] ?? item.serviceType} · {item.weightKg}kg
+        </div>
+        <div className="oq-tc-time">
+           Hẹn: {formatTime(item.pickupAt, 'Chưa hẹn')} · Xong: {formatTime(item.estimatedAt, 'Chưa tính')}
+        </div>
+        <div className="oq-tc-next">
+           Tiếp theo: {nextTxt}
+        </div>
+        {isReview && item.reviewReasons.length > 0 && (
+           <div className="oq-tc-review-hint" style={{ fontSize: '11px', color: '#b45309', marginTop: 4 }}>
+             🔎 {item.reviewReasons[0]}
+           </div>
+        )}
+      </div>
+      
+      {!isReview && (
+        <div className="oq-tc-actions" style={{ display: 'flex', gap: 6, marginTop: 10, padding: '0 12px 12px' }}>
+           <PrimaryAction item={item} onOpen={onOpen} />
+           <button className="bs" style={{ padding: '0 10px', fontSize: 16 }} onClick={onOpen} title="Xem chi tiết">⋯</button>
+        </div>
       )}
     </div>
   );
