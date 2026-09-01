@@ -1,4 +1,4 @@
-import { useApp } from '../context/AppContext';
+import { useApp } from '../context/useApp';
 import type { ModalOrderParams, Order } from '../types';
 import { filterOrders } from '../utils/orderSearch';
 import OrderFilterBar from '../components/OrderFilterBar';

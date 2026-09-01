@@ -1,4 +1,4 @@
-import { useApp } from '../context/AppContext';
+import { useApp } from '../context/useApp';
 import type { OrderFilter } from '../types';
 
 const FILTERS: { id: OrderFilter; label: string }[] = [

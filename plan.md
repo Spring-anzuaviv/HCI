@@ -189,7 +189,11 @@ Form tách đơn hiện hiển thị ETA từng mẻ và ETA hoàn tất nhóm n
 
 ### Trạng thái 2026-09-01
 
-Đã tối ưu Software Product cho thao tác tại quầy: khóa mutation theo khóa toàn cục đến khi request hoàn tất, chống click lặp 300 ms cho điều hướng/lọc/popup, chỉ mount trang và modal đang dùng, lazy-load các trang phụ, debounce và hủy deadline preview cũ, gộp dữ liệu vận hành vào một endpoint, tạo đơn tách theo batch và giảm các lần ghi schedule không thay đổi. Frontend/backend build, frontend lint và ba test workflow backend đều đạt. Kiểm tra runtime bằng Chrome DevTools chưa thực hiện được vì MCP trình duyệt không có trong môi trường hiện tại.
+Đã tối ưu Software Product cho thao tác tại quầy: khóa mutation theo khóa toàn cục đến khi request hoàn tất, chống click lặp 300 ms cho điều hướng/lọc/popup, chỉ mount trang và modal đang dùng, lazy-load các trang phụ, debounce và hủy deadline preview cũ, gộp dữ liệu vận hành vào một endpoint, tạo đơn tách theo batch và giảm các lần ghi schedule không thay đổi. Frontend/backend build, frontend lint và bốn test workflow backend đều đạt. Kiểm tra runtime bằng Chrome DevTools chưa thực hiện được vì MCP trình duyệt không có trong môi trường hiện tại.
+
+Đã sửa luồng thông báo đơn tách: mỗi `groupCode` chỉ tạo một card và một lần gửi Zalo, gửi/giao cập nhật toàn bộ mẻ trong nhóm, thao tác hoàn tất lặp lại trả kết quả idempotent, và trang Thông báo tự đồng bộ lại operations để không giữ đơn đã hoàn tất trong mục đang xử lý.
+
+Đã tách `AppProvider`, context thuần và hook `useApp` thành các module riêng để Vite Fast Refresh không còn invalidate toàn bộ cây giao diện khi sửa context.
 
 ## 6. Dependency giữa các artifact
 

@@ -1,5 +1,5 @@
-import { useApp } from '../context/AppContext';
-import type { ToastItem } from '../context/AppContext';
+import { useApp } from '../context/useApp';
+import type { ToastItem } from '../context/app-context';
 
 // ─── Toast Container ───
 export function ToastContainer() {

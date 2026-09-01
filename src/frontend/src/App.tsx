@@ -19,7 +19,7 @@ const QueuePage = lazy(() => import('./pages/OperationsQueuePage'));
 const NotifyPage = lazy(() => import('./pages/NotifyPage'));
 const StatsPage = lazy(() => import('./pages/StatsPage'));
 
-import { useApp } from './context/AppContext';
+import { useApp } from './context/useApp';
 
 // ─── Inner App (cần context) ───
 function ClickGuard({ children }: { children: ReactNode }) {

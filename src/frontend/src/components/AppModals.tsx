@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any, react-hooks/set-state-in-effect */
 import { useEffect, useState, useRef, useMemo } from 'react';
-import { useApp } from '../context/AppContext';
+import { useApp } from '../context/useApp';
 import { apiGet, apiPost } from '../api/client';
 import { changePassword, logout } from '../api/auth';
 import { createMachine, deleteMachine, updateMachine } from '../api/machines';

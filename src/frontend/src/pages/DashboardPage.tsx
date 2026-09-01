@@ -1,5 +1,5 @@
 import { useDeferredValue, useEffect, useState } from 'react';
-import { useApp } from '../context/AppContext';
+import { useApp } from '../context/useApp';
 import type { ModalOrderParams } from '../types';
 import { filterOrders } from '../utils/orderSearch';
 import OrderFilterBar from '../components/OrderFilterBar';

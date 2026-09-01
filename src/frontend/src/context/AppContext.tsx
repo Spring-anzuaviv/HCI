@@ -1,5 +1,5 @@
-/* eslint-disable @typescript-eslint/no-explicit-any, react-refresh/only-export-components */
-import React, { createContext, useContext, useState, useCallback, useEffect, useRef, useTransition } from 'react';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import React, { useState, useCallback, useEffect, useRef, useTransition } from 'react';
 import type { Machine, Staff, Config, Order, Page, ModalOrderParams, OrderFilter, WorkShift, QueueSnapshot } from '../types';
 import { MOCK_STAFF, MOCK_CONFIG } from '../data/mockData';
 import { apiGet } from '../api/client';
@@ -7,72 +7,13 @@ import { getOperations } from '../api/operations';
 import type { StoreSession } from '../api/auth';
 import { listEmployees, listShifts } from '../api/staff';
 import { getShiftSummary, type ShiftSummary } from '../api/summary';
-
-// ─── Toast ───
-export interface ToastItem {
-  id: number;
-  msg: string;
-  type: 'grn' | 'red' | 'pu' | string;
-}
-
-// ─── Context Type ───
-interface AppContextType {
-  // Navigation
-  currentPage: Page;
-  setCurrentPage: (p: Page) => void;
-
-  // State
-  machines: Machine[];
-  setMachines: React.Dispatch<React.SetStateAction<Machine[]>>;
-  staff: Staff[];
-  setStaff: React.Dispatch<React.SetStateAction<Staff[]>>;
-  config: Config;
-  setConfig: React.Dispatch<React.SetStateAction<Config>>;
-  orders: Order[];
-  setOrders: React.Dispatch<React.SetStateAction<Order[]>>;
-  orderSearch: string;
-  setOrderSearch: React.Dispatch<React.SetStateAction<string>>;
-  orderFilter: OrderFilter;
-  setOrderFilter: React.Dispatch<React.SetStateAction<OrderFilter>>;
-  store: StoreSession | null;
-  queueSnapshot: QueueSnapshot | null;
-  /** true chỉ lần đầu chưa có data — dùng để hiện skeleton */
-  operationsLoading: boolean;
-  /** true khi đang background-refresh (đã có data cũ) */
-  queueRefreshing: boolean;
-  operationsError: string;
-  refreshOperations: () => Promise<void>;
-  refreshOrders: () => Promise<void>;
-  refreshStaff: () => Promise<void>;
-  selectedWorkDate: string;
-  setSelectedWorkDate: React.Dispatch<React.SetStateAction<string>>;
-  workShifts: WorkShift[];
-  shiftSummary: ShiftSummary | null;
-  refreshShiftSummary: () => Promise<void>;
-
-  // Toasts
-  toasts: ToastItem[];
-  showToast: (msg: string, type?: string) => void;
-
-  // Modal
-  openModal: string | null;
-  setOpenModal: (id: string | null) => void;
-  openM: (id: string) => void;
-  closeM: (id: string) => void;
-
-  // Order modal params
-  orderModalParams: ModalOrderParams | null;
-  setOrderModalParams: (p: ModalOrderParams | null) => void;
-}
-
-const AppContext = createContext<AppContextType | null>(null);
+import { AppContext, type ToastItem } from './app-context';
 
 interface AppProviderProps {
   children: React.ReactNode;
   /** Session đã được xác thực từ App — bỏ qua bước gọi /auth/me lần 2 */
   initialStore: StoreSession;
 }
-
 export function AppProvider({ children, initialStore }: AppProviderProps) {
   const [currentPage, setCurrentPageState] = useState<Page>('db');
   const [, startNavigationTransition] = useTransition();
@@ -285,10 +226,4 @@ function mapApiMachine(machine: any): Machine {
     completionActionAllowed: Boolean(machine.completionActionAllowed),
     completionBlockedReason: machine.completionBlockedReason ?? null,
   };
-}
-
-export function useApp() {
-  const ctx = useContext(AppContext);
-  if (!ctx) throw new Error('useApp must be used inside AppProvider');
-  return ctx;
 }

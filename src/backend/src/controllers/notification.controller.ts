@@ -31,11 +31,23 @@ export const preview = asyncRoute(async (req, res) =>
   ),
 );
 export const send = asyncRoute(async (req, res) => {
-  ok(res, await service.send(parseId(req.params.orderId, "orderId")));
+  ok(
+    res,
+    await service.send(
+      parseId(req.params.orderId, "orderId"),
+      requireStore(req),
+    ),
+  );
 });
 
 export const complete = asyncRoute(async (req, res) => {
-  ok(res, await service.complete(parseId(req.params.orderId, "orderId")));
+  ok(
+    res,
+    await service.complete(
+      parseId(req.params.orderId, "orderId"),
+      requireStore(req),
+    ),
+  );
 });
 
 export const handover = asyncRoute(async (req, res) => {

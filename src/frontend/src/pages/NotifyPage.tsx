@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useDeferredValue, useState, useEffect, useMemo } from 'react';
-import { useApp } from '../context/AppContext';
-import { pendingNotifications, notificationPreview, sendNotification, notifiedNotifications, completeOrder } from '../api/notifications';
+import { useCallback, useDeferredValue, useState, useEffect, useMemo } from 'react';
+import { useApp } from '../context/useApp';
+import { pendingNotifications, sendNotification, notifiedNotifications, completeOrder } from '../api/notifications';
 import { useKeyedAsyncAction } from '../hooks/useAsyncAction';
 interface NotifyCard {
   id: string;
@@ -12,17 +12,21 @@ interface NotifyCard {
   message: string;
   sent: boolean;
   bgColor: string;
+  groupCode: string | null;
+  groupCount: number;
+  orderIds: number[];
 }
 
+const cardGroupKey = (card: NotifyCard) => card.groupCode ?? `order-${card.id}`;
+
 export default function NotifyPage() {
-  const { showToast, store, orderSearch } = useApp();
+  const { showToast, store, orderSearch, orders, refreshOperations } = useApp();
   const deferredOrderSearch = useDeferredValue(orderSearch);
 
   const [loading, setLoading] = useState(true);
   const [pendingCards, setPendingCards] = useState<NotifyCard[]>([]);
   const [notifiedList, setNotifiedList] = useState<NotifyCard[]>([]);
-  const { isPending: isSending, run: runSend } = useKeyedAsyncAction();
-  const { orders } = useApp();
+  const { isPending: isActionPending, run: runNotificationAction } = useKeyedAsyncAction();
 
   const processingList = useMemo(() => {
     return orders
@@ -31,7 +35,9 @@ export default function NotifyPage() {
         if (['COMPLETED', 'NOTIFIED', 'CANCELLED'].includes(raw)) return false;
         if (raw === 'READY') {
           // Nếu đã READY nhưng chưa được hiện ở mục Cần thông báo (do chờ group)
-          const inPending = pendingCards.some(pc => pc.id === o.id);
+          const inPending = pendingCards.some(pc =>
+            pc.id === o.id || Boolean(o.groupCode && pc.groupCode === o.groupCode),
+          );
           return !inPending;
         }
         return true;
@@ -56,76 +62,67 @@ export default function NotifyPage() {
       });
   }, [orders, pendingCards]);
 
-  // Luồng 3 – Lấy danh sách đơn cần thông báo từ Backend
-  useEffect(() => {
-    const fetchPending = async () => {
-      try {
-        setLoading(true);
+  // Luồng 3 – lấy card đã được backend gộp theo groupCode.
+  const loadNotifications = useCallback(async (showLoading = true) => {
+    try {
+      if (showLoading) setLoading(true);
+      if (!store) return;
+      const [pendingOrders, notifiedOrders] = await Promise.all([
+        pendingNotifications(store.storeId),
+        notifiedNotifications(store.storeId),
+      ]);
 
-        if (!store) return;
-        const [orders, notifiedOrders] = await Promise.all([
-          pendingNotifications(store.storeId),
-          notifiedNotifications(store.storeId)
-        ]);
+      const mapToCard = (order: any): NotifyCard => {
+        const name: string = order.customer?.name ?? 'Khách hàng';
+        const phone: string = order.customer?.phone ?? '';
+        const words = name.trim().split(' ');
+        const initials = words.length >= 2
+          ? (words[0][0] + words[words.length - 1][0]).toUpperCase()
+          : name.substring(0, 2).toUpperCase();
+        const readyTime = order.readyAt
+          ? new Date(order.readyAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })
+          : '--:--';
 
-        const mapToCard = (o: any): NotifyCard => {
-          const name: string = o.customer?.name ?? 'Khách hàng';
-          const phone: string = o.customer?.phone ?? '';
-          const words = name.trim().split(' ');
-          const initials = words.length >= 2
-            ? (words[0][0] + words[words.length - 1][0]).toUpperCase()
-            : name.substring(0, 2).toUpperCase();
-
-          const readyTime = o.readyAt
-            ? new Date(o.readyAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })
-            : '--:--';
-
-          return {
-            id: String(o.orderId),
-            initials,
-            name,
-            phone,
-            completedAt: readyTime,
-            message: '',
-            sent: o.status === 'NOTIFIED',
-            bgColor: o.serviceType === 'WASH_DRY' ? 'var(--pu)'
-              : o.serviceType === 'WASH' ? 'var(--bl)'
-              : 'var(--am)',
-          };
+        return {
+          id: String(order.orderId),
+          initials,
+          name,
+          phone,
+          completedAt: readyTime,
+          message: order.notificationPreview?.content ?? '',
+          sent: order.status === 'NOTIFIED',
+          bgColor: order.serviceType === 'WASH_DRY' ? 'var(--pu)'
+            : order.serviceType === 'WASH' ? 'var(--bl)'
+            : 'var(--am)',
+          groupCode: order.groupCode ?? null,
+          groupCount: Number(order.groupCount ?? 1),
+          orderIds: Array.isArray(order.orderIds) ? order.orderIds.map(Number) : [Number(order.orderId)],
         };
+      };
 
-        // Map dữ liệu từ Backend sang NotifyCard
-        const cards: NotifyCard[] = orders.map(mapToCard);
-        const notifiedCards: NotifyCard[] = notifiedOrders.map(mapToCard);
-        // (Đoạn này đã gộp ở trên)
-
-        // Fetch preview message song song cho tất cả đơn
-        const previews = await Promise.allSettled(
-          cards.map(card => notificationPreview(Number(card.id)))
-        );
-        const cardsWithMessage = cards.map((card, i) => {
-          const result = previews[i];
-          const msg = result.status === 'fulfilled' ? (result.value?.content ?? '') : '';
-          return { ...card, message: msg };
-        });
-
-        setPendingCards(cardsWithMessage);
-        setNotifiedList(notifiedCards);
-      } catch (err) {
-        console.error('[Luồng 3] Lỗi khi tải thông báo:', err);
-        showToast('Không tải được danh sách thông báo. Kiểm tra Backend đang chạy chưa.', 'red');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchPending();
+      setPendingCards(pendingOrders.map(mapToCard));
+      setNotifiedList(notifiedOrders.map(mapToCard));
+    } catch (err) {
+      console.error('[Luồng 3] Lỗi khi tải thông báo:', err);
+      if (showLoading) showToast('Không tải được danh sách thông báo. Kiểm tra Backend đang chạy chưa.', 'red');
+    } finally {
+      if (showLoading) setLoading(false);
+    }
   }, [store, showToast]);
 
+  useEffect(() => {
+    const id = window.setTimeout(() => {
+      void Promise.all([loadNotifications(true), refreshOperations()]);
+    }, 0);
+    return () => window.clearTimeout(id);
+  }, [loadNotifications, refreshOperations]);
+
   // Bấm nút Gửi Zalo
-  const sendNotify = async (card: NotifyCard) => runSend(card.id, async () => {
+  const sendNotify = async (card: NotifyCard) => runNotificationAction(`notify-send:${cardGroupKey(card)}`, async () => {
     try {
-      const content = card.message || `Chào ${card.name}, đồ của bạn đã sẵn sàng, vui lòng đến nhận!`;
+      const content = card.message || (card.groupCount > 1
+        ? `Chào ${card.name}, cả ${card.groupCount} mẻ đồ của bạn đã sẵn sàng, vui lòng đến nhận!`
+        : `Chào ${card.name}, đồ của bạn đã sẵn sàng, vui lòng đến nhận!`);
 
       // Mở tab ngay trong user gesture để trình duyệt không chặn popup.
       const phoneClean = card.phone.replace(/\s/g, '');
@@ -137,11 +134,15 @@ export default function NotifyPage() {
 
       showToast(`Đã copy nội dung & Mở Zalo cho ${card.name}`, 'grn');
 
-      // 4. Cập nhật UI: chuyển card từ pending → notified
-      setPendingCards(prev => prev.filter(c => c.id !== card.id));
+      // Cập nhật ngay một card đại diện; đồng bộ lại context ở nền để không giữ trạng thái READY cũ.
+      setPendingCards(prev => prev.filter(c => cardGroupKey(c) !== cardGroupKey(card)));
       const now = new Date();
       const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-      setNotifiedList(prev => [...prev, { ...card, message: content, sent: true, completedAt: timeStr }]);
+      setNotifiedList(prev => [
+        ...prev.filter(c => cardGroupKey(c) !== cardGroupKey(card)),
+        { ...card, message: content, sent: true, completedAt: timeStr },
+      ]);
+      void Promise.all([refreshOperations(), loadNotifications(false)]);
     } catch (err) {
       console.error('[Luồng 3] Lỗi khi gửi thông báo:', err);
       showToast('Có lỗi khi chuẩn bị nội dung thông báo', 'red');
@@ -149,16 +150,19 @@ export default function NotifyPage() {
   });
 
   // Bấm nút Đã giao đồ
-  const completeNotify = async (card: NotifyCard) => {
+  const completeNotify = async (card: NotifyCard) => runNotificationAction(`notify-complete:${cardGroupKey(card)}`, async () => {
     try {
       await completeOrder(Number(card.id));
-      showToast(`Đã hoàn tất đơn hàng cho ${card.name}`, 'grn');
-      setNotifiedList(prev => prev.filter(c => c.id !== card.id));
+      showToast(card.groupCount > 1
+        ? `Đã hoàn tất ${card.groupCount} mẻ trong đơn của ${card.name}`
+        : `Đã hoàn tất đơn hàng cho ${card.name}`, 'grn');
+      setNotifiedList(prev => prev.filter(c => cardGroupKey(c) !== cardGroupKey(card)));
+      void Promise.all([refreshOperations(), loadNotifications(false)]);
     } catch (err) {
       console.error('Lỗi khi hoàn tất đơn hàng:', err);
       showToast('Không thể hoàn tất đơn hàng. Vui lòng thử lại.', 'red');
     }
-  };
+  });
 
   return (
     <div id="p-n" className="page">
@@ -215,12 +219,13 @@ export default function NotifyPage() {
                 <div className="nname">{card.name}</div>
                 <div className="nmeta" style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                   <svg className="icon icon-sm" style={{ color: 'var(--tl)' }}><use href="#i-phone" /></svg>
-                  {card.phone} · Hoàn tất lúc {card.completedAt} · Chưa thông báo
+                  {card.phone} · Hoàn tất lúc {card.completedAt}
+                  {card.groupCount > 1 ? ` · Đơn tách ${card.groupCount} mẻ` : ''} · Chưa thông báo
                 </div>
               </div>
-              <button className="by" onClick={() => { void sendNotify(card); }} disabled={isSending(card.id)} aria-busy={isSending(card.id)}>
-                <svg className={`icon icon-sm${isSending(card.id) ? ' oq-spin' : ''}`}><use href={isSending(card.id) ? '#i-loader' : '#i-send'} /></svg>
-                {isSending(card.id) ? 'Đang mở...' : 'Gửi Zalo'}
+              <button className="by" onClick={() => { void sendNotify(card); }} disabled={isActionPending(`notify-send:${cardGroupKey(card)}`)} aria-busy={isActionPending(`notify-send:${cardGroupKey(card)}`)}>
+                <svg className={`icon icon-sm${isActionPending(`notify-send:${cardGroupKey(card)}`) ? ' oq-spin' : ''}`}><use href={isActionPending(`notify-send:${cardGroupKey(card)}`) ? '#i-loader' : '#i-send'} /></svg>
+                {isActionPending(`notify-send:${cardGroupKey(card)}`) ? 'Đang mở...' : 'Gửi Zalo'}
               </button>
             </div>
             {card.message && (
@@ -252,7 +257,10 @@ export default function NotifyPage() {
               <div className="nca" style={{ background: 'var(--gn)' }}>{card.initials}</div>
               <div className="ni2">
                 <div className="nname">{card.name}</div>
-                <div className="nmeta">Đã mở Zalo & gửi lúc {card.completedAt}</div>
+                <div className="nmeta">
+                  Đã mở Zalo & gửi lúc {card.completedAt}
+                  {card.groupCount > 1 ? ` · ${card.groupCount} mẻ` : ''}
+                </div>
                 {card.message && (
                   <div style={{ marginTop: 5, fontSize: '10.5px', color: 'var(--ts)', background: '#f9fafb', padding: '6px 10px', borderRadius: 7, display: 'flex', alignItems: 'flex-start', gap: 5 }}>
                     <svg className="icon icon-sm" style={{ color: 'var(--tl)', flexShrink: 0, marginTop: 1 }}><use href="#i-message" /></svg>
@@ -261,9 +269,9 @@ export default function NotifyPage() {
                 )}
               </div>
               <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 10 }}>
-                <button className="bp" onClick={() => completeNotify(card)} style={{ fontSize: '12px', padding: '7px 12px' }}>
-                  <svg className="icon icon-sm"><use href="#i-check" /></svg>
-                  Đã giao đồ
+                <button className="bp" onClick={() => { void completeNotify(card); }} disabled={isActionPending(`notify-complete:${cardGroupKey(card)}`)} aria-busy={isActionPending(`notify-complete:${cardGroupKey(card)}`)} style={{ fontSize: '12px', padding: '7px 12px' }}>
+                  <svg className={`icon icon-sm${isActionPending(`notify-complete:${cardGroupKey(card)}`) ? ' oq-spin' : ''}`}><use href={isActionPending(`notify-complete:${cardGroupKey(card)}`) ? '#i-loader' : '#i-check'} /></svg>
+                  {isActionPending(`notify-complete:${cardGroupKey(card)}`) ? 'Đang cập nhật...' : 'Đã giao đồ'}
                 </button>
               </div>
             </div>

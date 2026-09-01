@@ -1,5 +1,5 @@
 import { useDeferredValue, useMemo, useEffect, useState } from 'react';
-import { useApp } from '../context/AppContext';
+import { useApp } from '../context/useApp';
 import type { ModalOrderParams, QueueItem } from '../types';
 import { filterOrders } from '../utils/orderSearch';
 import { startRun, completeRun } from '../api/orders';

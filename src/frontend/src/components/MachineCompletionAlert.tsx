@@ -1,7 +1,7 @@
 /* eslint-disable react-hooks/set-state-in-effect */
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { apiPatch } from '../api/client';
-import { useApp } from '../context/AppContext';
+import { useApp } from '../context/useApp';
 import type { Machine, MachineCompletionResult } from '../types';
 
 const ACKNOWLEDGEMENT_KEY = 'laundry.machine-completion.acknowledgements.v1';
