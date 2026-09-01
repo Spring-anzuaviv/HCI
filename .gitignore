@@ -2,6 +2,8 @@ taskX.md
 System Specification.md
 schema.md
 docs/
+CLAUDE.md
+claude/
 # Dependencies
 node_modules/
 
