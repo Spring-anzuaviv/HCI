@@ -58,6 +58,32 @@ function atDate(date: Date, value: Date) {
   result.setUTCHours(value.getUTCHours(), value.getUTCMinutes(), value.getUTCSeconds(), value.getUTCMilliseconds());
   return result;
 }
+export async function updateShift(storeId: number, shiftId: number, input: { name: string; start: string; end: string }) {
+  const shift = await prisma.workShift.findFirst({ where: { shiftId, storeId } });
+  if (!shift) throw new ApiError(404, "NOT_FOUND", "Không tìm thấy ca làm việc");
+  const start = parseTime(input.start, "Giờ bắt đầu");
+  const end = parseTime(input.end, "Giờ kết thúc");
+  const endMinutes = end.hours === 0 && end.minutes === 0 ? 24 * 60 : end.hours * 60 + end.minutes;
+  if (endMinutes <= start.hours * 60 + start.minutes) throw new ApiError(400, "VALIDATION_ERROR", "Giờ kết thúc phải sau giờ bắt đầu");
+  const name = input.name.trim();
+  if (!name) throw new ApiError(400, "VALIDATION_ERROR", "Tên ca không được để trống");
+  return prisma.workShift.update({
+    where: { shiftId },
+    data: {
+      name,
+      startAt: atDate(shift.workDate, new Date(Date.UTC(1970, 0, 1, start.hours, start.minutes))),
+      endAt: atDate(shift.workDate, new Date(Date.UTC(1970, 0, 1, end.hours, end.minutes))),
+    },
+  });
+}
+
+function parseTime(value: string, label: string) {
+  const match = /^(\d{2}):(\d{2})$/.exec(value);
+  const hours = match ? Number(match[1]) : -1;
+  const minutes = match ? Number(match[2]) : -1;
+  if (hours < 0 || hours > 23 || minutes < 0 || minutes > 59) throw new ApiError(400, "VALIDATION_ERROR", `${label} không hợp lệ`);
+  return { hours, minutes };
+}
 export async function assign(
   storeId: number,
   shiftId: number,

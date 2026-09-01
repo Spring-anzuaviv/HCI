@@ -6,6 +6,7 @@ shiftRouter.post("/stores/:storeId/employees", controller.createEmployee);
 shiftRouter.patch("/employees/:employeeId", controller.updateEmployee);
 shiftRouter.delete("/employees/:employeeId", controller.deleteEmployee);
 shiftRouter.get("/stores/:storeId/shifts", controller.shifts);
+shiftRouter.patch("/stores/:storeId/shifts/:shiftId", controller.updateShift);
 shiftRouter.post(
   "/stores/:storeId/shifts/:shiftId/assignments",
   controller.assign,

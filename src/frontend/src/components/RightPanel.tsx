@@ -1,6 +1,7 @@
 import React from 'react';
 import { useApp } from '../context/useApp';
 import { resetMachine } from '../api/machines';
+import { getStats } from '../api/stats';
 import type { Machine } from '../types';
 
 // ─── Machine Card ───
@@ -147,10 +148,32 @@ function StaffSection() {
 }
 
 // ─── Right Panel ───
+interface HourlyStat { label: string; count: number }
+
 export default function RightPanel() {
-  const { machines, openM, queueSnapshot, operationsLoading } = useApp();
+  const { machines, openM, queueSnapshot, operationsLoading, store } = useApp();
+  const [hourlyStats, setHourlyStats] = React.useState<HourlyStat[]>([]);
+  const [statsLoading, setStatsLoading] = React.useState(true);
 
   const waitingCount = queueSnapshot?.summary.statusCounts.WAITING ?? 0;
+  React.useEffect(() => {
+    if (!store) return;
+    let active = true;
+    getStats(store.storeId)
+      .then(data => {
+        if (active) setHourlyStats(data.hourlyBreakdown ?? []);
+      })
+      .catch(() => {
+        if (active) setHourlyStats([]);
+      })
+      .finally(() => {
+        if (active) setStatsLoading(false);
+      });
+    return () => { active = false; };
+  }, [store]);
+
+  const chartStats = hourlyStats.map((item, index) => ({ ...item, color: `b${index + 1}` }));
+  const maxHourlyCount = Math.max(...chartStats.map(item => item.count), 1);
 
   return (
     <aside className="rp">
@@ -180,12 +203,17 @@ export default function RightPanel() {
       <div>
         <div className="rpt" style={{ marginBottom: 20 }}>Thống kê hôm nay</div>
         <div className="bwrap">
-          <div className="bbar-g"><div className="bnum">3</div><div className="bbar b1" style={{ height: 52 }}></div><div className="blbl">9h</div></div>
-          <div className="bbar-g"><div className="bnum">5</div><div className="bbar b2" style={{ height: 44 }}></div><div className="blbl">11h</div></div>
-          <div className="bbar-g"><div className="bnum">4</div><div className="bbar b3" style={{ height: 35 }}></div><div className="blbl">13h</div></div>
-          <div className="bbar-g"><div className="bnum">2</div><div className="bbar b4" style={{ height: 18 }}></div><div className="blbl">15h</div></div>
+          {chartStats.map(item => (
+            <div className="bbar-g" key={item.label}>
+              <div className="bnum">{item.count}</div>
+              <div className={`bbar ${item.color}`} style={{ height: `${Math.max(item.count / maxHourlyCount * 52, item.count ? 8 : 3)}px` }} />
+              <div className="blbl">{item.label}</div>
+            </div>
+          ))}
         </div>
-        <div style={{ fontSize: 10, color: 'var(--tl)', marginTop: 5 }}>Số đơn tiếp nhận theo giờ</div>
+        <div style={{ fontSize: 10, color: 'var(--tl)', marginTop: 5 }}>
+          {statsLoading ? 'Đang tải thống kê...' : chartStats.every(item => item.count === 0) ? 'Chưa có đơn tiếp nhận trong các khoảng này' : 'Số đơn tiếp nhận theo khoảng giờ'}
+        </div>
       </div>
     </aside>
   );

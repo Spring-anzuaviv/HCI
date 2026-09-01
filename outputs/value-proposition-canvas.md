@@ -42,110 +42,48 @@
 
 ## 4. Products & Services
 
-1. **Hàng đợi công việc có giải thích:** Đề xuất đơn tiếp theo dựa trên giờ hẹn, khối lượng, loại dịch vụ, công đoạn, máy, hàng chờ và yêu cầu đặc biệt.
-2. **Kiểm tra tính khả thi của deadline:** Đối chiếu tải máy, hàng chờ, thời lượng công đoạn và thời gian dự phòng.
-3. **Theo dõi tiến trình và nhắc việc:** Hiển thị trạng thái, công đoạn, người phụ trách, deadline và việc cần làm.
-4. **Cập nhật tiến trình và thông báo khách:** Cung cấp mẫu thông báo theo trạng thái, có xem lại trước khi gửi.
-5. **Bàn giao ca có cấu trúc:** Gồm mã/tên đơn, trạng thái, vị trí, người phụ trách, giờ hẹn, ngoại lệ và việc tiếp theo.
-6. **Hồ sơ đơn hợp nhất:** Tập trung thông tin đơn, giờ hẹn, yêu cầu đặc biệt và lịch sử cập nhật.
-7. **Phân quyền nghiệp vụ:** Phân quyền cập nhật trạng thái, đổi ưu tiên, chuyển người phụ trách và cấu hình thông báo; lưu lịch sử và lý do.
+Hàng đợi công việc thông minh: Hỗ trợ nhân viên xác định và tổ chức thứ tự các đơn cần xử lý.
+Quản lý đơn hàng và tiến độ: Cung cấp thông tin tập trung về đơn hàng và quá trình xử lý.
+Lập lịch và dự kiến thời gian hoàn thành: Hỗ trợ tổ chức lịch sử dụng máy, ước tính thời gian hoàn thành và quản lý giờ hẹn.
+Nhắc việc và cảnh báo: Hỗ trợ theo dõi các công việc cần xử lý và các trường hợp cần chú ý.
+Hỗ trợ bàn giao ca: Cung cấp thông tin về công việc và các đơn chưa hoàn tất giữa các ca làm việc.
+Hỗ trợ thông báo khách hàng: Hỗ trợ nhân viên chuẩn bị và thực hiện việc thông báo tình trạng đơn cho khách hàng.
 
 ## 5. Pain Relievers
 
-Mỗi Pain có ít nhất 2 Pain Relievers là các giải pháp design khác nhau.
-
-1. **PR1 — Gợi ý thứ tự xử lý:** Gợi ý từ các yếu tố của đơn, hiển thị lý do và cho phép đổi thứ tự. Giải quyết P1.
-2. **PR2 — So sánh phương án:** So sánh các phương án xử lý và ảnh hưởng dự kiến đến deadline của đơn khác. Giải quyết P1.
-3. **PR3 — Màn hình thông tin tập trung:** Gom trạng thái đơn, công đoạn, giờ lấy, người phụ trách và lưu ý vào một màn hình. Giải quyết P2.
-4. **PR4 — Bộ lọc và lịch sử:** Tìm nhanh thông tin đơn và các thay đổi gần đây. Giải quyết P2.
-5. **PR5 — Bản ghi bàn giao:** Ghi trạng thái, công đoạn, vị trí, người phụ trách, ngoại lệ và việc tiếp theo. Giải quyết P3.
-6. **PR6 — Checklist bàn giao:** Kiểm tra và xác nhận các trường thông tin tối thiểu trước khi kết thúc ca. Giải quyết P3.
-7. **PR7 — Mẫu cập nhật:** Chọn mẫu theo trạng thái, xem lại trước khi gửi và ghi nhận đã thông báo. Giải quyết P4.
-8. **PR8 — Lịch sử thông báo:** Xem lịch sử và trạng thái gửi theo từng đơn. Giải quyết P4.
-9. **PR9 — Ước tính deadline:** Ước tính khoảng hoàn thành và hiển thị deadline có rủi ro. Giải quyết P2b.
-10. **PR10 — Timeline công đoạn:** Mô phỏng ảnh hưởng khi chèn đơn gấp vào hàng chờ. Giải quyết P2b.
-11. **PR11 — Nhắc việc theo thời điểm:** Nhắc trên app/web khi phát sinh; push điện thoại cho việc cần xử lý ngay và nhắc lại sau 10–15 phút nếu chưa xử lý. Giải quyết P5.
-12. **PR12 — Danh sách cần chú ý:** Gom việc theo deadline, trạng thái đứng lâu và đổi ca. Giải quyết P5.
+Hệ thống gợi ý thứ tự xử lý dựa trên các yếu tố liên quan, hiển thị lý do và cho phép nhân viên đổi thứ tự.
+Hiển thị thời gian còn lại đến giờ hẹn trên từng đơn để nhân viên tự xác định đơn nào đang gần deadline.
+Cho nhân viên tự gắn mức ưu tiên Cao / Vừa / Thấp để chủ động tổ chức thứ tự.
+Chia danh sách thành các nhóm cần xử lý Ngay / Sắp tới / Có thể chờ dựa trên nguy cơ trễ.
+Gom trạng thái, công đoạn, giờ lấy, người phụ trách và lưu ý của đơn vào cùng một màn hình.
+Gắn QR trên túi đồ để nhân viên quét và mở trực tiếp thông tin, tiến độ của đơn.
+Hiển thị tóm tắt tình trạng các đơn chưa hoàn tất để ca sau nắm được ngay.
+Cho nhân viên đánh dấu những đơn cần chú ý và để lại ghi chú ngắn.
+Cho phép ghi voice note đối với các đơn có tình huống đặc biệt.
+Hiển thị mẫu thông báo sẵn để nhân viên kiểm tra qua preview và gửi; đồng thời ghi nhận đã thông báo.
+Hiển thị nút mở nhanh Zalo để nhân viên tự nhắn.
+Tự động gửi thông báo cho khách khi đơn hoàn tất.
+Tạo sẵn nội dung và sao chép vào clipboard để nhân viên dán vào ứng dụng nhắn tin.
+Ước tính khoảng hoàn thành dựa trên tải máy, hàng chờ, thời lượng từng công đoạn, thời gian dự phòng, thời gian khách hẹn và hiển thị kết quả khả thi cùng thời gian khả thi.
+Chỉ cho phép chọn giờ hẹn từ các slot mà hệ thống xác định còn đủ công suất.
+Nhắc việc chủ động trên app/web, chỉ nhắc những việc cần xử lý và nhắc lại sau khoảng 10-15 phút nếu chưa xử lý.
+Làm nổi bật hoặc đưa các đơn sắp deadline hay đứng quá lâu lên đầu danh sách. Tạo một danh sách Cần chú ý riêng, tự động đưa vào các đơn sắp trễ, đứng quá lâu hoặc máy đã hoàn tất nhưng chưa được xử lý.
 
 ## 6. Gain Creators
 
-Mỗi Gain có ít nhất 2 Gain Creators là các giải pháp design khác nhau.
+Hiển thị danh sách có thứ tự các đơn hàng, công việc cần giải quyết tiếp theo và lý do ưu tiên.
+Chỉ hiển thị một Next task duy nhất cho từng máy đang hoặc sắp trống.
+Hiển thị ngay trên mỗi đơn các thông tin quan trọng: công đoạn hiện tại, việc cần làm tiếp theo và thời gian dự kiến hoàn thành.
+Cho phép nhân viên quét QR trên túi đồ để mở nhanh màn hình tiến độ và thông tin hiện tại của đúng đơn đó.
+Hiển thị sơ đồ tiến trình của đơn theo chuỗi (ví dụ: Nhận đồ → Giặt → Sấy → Đóng gói → Sẵn sàng), đánh dấu công đoạn hiện tại và các công đoạn đã hoàn tất.
+Có dashboard hiển thị tóm tắt tình trạng các đơn chưa hoàn tất.
+Cho phép đánh dấu và ghi chú ngắn những đơn cần ca sau chú ý.
+Sinh tự động một bản Shift Summary cuối ca gồm đơn đang chạy, đơn đang chờ và đơn có nguy cơ trễ.
+Hiển thị mẫu thông báo sẵn để nhân viên kiểm tra và gửi.
+Cho phép gửi nhanh bằng một nút với nội dung được hệ thống tạo sẵn, không hiển thị bước preview.
+Tự động gửi thông báo khi đơn hoặc toàn bộ nhóm đơn đạt trạng thái Đã hoàn thành.
+Hiển thị khoảng hoàn thành dự kiến, mức rủi ro deadline và giờ gần nhất có thể đáp ứng.
+Chỉ cho phép nhân viên chọn giờ nhận trong các khung giờ mà hệ thống còn nhận thêm đơn, dựa trên giới hạn công suất của từng khung giờ.
+Hệ thống nhắc việc qua thông báo đúng thời điểm nhưng để nhân viên quyết định hành động xác nhận.
+Chỉ hiển thị cảnh báo và thông tin vận hành, không đưa ra yêu cầu bắt buộc hành động cụ thể.
 
-1. **GC1 — Giải thích lý do ưu tiên:** Hiển thị lý do xếp hạng và cho phép xác nhận hoặc đổi thứ tự. Tạo G1, G5, G7.
-2. **GC2 — So sánh nhiều thứ tự:** Hiển thị nhiều phương án thứ tự cùng tác động dự kiến. Tạo G1, G5.
-3. **GC3 — Tóm tắt trạng thái:** Hiển thị “đang ở đâu, ai phụ trách, làm gì tiếp theo” trên mỗi đơn. Tạo G2, G3.
-4. **GC4 — Nhãn trạng thái rõ:** Dùng trạng thái và nhãn chữ, không chỉ dùng màu. Tạo G2.
-5. **GC5 — Tóm tắt cuối ca:** Tạo bản tóm tắt từ các đơn chưa hoàn tất. Tạo G3.
-6. **GC6 — Xác nhận bàn giao:** Hiển thị checklist và cho phép người nhận xác nhận đã tiếp nhận thông tin. Tạo G3, G7.
-7. **GC7 — Mẫu tin nhắn và nhắc việc:** Cho phép kiểm tra trước khi gửi. Tạo G4, G5, G7.
-8. **GC8 — Lịch sử thông báo:** Hiển thị lịch sử và trạng thái gửi theo từng đơn. Tạo G4.
-9. **GC9 — Khoảng hoàn thành:** Hiển thị khoảng hoàn thành, rủi ro deadline và giờ gần nhất có thể đáp ứng. Tạo G6.
-10. **GC10 — Timeline thời gian:** Hiển thị các mốc thời gian còn lại của từng công đoạn. Tạo G6.
-
----
-
-# Nội dung ngắn gọn để dán vào hình Canvas
-
-## Customer Jobs
-
-- Tiếp nhận, nhận diện đơn và kiểm tra yêu cầu đặc biệt cùng giờ khách muốn nhận.
-- Chọn đơn hoặc mẻ tiếp theo dựa trên giờ hẹn, trạng thái máy và yêu cầu xử lý.
-- Theo dõi đơn qua các công đoạn giặt, sấy, đóng gói và chuyển tiếp đúng lúc.
-- Cập nhật tiến độ và thông báo cho khách khi đơn hoàn tất hoặc có thay đổi.
-- Bàn giao đơn chưa xong để người tiếp nhận biết trạng thái và việc cần làm tiếp theo.
-
-## Customer Pains
-
-- Đôn đơn gấp phải đối chiếu nhiều thông tin và có thể làm các đơn khác trễ.
-- Tiến độ nằm rải rác trên POS, điện thoại, bill, máy và giấy bàn giao.
-- Ghi chú bàn giao chưa đủ trạng thái, vị trí, ngoại lệ và việc tiếp theo.
-- Cập nhật khách phụ thuộc vào thao tác nhắn tin thủ công.
-- Máy còn công suất nhưng nhiều đơn cùng hẹn khiến deadline không chắc chắn.
-- Đông đơn hoặc đổi ca dễ làm quên đồ, bỏ sót đơn hoặc phát hiện trễ muộn.
-
-## Customer Gains
-
-- Biết đơn nào nên xử lý trước và có thể tự điều chỉnh thứ tự.
-- Xem thông tin và tiến độ đơn trong một nơi.
-- Bàn giao đủ thông tin để người tiếp nhận tiếp tục ngay.
-- Thông báo cho khách nhất quán với ít thao tác lặp lại.
-- Hiểu lý do ưu tiên và vẫn giữ quyền kiểm soát quyết định.
-- Biết deadline có khả thi và có nguy cơ trễ hay không.
-- Được nhắc đúng lúc, có quyền rõ ràng và xem được lịch sử thay đổi.
-
-## Products & Services
-
-- Hàng đợi đề xuất đơn tiếp theo dựa trên giờ hẹn, loại dịch vụ, máy và hàng chờ.
-- Kiểm tra deadline dựa trên tải máy, thời lượng công đoạn và thời gian dự phòng.
-- Theo dõi trạng thái, công đoạn, người phụ trách, deadline và việc cần làm.
-- Cập nhật tiến trình và cung cấp mẫu thông báo có thể xem lại trước khi gửi.
-- Bàn giao ca gồm mã đơn, trạng thái, vị trí, người phụ trách, ngoại lệ và việc tiếp theo.
-- Hồ sơ đơn tập trung giờ hẹn, yêu cầu đặc biệt và lịch sử cập nhật.
-
-## Pain Relievers
-
-- Gợi ý thứ tự xử lý theo nhiều yếu tố và cho phép người dùng đổi thứ tự.
-- So sánh phương án xử lý và ảnh hưởng dự kiến đến deadline đơn khác.
-- Gom trạng thái, công đoạn, giờ lấy, người phụ trách và lưu ý vào một màn hình.
-- Lọc đơn và xem lịch sử cập nhật để tìm thông tin nhanh hơn.
-- Tạo bản ghi bàn giao gồm trạng thái, vị trí, ngoại lệ và việc tiếp theo.
-- Dùng checklist để xác nhận đủ thông tin tối thiểu trước khi kết thúc ca.
-- Cung cấp mẫu cập nhật theo trạng thái và ghi nhận đã gửi.
-- Hiển thị lịch sử thông báo và trạng thái gửi theo từng đơn.
-- Ước tính khoảng hoàn thành và cảnh báo deadline có rủi ro.
-- Hiển thị timeline và ảnh hưởng khi chèn đơn gấp vào hàng chờ.
-- Nhắc trên app/web, push việc khẩn và nhắc lại sau 10–15 phút nếu chưa xử lý.
-- Gom các việc cần chú ý theo deadline, trạng thái đứng lâu và đổi ca.
-
-## Gain Creators
-
-- Hiển thị lý do ưu tiên để người dùng kiểm tra và quyết định.
-- Hiển thị nhiều thứ tự cùng tác động dự kiến để so sánh.
-- Tóm tắt đơn đang ở đâu, ai phụ trách và cần làm gì tiếp theo.
-- Dùng trạng thái và nhãn chữ để quét danh sách nhanh.
-- Tạo bản tóm tắt cuối ca từ các đơn chưa hoàn tất.
-- Hiển thị checklist và xác nhận người tiếp nhận đã nhận đủ thông tin.
-- Cung cấp mẫu tin nhắn và nhắc việc để người dùng kiểm tra trước khi gửi.
-- Hiển thị lịch sử thông báo và trạng thái gửi theo từng đơn.
-- Hiển thị khoảng hoàn thành, rủi ro deadline và giờ gần nhất có thể đáp ứng.
-- Hiển thị các mốc thời gian còn lại của từng công đoạn.

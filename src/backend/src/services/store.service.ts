@@ -98,7 +98,23 @@ export async function stats(storeId: number) {
     prisma.machine.findMany({ where: { storeId }, include: { stages: true } }),
   ]);
   const today = new Date(); today.setHours(0, 0, 0, 0);
+  const tomorrow = new Date(today); tomorrow.setDate(tomorrow.getDate() + 1);
   const todayOrders = orders.filter(order => order.createdAt >= today);
+  const hourlyBreakdown = [
+    { label: "08–10h", start: 8, end: 10 },
+    { label: "10–12h", start: 10, end: 12 },
+    { label: "12–14h", start: 12, end: 14 },
+    { label: "14–16h", start: 14, end: 16 },
+  ].map(({ label, start, end }) => ({
+    label,
+    count: orders.filter(order => {
+      const createdAt = order.createdAt;
+      return createdAt >= today
+        && createdAt < tomorrow
+        && createdAt.getHours() >= start
+        && createdAt.getHours() < end;
+    }).length,
+  }));
   const services = ["WASH_DRY", "WASH", "DRY"].map(type => {
     const count = todayOrders.filter(order => order.serviceType === type).length;
     return { type, count };
@@ -111,6 +127,7 @@ export async function stats(storeId: number) {
     completedToday,
     lateOrders,
     machineEfficiency: machines.length ? Math.round((machineStages.length / Math.max(1, machines.length * 8)) * 100) : 0,
+    hourlyBreakdown,
     weekChart: ["T2", "T3", "T4", "T5", "T6", "T7", "CN"].map((label, index) => ({ label, val: index === 0 ? todayOrders.length : 0, bottom: 28, highlight: index === 0 })),
     services: services.map(item => ({ color: item.type === "WASH_DRY" ? "var(--pu)" : item.type === "WASH" ? "var(--bl)" : "var(--am)", label: item.type === "WASH_DRY" ? "Giặt + Sấy" : item.type === "WASH" ? "Chỉ Giặt" : "Sấy khô", pct: `${total ? Math.round(item.count / total * 100) : 0}%` })),
   };

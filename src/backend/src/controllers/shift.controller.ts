@@ -25,6 +25,18 @@ export const shifts = asyncRoute(async (req, res) => {
     ),
   );
 });
+export const updateShift = asyncRoute(async (req, res) => {
+  const storeId = requireStore(req);
+  validateBody(req.body, ["name", "start", "end"]);
+  ok(
+    res,
+    await service.updateShift(
+      storeId,
+      parseId(req.params.shiftId, "shiftId"),
+      { name: String(req.body.name), start: String(req.body.start), end: String(req.body.end) },
+    ),
+  );
+});
 export const createEmployee = asyncRoute(async (req, res) => {
   const storeId = requireStore(req);
   if (storeId !== parseId(req.params.storeId, "storeId")) throw new ApiError(404, "NOT_FOUND", "Không tìm thấy cửa hàng");

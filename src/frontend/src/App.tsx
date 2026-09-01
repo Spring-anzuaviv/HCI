@@ -10,7 +10,7 @@ import TopBar from './components/TopBar';
 import RightPanel from './components/RightPanel';
 import MachineCompletionAlert from './components/MachineCompletionAlert';
 import { ToastContainer } from './components/Modals';
-import { AddOrderModal, SettingsModal, MachineModal, EmployeeModal, AssignEmployeeModal, RemoveEmployeeModal, OrderDetailModal } from './components/AppModals';
+import { AddOrderModal, SettingsModal, ShiftSettingsModal, MachineModal, EmployeeModal, AssignEmployeeModal, RemoveEmployeeModal, OrderDetailModal } from './components/AppModals';
 
 import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
@@ -61,6 +61,8 @@ function AppShell() {
     ? <AddOrderModal />
     : openModal === 'sm'
       ? <SettingsModal />
+      : openModal === 'sm-shifts'
+        ? <ShiftSettingsModal />
       : openModal?.startsWith('sm-machine')
         ? <MachineModal />
         : openModal?.startsWith('sm-staff')

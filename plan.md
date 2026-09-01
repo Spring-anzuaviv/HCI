@@ -173,6 +173,8 @@ Mỗi mẻ cũng có ghi chú riêng; ô chọn dịch vụ đã giới hạn đ
 
 Đã chặn tạo đơn ở frontend khi giờ hẹn đã qua, nằm ngoài giờ ca hoặc kiểm tra lịch trả về `AT_RISK`/`NOT_FEASIBLE`; với đơn tách mẻ, kiểm tra được thực hiện cho từng mẻ trước khi tạo. Thanh tiến trình chi tiết đơn hiển thị thời gian dự kiến trên từng mốc stage.
 
+Đã sửa kiểm tra giờ hẹn để ca kết thúc lúc `00:00` được hiểu là hết ngày (`24:00`), tránh từ chối các giờ hẹn hợp lệ như `22:02`.
+
 Kết quả tạo đơn và chi tiết order hiện hiển thị riêng ETA của từng mẻ và ETA hoàn tất toàn nhóm; API chi tiết order cũng tính lại `groupETA` từ các order cùng `groupCode`.
 
 Form tách đơn hiện hiển thị ETA từng mẻ và ETA hoàn tất nhóm ngay trong lúc nhập, tự cập nhật khi đổi khối lượng, dịch vụ hoặc giờ hẹn.
@@ -194,6 +196,8 @@ Form tách đơn hiện hiển thị ETA từng mẻ và ETA hoàn tất nhóm n
 Đã sửa luồng thông báo đơn tách: mỗi `groupCode` chỉ tạo một card và một lần gửi Zalo, gửi/giao cập nhật toàn bộ mẻ trong nhóm, thao tác hoàn tất lặp lại trả kết quả idempotent, và trang Thông báo tự đồng bộ lại operations để không giữ đơn đã hoàn tất trong mục đang xử lý.
 
 Đã tách `AppProvider`, context thuần và hook `useApp` thành các module riêng để Vite Fast Refresh không còn invalidate toàn bộ cây giao diện khi sửa context.
+
+Đã thêm mục `Chỉnh ca ngày đang xem` trong Cài đặt. Modal cho phép sửa tên và giờ của từng ca theo ngày, lưu qua API `PATCH /stores/:storeId/shifts/:shiftId`, giữ nguyên phân công nhân viên và tải lại dữ liệu sau khi lưu. Frontend/backend build, frontend lint và bốn test workflow backend đều đạt.
 
 ## 6. Dependency giữa các artifact
 

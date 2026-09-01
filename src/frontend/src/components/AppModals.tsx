@@ -4,7 +4,7 @@ import { useApp } from '../context/useApp';
 import { apiGet, apiPost } from '../api/client';
 import { changePassword, logout } from '../api/auth';
 import { createMachine, deleteMachine, updateMachine } from '../api/machines';
-import { createEmployee, updateEmployee, assignEmployee, unassignEmployee } from '../api/staff';
+import { createEmployee, updateEmployee, updateShift, assignEmployee, unassignEmployee } from '../api/staff';
 import { updateStoreName } from '../api/store';
 import { startRun, completeRun, checkExpedite, confirmExpedite } from '../api/orders';
 import { useAsyncAction, useKeyedAsyncAction } from '../hooks/useAsyncAction';
@@ -130,7 +130,11 @@ export function AddOrderModal() {
     const pickupMinutes = hour * 60 + minute;
     const now = new Date();
     const currentMinutes = now.getHours() * 60 + now.getMinutes();
-    const shiftEnds = config.shifts.map(shift => Number(shift.end.split(':')[0]) * 60 + Number(shift.end.split(':')[1]));
+    const shiftEnds = config.shifts.map(shift => {
+      const [hours, minutes] = shift.end.split(':').map(Number);
+      // 00:00 là thời điểm kết thúc ngày, không phải đầu ngày để giới hạn giờ hẹn.
+      return (hours === 0 ? 24 : hours) * 60 + minutes;
+    });
     const lastShiftEnd = shiftEnds.length ? Math.max(...shiftEnds) : 22 * 60;
     if (pickupMinutes <= currentMinutes || pickupMinutes > lastShiftEnd) {
       showToast('Giờ hẹn đã quá hoặc nằm ngoài giờ làm việc của ca', 'red'); return;
@@ -251,7 +255,7 @@ export function AddOrderModal() {
 
 // ─── Modal Cài đặt ───
 export function SettingsModal() {
-  const { openModal, closeM, showToast, config, setConfig, store } = useApp();
+  const { openModal, closeM, showToast, config, setConfig, store, openM } = useApp();
   const isOpen = openModal === 'sm';
 
   const [shopName, setShopName] = useState(config.shopName);
@@ -315,6 +319,11 @@ export function SettingsModal() {
           </div>
         </div>
 
+        <button className="bs" style={{ width: '100%', justifyContent: 'flex-start', marginBottom: 18 }} onClick={() => openM('sm-shifts')}>
+          <svg className="icon icon-sm"><use href="#i-clock" /></svg>
+          Chỉnh ca ngày đang xem
+        </button>
+
         <div style={{ display: 'flex', gap: 9, justifyContent: 'space-between' }}>
           <button className="bs" style={{ color: '#ef4444', borderColor: '#ef4444' }} onClick={() => { void handleLogout(); }} disabled={savingSettings}>
             Đăng xuất
@@ -330,6 +339,66 @@ export function SettingsModal() {
       </div>
     </div>
   );
+}
+
+export function ShiftSettingsModal() {
+  const { openModal, closeM, showToast, selectedWorkDate, workShifts, store, refreshStaff } = useApp();
+  const [values, setValues] = useState<Record<number, { name: string; start: string; end: string }>>({});
+  const { pending: saving, run: runSave } = useAsyncAction(`shift-settings:${selectedWorkDate}`);
+  const isOpen = openModal === 'sm-shifts';
+
+  useEffect(() => {
+    if (!isOpen) return;
+    setValues(Object.fromEntries(workShifts.map(shift => [shift.id, { name: shift.name, start: shift.start, end: shift.end }])));
+  }, [isOpen, workShifts]);
+
+  const save = async () => {
+    if (!store || !workShifts.length) return;
+    await runSave(async () => {
+      try {
+        for (const shift of workShifts) {
+          const value = values[shift.id];
+          if (!value) continue;
+          await updateShift(store.storeId, shift.id, value);
+        }
+        closeM('sm-shifts');
+        await refreshStaff();
+        showToast(`Đã cập nhật ca ngày ${selectedWorkDate}`, 'grn');
+      } catch (error) {
+        showToast(error instanceof Error ? error.message : 'Không thể cập nhật ca', 'red');
+      }
+    });
+  };
+
+  const timeOptions = (value: string, onChange: (value: string) => void, disabled: boolean) => {
+    const [hour = '00', minute = '00'] = value.split(':');
+    return <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+      <select className="finput" value={hour} disabled={disabled} onChange={event => onChange(`${event.target.value}:${minute}`)} aria-label="Giờ">
+        {Array.from({ length: 24 }, (_, index) => { const option = String(index).padStart(2, '0'); return <option key={option} value={option}>{option}</option>; })}
+      </select>
+      <span aria-hidden="true">:</span>
+      <select className="finput" value={minute} disabled={disabled} onChange={event => onChange(`${hour}:${event.target.value}`)} aria-label="Phút">
+        {Array.from({ length: 60 }, (_, index) => { const option = String(index).padStart(2, '0'); return <option key={option} value={option}>{option}</option>; })}
+      </select>
+    </div>;
+  };
+
+  return <div className={`mov${isOpen ? ' open' : ''}`} onClick={() => closeM('sm-shifts')}>
+    <div className="modal" onClick={event => event.stopPropagation()}>
+      <div className="mhd"><div className="mtitle">Chỉnh ca ngày {selectedWorkDate}</div><button className="mxbtn" onClick={() => closeM('sm-shifts')}><svg className="icon icon-sm"><use href="#i-x" /></svg></button></div>
+      {!workShifts.length && <p style={{ fontSize: 13, color: 'var(--ts)' }}>Ngày này chưa có ca để chỉnh.</p>}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+        {workShifts.map(shift => {
+          const value = values[shift.id] ?? { name: shift.name, start: shift.start, end: shift.end };
+          return <div key={shift.id} style={{ border: '1px solid #e2e8f0', borderRadius: 8, padding: 12 }}>
+            <div className="fg" style={{ marginBottom: 10 }}><label className="flbl">Tên ca</label><input className="finput" value={value.name} disabled={saving} onChange={event => setValues(prev => ({ ...prev, [shift.id]: { ...value, name: event.target.value } }))} /></div>
+            <div className="frow"><div className="fg"><label className="flbl">Bắt đầu (24 giờ)</label>{timeOptions(value.start, start => setValues(prev => ({ ...prev, [shift.id]: { ...value, start } })), saving)}</div><div className="fg"><label className="flbl">Kết thúc (24 giờ)</label>{timeOptions(value.end, end => setValues(prev => ({ ...prev, [shift.id]: { ...value, end } })), saving)}</div></div>
+          </div>;
+        })}
+      </div>
+      <div style={{ display: 'flex', gap: 9, marginTop: 18 }}><button className="bs" onClick={() => closeM('sm-shifts')} style={{ flex: 1 }}>Hủy</button><button className="bp" onClick={() => void save()} disabled={saving || !workShifts.length} style={{ flex: 2 }}>{saving ? 'Đang lưu...' : 'Lưu thay đổi'}</button></div>
+    </div>
+  </div>;
 }
 
 export function EmployeeModal() {
