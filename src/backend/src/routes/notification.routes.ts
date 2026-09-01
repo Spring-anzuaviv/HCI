@@ -5,11 +5,16 @@ notificationRouter.get(
   "/stores/:storeId/notifications/pending",
   controller.pending,
 );
+notificationRouter.get(
+  "/stores/:storeId/notifications/notified",
+  controller.notified,
+);
 notificationRouter.post(
   "/orders/:orderId/notifications/preview",
   controller.preview,
 );
 notificationRouter.post("/orders/:orderId/notifications/send", controller.send);
+notificationRouter.post("/orders/:orderId/complete", controller.complete);
 notificationRouter.get(
   "/stores/:storeId/handovers/preview",
   controller.handover,

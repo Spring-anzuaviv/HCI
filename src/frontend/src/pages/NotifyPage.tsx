@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useEffect, useMemo } from 'react';
 import { useApp } from '../context/AppContext';
-import { pendingNotifications, notificationPreview } from '../api/notifications';
+import { pendingNotifications, notificationPreview, sendNotification, notifiedNotifications, completeOrder } from '../api/notifications';
 interface NotifyCard {
   id: string;
   initials: string;
@@ -60,10 +60,12 @@ export default function NotifyPage() {
         setLoading(true);
 
         if (!store) return;
-        const orders: any[] = await pendingNotifications(store.storeId);
+        const [orders, notifiedOrders] = await Promise.all([
+          pendingNotifications(store.storeId),
+          notifiedNotifications(store.storeId)
+        ]);
 
-        // Map dữ liệu từ Backend sang NotifyCard
-        const cards: NotifyCard[] = orders.map((o: any) => {
+        const mapToCard = (o: any): NotifyCard => {
           const name: string = o.customer?.name ?? 'Khách hàng';
           const phone: string = o.customer?.phone ?? '';
           const words = name.trim().split(' ');
@@ -82,12 +84,17 @@ export default function NotifyPage() {
             phone,
             completedAt: readyTime,
             message: '',
-            sent: false,
+            sent: o.status === 'NOTIFIED',
             bgColor: o.serviceType === 'WASH_DRY' ? 'var(--pu)'
               : o.serviceType === 'WASH' ? 'var(--bl)'
               : 'var(--am)',
           };
-        });
+        };
+
+        // Map dữ liệu từ Backend sang NotifyCard
+        const cards: NotifyCard[] = orders.map(mapToCard);
+        const notifiedCards: NotifyCard[] = notifiedOrders.map(mapToCard);
+        // (Đoạn này đã gộp ở trên)
 
         // Fetch preview message song song cho tất cả đơn
         const previews = await Promise.allSettled(
@@ -100,6 +107,7 @@ export default function NotifyPage() {
         });
 
         setPendingCards(cardsWithMessage);
+        setNotifiedList(notifiedCards);
       } catch (err) {
         console.error('[Luồng 3] Lỗi khi tải thông báo:', err);
         showToast('Không tải được danh sách thông báo. Kiểm tra Backend đang chạy chưa.', 'red');
@@ -125,6 +133,9 @@ export default function NotifyPage() {
       const phoneClean = card.phone.replace(/\s/g, '');
       window.open(`https://zalo.me/${phoneClean}`, '_blank');
 
+      // GỌI API CẬP NHẬT TRẠNG THÁI TRONG DATABASE
+      await sendNotification(Number(card.id));
+
       showToast(`Đã copy nội dung & Mở Zalo cho ${card.name}`, 'grn');
 
       // 4. Cập nhật UI: chuyển card từ pending → notified
@@ -135,6 +146,18 @@ export default function NotifyPage() {
     } catch (err) {
       console.error('[Luồng 3] Lỗi khi gửi thông báo:', err);
       showToast('Có lỗi khi tải nội dung tin nhắn từ API', 'red');
+    }
+  };
+
+  // Bấm nút Đã giao đồ
+  const completeNotify = async (card: NotifyCard) => {
+    try {
+      await completeOrder(Number(card.id));
+      showToast(`Đã hoàn tất đơn hàng cho ${card.name}`, 'grn');
+      setNotifiedList(prev => prev.filter(c => c.id !== card.id));
+    } catch (err) {
+      console.error('Lỗi khi hoàn tất đơn hàng:', err);
+      showToast('Không thể hoàn tất đơn hàng. Vui lòng thử lại.', 'red');
     }
   };
 
@@ -238,9 +261,12 @@ export default function NotifyPage() {
                   </div>
                 )}
               </div>
-              <span className="nsent">
-                <svg className="icon icon-sm"><use href="#i-check" /></svg> Đã gửi
-              </span>
+              <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 10 }}>
+                <button className="bp" onClick={() => completeNotify(card)} style={{ fontSize: '12px', padding: '7px 12px' }}>
+                  <svg className="icon icon-sm"><use href="#i-check" /></svg>
+                  Đã giao đồ
+                </button>
+              </div>
             </div>
           ))}
         </div>

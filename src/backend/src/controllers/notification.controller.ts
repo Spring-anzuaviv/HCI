@@ -12,6 +12,14 @@ export const pending = asyncRoute(async (req, res) => {
     throw new ApiError(404, "NOT_FOUND", "Không tìm thấy cửa hàng");
   ok(res, await service.pending(storeId));
 });
+
+export const notified = asyncRoute(async (req, res) => {
+  const storeId = requireStore(req);
+  if (storeId !== parseId(req.params.storeId, "storeId"))
+    throw new ApiError(404, "NOT_FOUND", "Không tìm thấy cửa hàng");
+  ok(res, await service.notified(storeId));
+});
+
 export const preview = asyncRoute(async (req, res) =>
   ok(
     res,
@@ -22,7 +30,14 @@ export const preview = asyncRoute(async (req, res) =>
     ),
   ),
 );
-export const send = asyncRoute(async () => service.send());
+export const send = asyncRoute(async (req, res) => {
+  ok(res, await service.send(parseId(req.params.orderId, "orderId")));
+});
+
+export const complete = asyncRoute(async (req, res) => {
+  ok(res, await service.complete(parseId(req.params.orderId, "orderId")));
+});
+
 export const handover = asyncRoute(async (req, res) => {
   const storeId = requireStore(req);
   if (storeId !== parseId(req.params.storeId, "storeId"))

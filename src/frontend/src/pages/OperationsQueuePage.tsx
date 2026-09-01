@@ -13,7 +13,7 @@ const STAGE_LABELS: Record<string, string> = {
 const STATUS_LABELS: Record<string, string> = {
   RECEIVED: 'Tiếp nhận', WAITING: 'Chờ máy', WASHING: 'Đang giặt',
   DRYING: 'Đang sấy', FOLDING_PACKING: 'Đang đóng gói',
-  READY: 'Sẵn sàng lấy', NOTIFIED: 'Đã báo khách',
+  READY: 'Sẵn sàng lấy', NOTIFIED: 'Đã báo khách', COMPLETED: 'Hoàn tất',
 };
 
 /** Thứ tự công đoạn trong workflow */

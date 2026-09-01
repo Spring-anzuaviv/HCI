@@ -188,7 +188,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
 function mapApiOrder(order: any): Order {
   const service = order.serviceType === 'WASH_DRY' ? 'combo' : order.serviceType === 'DRY' ? 'dry' : 'wash';
-  const status = order.status === 'COMPLETED' ? 'done' : 'pending';
+  const status = (order.status === 'COMPLETED' || order.status === 'NOTIFIED') ? 'done' : 'pending';
   const eta = order.estimatedAt ? new Date(order.estimatedAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) : '';
   return {
     id: String(order.orderId), orderId: order.orderId, name: order.customer.name, phone: order.customer.phone,
