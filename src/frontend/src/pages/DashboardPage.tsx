@@ -4,7 +4,7 @@ import type { ModalOrderParams } from '../types';
 import { filterOrders } from '../utils/orderSearch';
 import OrderFilterBar from '../components/OrderFilterBar';
 import { QueueRow } from './OperationsQueuePage';
-import { AlertTriangle, ArrowRight, ChevronRight, Clock3, Layers3 } from 'lucide-react';
+import { AlertTriangle, ArrowRight, ChevronRight, Clock3, Layers3, Plus } from 'lucide-react';
 
 type DashboardStat = 'today' | 'processing' | 'late' | 'risk' | 'done';
 
@@ -14,7 +14,7 @@ const HeroSVG = () => (
     <rect x="7" y="26" width="124" height="118" rx="18" fill="white" stroke="#ddd6fe" strokeWidth="2"/>
     <rect x="7" y="26" width="124" height="38" rx="18" fill="#5b21b6"/>
     <rect x="7" y="46" width="124" height="18" fill="#5b21b6"/>
-    <circle cx="43" cy="45" r="13" fill="#fbbf24"/><circle cx="43" cy="45" r="8" fill="#f59e0b"/><circle cx="43" cy="45" r="3" fill="#d97706"/>
+    <circle cx="43" cy="45" r="13" fill="#c4b5fd"/><circle cx="43" cy="45" r="8" fill="#a78bfa"/><circle cx="43" cy="45" r="3" fill="#7c3aed"/>
     <rect x="70" y="36" width="12" height="12" rx="3.5" fill="#4ade80"/>
     <rect x="87" y="36" width="12" height="12" rx="3.5" fill="#ef4444"/>
     <rect x="70" y="52" width="12" height="8" rx="2.5" fill="#93c5fd"/>
@@ -136,7 +136,7 @@ export default function DashboardPage() {
   return (
     <div id="p-db" className="page on">
       {/* Hero */}
-      <div className="hero">
+      <div className="hero hero-dashboard">
         <div className="hero-txt">
           <h2 id="hero-greeting">
             {shiftInfo.name ? 'Chào bạn, bắt đầu ca làm việc thôi!' : 'Hết ca rồi, nghỉ ngơi thôi.'}
@@ -158,6 +158,10 @@ export default function DashboardPage() {
             <strong>Tóm tắt vận hành:</strong> {shiftSummary.totals.active} đang xử lý · {shiftSummary.totals.completed} hoàn tất · {queueSnapshot?.summary.lateOrders ?? 0} sẽ trễ · {queueSnapshot?.summary.atRiskOrders ?? 0} nguy cơ trễ
           </div>}
         </div>
+        <button type="button" className="hero-add-order" onClick={() => openM('am')} aria-label="Thêm đơn hàng mới">
+          <Plus className="icon icon-sm" aria-hidden="true" />
+          Thêm đơn
+        </button>
         <div className="hero-img"><HeroSVG /></div>
       </div>
 

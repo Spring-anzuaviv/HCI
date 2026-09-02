@@ -207,7 +207,7 @@ function SuggestionCard({ item, now, onOpen }: { item: QueueItem; now: number; o
   const countdown = formatCountdown(actionTarget(item), now);
   return (
     <div className="sugg oq-reference-suggestion">
-       <div className="sugg-lbl"><Cpu className="icon icon-sm" aria-hidden="true" /> Đề xuất xử lý tiếp</div>
+       <div className="sugg-lbl"><Cpu className="icon icon-sm" aria-hidden="true" /><span>Đề xuất xử lý tiếp</span><span className="sugg-recommendation-badge">KHUYẾN NGHỊ · KHÔNG BẮT BUỘC</span></div>
       <div className="sugg-row">
         <div className="sugg-n">#{item.orderId}</div>
         <div className="sugg-info">

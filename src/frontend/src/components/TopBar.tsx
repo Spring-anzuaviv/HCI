@@ -1,6 +1,6 @@
 import { useApp } from '../context/useApp';
 import type { OrderFilter } from '../types';
-import { Plus, Search, Send, Settings, X } from 'lucide-react';
+import { Search, Send, Settings, X } from 'lucide-react';
 
 const FILTERS: { id: OrderFilter; label: string }[] = [
   { id: 'all', label: 'Tất cả' },
@@ -86,11 +86,6 @@ export default function TopBar() {
       )}
 
       <div className="tbr">
-        <button className="bp" onClick={() => openM('am')} style={{ marginRight: 5, padding: '8px 12px' }}>
-          <Plus className="icon icon-sm" aria-hidden="true" />
-          Thêm đơn
-        </button>
-
         <button className="ibtn" title="Cài đặt" onClick={() => openM('sm')}>
           <Settings className="icon icon-sm" aria-hidden="true" />
         </button>
