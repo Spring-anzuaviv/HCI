@@ -169,14 +169,32 @@ async function main() {
         customerId: customers[4].customerId,
         weightKg: 2.5,
         serviceType: "WASH",
-        status: "COMPLETED",
+        // Đã xử lý xong nhưng chưa gửi thông báo cho khách.
+        status: "READY",
         pickupAt: minutesFrom(now, -120),
         estimatedAt: minutesFrom(now, -180),
-        completedAt: minutesFrom(now, -190),
+        completedAt: null,
         stages: [
           { stage: "SORTING", status: "COMPLETED", start: -300, end: -295 },
           { stage: "WASH", machineId: washer1.machineId, status: "COMPLETED", start: -295, end: -250 },
           { stage: "PACKING", status: "COMPLETED", start: -250, end: -240 },
+        ],
+      },
+      {
+        customerId: customers[5].customerId,
+        weightKg: 3.5,
+        serviceType: "WASH_DRY",
+        // Đơn đã xử lý xong, đang chờ nhân viên gửi tin nhắn Zalo.
+        status: "READY",
+        pickupAt: minutesFrom(now, 90),
+        estimatedAt: minutesFrom(now, -15),
+        completedAt: null,
+        stages: [
+          { stage: "SORTING", status: "COMPLETED", start: -120, end: -115 },
+          { stage: "WASH", machineId: washer2.machineId, status: "COMPLETED", start: -115, end: -70 },
+          { stage: "TRANSFER", status: "COMPLETED", start: -70, end: -65 },
+          { stage: "DRY", machineId: dryer2.machineId, status: "COMPLETED", start: -65, end: -20 },
+          { stage: "PACKING", status: "COMPLETED", start: -20, end: -15 },
         ],
       },
     ] as const;
@@ -192,7 +210,7 @@ async function main() {
           pickupAt: order.pickupAt,
           estimatedAt: order.estimatedAt,
           completedAt: order.completedAt,
-          readyAt: order.status === "COMPLETED" ? order.estimatedAt : null,
+          readyAt: order.status === "READY" || order.status === "COMPLETED" ? order.estimatedAt : null,
           groupCode: order.groupCode,
           stages: {
             create: order.stages.map(({ stage, machineId, status, start, end }) => ({
