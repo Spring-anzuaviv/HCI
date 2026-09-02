@@ -4,6 +4,11 @@ import {
   getWorkflowStages,
   checkDeadlineFeasibility,
   generateSchedule,
+  isStageOverdue,
+  findEarliestAvailableSlot,
+  requiredMachineType,
+  getStageDuration,
+  calculateETA,
 } from "./scheduling.service.js";
 
 export const stages = [
@@ -164,7 +169,16 @@ export async function createOrder(storeId: number, input: any) {
   return created;
 }
 
-export async function refreshStoreSchedule(storeId: number) {
+type RefreshScheduleOptions = {
+  preserveOverdue?: boolean;
+  onlyIfOverdueFeasible?: boolean;
+};
+
+export async function refreshStoreSchedule(
+  storeId: number,
+  options: RefreshScheduleOptions = { preserveOverdue: true },
+  now = new Date(),
+) {
   const [orders, machines] = await Promise.all([
     prisma.laundryOrder.findMany({
       where: { storeId },
@@ -176,7 +190,38 @@ export async function refreshStoreSchedule(storeId: number) {
     orders.flatMap((order) => order.stages.map((stage) => [stage.orderStageId, stage] as const)),
   );
   const originalOrderById = new Map(orders.map((order) => [order.orderId, order]));
-  const schedule = generateSchedule(orders, machines);
+  const preserveOverdue = options.preserveOverdue ?? true;
+  const overdueOrderIds = new Set(
+    orders
+      .filter((order) => order.stages.some((stage) => isStageOverdue(stage, now)))
+      .map((order) => order.orderId),
+  );
+  const schedule = generateSchedule(orders, machines, now, { preserveOverdue });
+  if (options.onlyIfOverdueFeasible && overdueOrderIds.size > 0) {
+    const groupEta = new Map<string, Date>();
+    for (const item of schedule) {
+      const order = orders.find((candidate) => candidate.orderId === item.orderId);
+      if (order?.groupCode) {
+        const current = groupEta.get(order.groupCode);
+        if (!current || item.estimatedAt > current) groupEta.set(order.groupCode, item.estimatedAt);
+      }
+    }
+    const scheduleById = new Map(schedule.map((item) => [item.orderId, item]));
+    const overdueCanBeRecovered = [...overdueOrderIds].every((orderId) => {
+      const order = originalOrderById.get(orderId);
+      const item = scheduleById.get(orderId);
+      const estimatedAt = order?.groupCode ? groupEta.get(order.groupCode) : item?.estimatedAt;
+      return Boolean(order && estimatedAt && checkDeadlineFeasibility(estimatedAt, order.pickupAt).result === "FEASIBLE");
+    });
+    const noNewLateDeadline = orders.every((order) => {
+      if (overdueOrderIds.has(order.orderId)) return true;
+      const item = scheduleById.get(order.orderId);
+      const current = checkDeadlineFeasibility(order.estimatedAt, order.pickupAt).result;
+      const proposed = checkDeadlineFeasibility(item?.estimatedAt ?? null, order.pickupAt).result;
+      return current === "NOT_FEASIBLE" || proposed !== "NOT_FEASIBLE";
+    });
+    if (!overdueCanBeRecovered || !noNewLateDeadline) return schedule;
+  }
   // Batch tất cả writes thành 1 transaction với Promise.all thay vì await tuần tự.
   // Điều này giảm đáng kể thời gian chờ khi có nhiều đơn và công đoạn.
   return prisma.$transaction(async (tx) => {
@@ -207,7 +252,10 @@ export async function refreshStoreSchedule(storeId: number) {
         );
       }
       const originalOrder = originalOrderById.get(item.orderId);
-      if (originalOrder?.estimatedAt?.getTime() !== item.estimatedAt?.getTime()) {
+      if (
+        (!preserveOverdue || !overdueOrderIds.has(item.orderId))
+        && originalOrder?.estimatedAt?.getTime() !== item.estimatedAt?.getTime()
+      ) {
         orderUpdates.push(
           tx.laundryOrder.update({
             where: { orderId: item.orderId },
@@ -220,6 +268,110 @@ export async function refreshStoreSchedule(storeId: number) {
     await Promise.all([...stageUpdates, ...orderUpdates]);
     return schedule;
   }, { maxWait: 10_000, timeout: 30_000 });
+}
+
+export async function rescheduleLateOrder(storeId: number, orderId: number, now = new Date()) {
+  const [orders, machines] = await Promise.all([
+    prisma.laundryOrder.findMany({
+      where: { storeId, status: { in: [...activeStatuses] } },
+      include: { stages: true },
+      orderBy: { orderId: "asc" },
+    }),
+    prisma.machine.findMany({ where: { storeId } }),
+  ]);
+  const order = orders.find((item) => item.orderId === orderId);
+  const overdueStage = order?.stages.find((stage) => isStageOverdue(stage, now));
+  if (!order || !overdueStage) return { status: "NOT_LATE" as const, orderId };
+
+  const workflow = getWorkflowStages(order.serviceType);
+  const previousStartAt = overdueStage.plannedStartAt;
+  const previousEndAt = overdueStage.plannedEndAt;
+  const occupied = orders
+    .filter((item) => item.orderId !== orderId)
+    .flatMap((item) => item.stages.map((stage) => ({ ...stage, orderId: item.orderId })));
+  const proposedStages = order.stages.map((stage) => ({ ...stage, orderId: order.orderId }));
+  let cursor = order.readyAt ?? order.createdAt ?? now;
+  let replanning = false;
+
+  for (const stageName of workflow) {
+    const stage = proposedStages.find((item) => item.stage === stageName);
+    if (!stage) continue;
+    if (["COMPLETED", "RUNNING"].includes(stage.status)) {
+      const machine = machines.find((item) => item.machineId === stage.machineId);
+      const end = stage.status === "COMPLETED" && stage.actualEndedAt
+        ? stage.actualEndedAt
+        : stage.status === "RUNNING" && stage.actualStartedAt && machine
+          ? new Date(stage.actualStartedAt.getTime() + getStageDuration(stage.stage, machine) * 60_000)
+          : now;
+      cursor = end > cursor ? end : cursor;
+      occupied.push(stage);
+      continue;
+    }
+    if (!replanning && stage.orderStageId !== overdueStage.orderStageId) {
+      cursor = stage.plannedEndAt && stage.plannedEndAt > cursor ? stage.plannedEndAt : cursor;
+      occupied.push(stage);
+      continue;
+    }
+    replanning = true;
+    const type = requiredMachineType(stage.stage);
+    if (type) {
+      const slot = findEarliestAvailableSlot(order, stage.stage, machines, occupied, cursor, now);
+      stage.machineId = slot.machineId;
+      stage.plannedStartAt = slot.plannedStartAt;
+      stage.plannedEndAt = slot.plannedEndAt;
+      cursor = slot.plannedEndAt;
+    } else {
+      stage.plannedStartAt = new Date(Math.max(cursor.getTime(), now.getTime()));
+      stage.plannedEndAt = new Date(stage.plannedStartAt.getTime() + getStageDuration(stage.stage) * 60_000);
+      cursor = stage.plannedEndAt;
+    }
+    occupied.push(stage);
+  }
+
+  const estimatedAt = calculateETA(order, proposedStages, machines, occupied, now);
+  const groupOrders = order.groupCode
+    ? orders.filter((item) => item.groupCode === order.groupCode)
+    : [order];
+  const groupETA = Math.max(
+    estimatedAt.getTime(),
+    ...groupOrders
+      .filter((item) => item.orderId !== order.orderId && item.estimatedAt)
+      .map((item) => item.estimatedAt!.getTime()),
+  );
+  const feasibility = checkDeadlineFeasibility(new Date(groupETA), order.pickupAt);
+  if (feasibility.result !== "FEASIBLE") {
+    return {
+      status: "NOT_FEASIBLE" as const,
+      orderId,
+      estimatedAt,
+      pickupAt: order.pickupAt,
+    };
+  }
+
+  await prisma.$transaction(async (tx) => {
+    for (const stage of proposedStages) {
+      if (stage.status !== "PLANNED") continue;
+      await tx.orderStage.update({
+        where: { orderStageId: stage.orderStageId },
+        data: {
+          machineId: stage.machineId,
+          plannedStartAt: stage.plannedStartAt,
+          plannedEndAt: stage.plannedEndAt,
+        },
+      });
+    }
+    await tx.laundryOrder.update({ where: { orderId }, data: { estimatedAt } });
+  }, { isolationLevel: "Serializable" });
+  return {
+    status: "RESCHEDULED" as const,
+    orderId,
+    previousStage: overdueStage.stage,
+    previousStartAt,
+    previousEndAt,
+    estimatedAt,
+    pickupAt: order.pickupAt,
+    stages: proposedStages.filter((stage) => stage.status === "PLANNED"),
+  };
 }
 export async function updateStatus(orderId: number, status: string) {
   return prisma.laundryOrder.update({

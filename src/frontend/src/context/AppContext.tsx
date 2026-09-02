@@ -116,7 +116,7 @@ export function AppProvider({ children, initialStore }: AppProviderProps) {
       do {
         staffRefreshQueuedRef.current = false;
         const [employeeData, shiftData] = await Promise.all([listEmployees(store.storeId), listShifts(store.storeId, selectedWorkDate)]);
-        const mappedShifts = shiftData.map((shift: any) => ({ id: shift.shiftId, name: shift.name, start: new Date(shift.startAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }), end: new Date(shift.endAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }), employees: shift.employees?.map((item: any) => ({ id: item.employee.employeeId, name: item.employee.name, phone: item.employee.phone ?? '', role: item.employee.role, shiftId: shift.shiftId, ava: item.employee.name.split(' ').map((part: string) => part[0]).join('').slice(-2).toUpperCase() })) ?? [] }));
+         const mappedShifts = shiftData.map((shift: any) => ({ id: shift.shiftId, name: shift.name, start: formatShiftTime(shift.startAt), end: formatShiftTime(shift.endAt), employees: shift.employees?.map((item: any) => ({ id: item.employee.employeeId, name: item.employee.name, phone: item.employee.phone ?? '', role: item.employee.role, shiftId: shift.shiftId, ava: item.employee.name.split(' ').map((part: string) => part[0]).join('').slice(-2).toUpperCase() })) ?? [] }));
         setWorkShifts(mappedShifts);
         setConfig(previous => ({ ...previous, shifts: mappedShifts.map(shift => ({ id: shift.id, name: shift.name, start: shift.start, end: shift.end })) }));
         setStaff(employeeData.map((employee: any) => ({ id: employee.employeeId, name: employee.name, phone: employee.phone ?? '', role: employee.role, shiftId: mappedShifts.find(shift => shift.employees.some((item: { id: number }) => item.id === employee.employeeId))?.id ?? 0, ava: employee.name.split(' ').map((part: string) => part[0]).join('').slice(-2).toUpperCase() })));
@@ -185,6 +185,13 @@ export function AppProvider({ children, initialStore }: AppProviderProps) {
       {children}
     </AppContext.Provider>
   );
+}
+
+// Giờ ca được lưu theo thành phần UTC để giữ nguyên giờ nhân viên nhập.
+function formatShiftTime(value: string) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '--:--';
+  return `${String(date.getUTCHours()).padStart(2, '0')}:${String(date.getUTCMinutes()).padStart(2, '0')}`;
 }
 
 function mapApiOrder(order: any): Order {

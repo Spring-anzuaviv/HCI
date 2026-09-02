@@ -23,6 +23,10 @@ export type ScheduleStage = {
   status: string;
 };
 
+export type ScheduleOptions = {
+  preserveOverdue?: boolean;
+};
+
 const minutes = (value: Date, amount: number) =>
   new Date(value.getTime() + amount * 60_000);
 
@@ -79,6 +83,7 @@ export function findEarliestAvailableSlot(
   machines: any[],
   stages: any[],
   earliestStart: Date,
+  now = new Date(),
 ) {
   const candidates = findCompatibleMachines(order, stageName, machines);
   const duration = getStageDuration(stageName, candidates[0]);
@@ -88,7 +93,7 @@ export function findEarliestAvailableSlot(
       .map((stage) => intervalFor(stage, machine))
       .filter(Boolean)
       .sort((a: any, b: any) => a.start.getTime() - b.start.getTime());
-    let start = new Date(Math.max(earliestStart.getTime(), new Date().getTime()));
+    let start = new Date(Math.max(earliestStart.getTime(), now.getTime()));
     for (const interval of intervals as any[]) {
       if (interval.end <= start) continue;
       if (minutes(start, duration) <= interval.start) break;
@@ -169,7 +174,20 @@ export function checkDeadlineFeasibility(estimatedAt: Date | null, pickupAt: Dat
   };
 }
 
-export function generateSchedule(orders: any[], machines: any[], now = new Date()) {
+export function isStageOverdue(stage: any, now = new Date()) {
+  if (stage.status !== "PLANNED") return false;
+  const deadline = requiredMachineType(stage.stage)
+    ? stage.plannedStartAt
+    : stage.plannedEndAt;
+  return Boolean(deadline && deadline.getTime() < now.getTime());
+}
+
+export function generateSchedule(
+  orders: any[],
+  machines: any[],
+  now = new Date(),
+  options: ScheduleOptions = {},
+) {
   const schedule = orders.flatMap((order) =>
     (order.stages ?? []).map((stage: any) => ({ ...stage, orderId: order.orderId })),
   );
@@ -181,14 +199,34 @@ export function generateSchedule(orders: any[], machines: any[], now = new Date(
   );
   for (const order of ordered) {
     let cursor = order.readyAt ?? order.createdAt ?? now;
-    for (const stage of schedule.filter((item) => item.orderId === order.orderId)) {
+    let preparationStage: any = null;
+    const orderStages = getWorkflowStages(order.serviceType)
+      .map((stageName) => schedule.find((item) => item.orderId === order.orderId && item.stage === stageName))
+      .filter(Boolean);
+    for (const stage of orderStages) {
       if (stage.status === "COMPLETED" || stage.status === "RUNNING") {
         cursor = stageEnd(stage, machines.find((m) => m.machineId === stage.machineId), now);
         continue;
       }
+      if (options.preserveOverdue && isStageOverdue(stage, now)) {
+        cursor = new Date(Math.max(cursor.getTime(), stage.plannedEndAt?.getTime?.() ?? now.getTime()));
+        continue;
+      }
+      if (stage.stage === "SORTING") {
+        preparationStage = stage;
+        continue;
+      }
       const type = requiredMachineType(stage.stage);
       if (type) {
-        const slot = findEarliestAvailableSlot(order, stage.stage, machines, schedule, cursor);
+        const machineEarliestStart = preparationStage
+          ? minutes(cursor, getStageDuration(preparationStage.stage))
+          : cursor;
+        const slot = findEarliestAvailableSlot(order, stage.stage, machines, schedule, machineEarliestStart, now);
+        if (preparationStage) {
+          preparationStage.plannedStartAt = new Date(slot.plannedStartAt.getTime() - getStageDuration(preparationStage.stage) * 60_000);
+          preparationStage.plannedEndAt = slot.plannedStartAt;
+          preparationStage = null;
+        }
         stage.machineId = slot.machineId;
         stage.plannedStartAt = slot.plannedStartAt;
         stage.plannedEndAt = slot.plannedEndAt;

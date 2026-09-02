@@ -108,8 +108,14 @@ function stateMeta(item: QueueItem): { key: string; label: string; icon: LucideI
   return { key: 'default', label: 'ĐANG XỬ LÝ', icon: CircleCheck, automatic: false };
 }
 
-function riskClass(item: QueueItem) {
-  if (item.taskDelayMinutes > 0) return 'late';
+function taskDelayMinutes(item: QueueItem, now: number) {
+  if (!item.taskDeadlineAt) return 0;
+  const delay = now - new Date(item.taskDeadlineAt).getTime();
+  return Number.isFinite(delay) && delay > 0 ? Math.floor(delay / 60_000) : 0;
+}
+
+function riskClass(item: QueueItem, now: number) {
+  if (taskDelayMinutes(item, now) > 0) return 'late';
   return item.riskLevel === 'NOT_FEASIBLE' || item.riskLevel === 'AT_RISK' ? 'risk' : 'ok';
 }
 
@@ -123,7 +129,8 @@ function taskTone(item: QueueItem) {
 }
 
 export function QueueRow({ item, now, onOpen, onExpedite }: { item: QueueItem; now: number; onOpen: () => void; onExpedite: () => void }) {
-  const risk = riskClass(item);
+  const delayMinutes = taskDelayMinutes(item, now);
+  const risk = riskClass(item, now);
   const state = stateMeta(item);
   const StateIcon = state.icon;
   const instruction = physicalInstruction(item);

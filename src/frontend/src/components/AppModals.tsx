@@ -754,7 +754,7 @@ function orderTimingWarning(order: any, now: number, fallbackDeadline?: string) 
 }
 
 export function OrderDetailModal() {
-  const { openModal, closeM, showToast, orderModalParams, machines, orders, store, refreshOperations, setCurrentPage } = useApp();
+  const { openModal, closeM, showToast, orderModalParams, machines, orders, queueSnapshot, store, refreshOperations, setCurrentPage } = useApp();
   const isOpen = openModal === 'om';
   const p = orderModalParams;
 
@@ -797,10 +797,47 @@ export function OrderDetailModal() {
 
   // order = detail API (có stage data đầy đủ) > fallback context (hiển ngay)
   const order = detail ?? orderFromContext;
+  const queueItem = p?.orderId ? queueSnapshot?.items.find(item => item.orderId === p.orderId) : undefined;
+  const taskDelayMinutes = queueItem?.taskDelayMinutes ?? 0;
   const groupedOrders = order?.groupCode ? orders.filter(item => item.groupCode === order.groupCode) : [];
   const isGroupedOrder = Boolean(order?.groupCode);
   const groupLabel = groupedOrders.length > 0 ? `ĐƠN NHÓM · ${groupedOrders.length} MẺ` : 'ĐƠN NHÓM';
   const timingWarning = orderTimingWarning(order, now, p?.deadline);
+  const priorityDisplay = (() => {
+    const estimatedAt = order?.estimatedAt ? new Date(order.estimatedAt).getTime() : NaN;
+    const pickupAt = order?.pickupAt ? new Date(order.pickupAt).getTime() : NaN;
+    const hasScheduleTimes = Number.isFinite(estimatedAt) && Number.isFinite(pickupAt);
+    const isOnSchedule = order?.riskLevel === 'LOW' && !p?.atRisk;
+
+    if (taskDelayMinutes > 0) {
+      return {
+        summary: 'Đơn đang trễ tiến độ',
+        detail: `Đã trễ ${taskDelayMinutes} phút so với thời điểm cần xử lý`,
+      };
+    }
+    if (timingWarning?.title === 'Trễ tiến độ') {
+      return {
+        summary: timingWarning.title,
+        detail: timingWarning.detail,
+      };
+    }
+    if (!isOnSchedule) {
+      return {
+        summary: order?.priorityReason ?? 'Theo schedule hiện tại',
+        detail: null,
+      };
+    }
+    if (!hasScheduleTimes) {
+      return {
+        summary: 'Đơn đang đúng tiến độ theo lịch hiện tại',
+        detail: 'Chưa đủ dữ liệu giờ hẹn hoặc ETA để tính thời gian dự phòng',
+      };
+    }
+    return {
+      summary: 'Đơn đang đúng tiến độ theo lịch hiện tại',
+      detail: `Dự kiến hoàn tất ${safeFormatTime(order.estimatedAt)} · Còn ${Math.max(0, Math.floor((pickupAt - estimatedAt) / 60_000))} phút đến giờ hẹn`,
+    };
+  })();
 
   const actualSvc = order?.serviceType === 'WASH_DRY' ? 'combo' : order?.serviceType === 'DRY' ? 'dry' : order?.serviceType === 'WASH' ? 'wash' : p?.svcType;
   const svcLabel = actualSvc === 'combo' ? 'Giặt + Sấy' : actualSvc === 'wash' ? 'Chỉ Giặt' : 'Chỉ Sấy';
@@ -810,6 +847,7 @@ export function OrderDetailModal() {
   if (actualSvc === 'combo') { stages = ['Phân loại', 'Giặt', 'Chuyển đồ', 'Sấy', 'Đóng gói']; stageKeys = ['SORTING', 'WASH', 'TRANSFER', 'DRY', 'PACKING']; }
   else if (actualSvc === 'wash') { stages = ['Phân loại', 'Giặt', 'Đóng gói']; stageKeys = ['SORTING', 'WASH', 'PACKING']; }
   else { stages = ['Phân loại', 'Sấy', 'Đóng gói']; stageKeys = ['SORTING', 'DRY', 'PACKING']; }
+  const timelineStages = [...stages, 'Hoàn thành'];
 
   const stageList = order?.stages ?? [];
   const allCompleted = stageList.length > 0 && stageList.every((s: any) => s.status === 'COMPLETED');
@@ -983,13 +1021,15 @@ export function OrderDetailModal() {
 
   return (
     <div className={`mov${isOpen ? ' open' : ''}`} id="om" onClick={() => closeM('om')}>
-      <div className="modal" onClick={e => e.stopPropagation()}>
+      <div className="modal order-detail-modal" onClick={e => e.stopPropagation()}>
         <div className="mhd">
           <div className="mtitle">{order?.customer?.name ?? p.name} – Chi tiết đơn</div>
           <button className="mxbtn" onClick={() => closeM('om')}>
            <X className="icon icon-sm" aria-hidden="true" />
           </button>
         </div>
+
+        <div className="order-detail-content">
 
         {/* Header info */}
         <div style={{ display: 'flex', alignItems: 'flex-start', gap: 13, padding: '11px 0', borderBottom: '1.5px solid #f1f5f9', marginBottom: 11 }}>
@@ -1007,20 +1047,20 @@ export function OrderDetailModal() {
 
         {/* Progress steps */}
         <div style={{ display: 'flex', margin: '14px 0' }}>
-          {stages.map((s, i) => {
-            const done = i < cur;
-            const act = i === cur;
-            const stage = stageList.find((item: any) => item.stage === stageKeys[i]);
-            const hasActualStart = Boolean(stage?.actualStartedAt);
-            const stageTime = safeFormatTime(stage?.actualStartedAt ?? stage?.plannedStartAt, '--:--');
+          {timelineStages.map((s, i) => {
+            const isCompletionStep = i === stages.length;
+            const done = isCompletionStep ? isCompleted : i < cur;
+            const act = isCompletionStep ? isCompleted : i === cur;
+            const stage = isCompletionStep ? null : stageList.find((item: any) => item.stage === stageKeys[i]);
+            const stageTime = safeFormatTime(isCompletionStep ? order?.estimatedAt : stage?.plannedStartAt, '--:--');
             return (
               <div key={s} style={{ flex: 1, textAlign: 'center', position: 'relative' }}>
                 <div style={{ width: 26, height: 26, borderRadius: '50%', margin: '0 auto', zIndex: 1, position: 'relative', background: done || act ? '#7c3aed' : '#e2e8f0', color: done || act ? '#fff' : '#9ca3af', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700 }}>
                   {done ? <Check size={14} aria-hidden="true" /> : i + 1}
                 </div>
                 <div style={{ fontSize: '8.5px', color: act ? '#7c3aed' : '#9ca3af', marginTop: 3, fontWeight: act ? 700 : 400 }}>{s}</div>
-                <div className={`stage-time${hasActualStart ? ' actual' : ''}`} title={hasActualStart ? 'Giờ bắt đầu thực tế' : 'Giờ bắt đầu dự kiến'}>{stageTime}</div>
-                {i < stages.length - 1 && (
+                <div className="stage-time" title={isCompletionStep ? 'Giờ hoàn thành dự kiến' : 'Giờ bắt đầu dự kiến'}>{stageTime}</div>
+                {i < timelineStages.length - 1 && (
                   <div style={{ position: 'absolute', top: 13, left: '50%', width: '100%', height: 2, background: done ? '#7c3aed' : '#e2e8f0' }} />
                 )}
               </div>
@@ -1029,7 +1069,7 @@ export function OrderDetailModal() {
         </div>
 
         {/* Risk warning */}
-          {(order?.riskLevel === 'AT_RISK' || order?.riskLevel === 'NOT_FEASIBLE' || p.atRisk) && (
+          {(taskDelayMinutes > 0 || order?.riskLevel === 'AT_RISK' || order?.riskLevel === 'NOT_FEASIBLE' || p.atRisk) && (
           <div style={{ background: '#fee2e2', borderRadius: 9, padding: '11px 13px', margin: '11px 0', borderLeft: '3px solid var(--rd)' }}>
             <div style={{ fontSize: '11.5px', fontWeight: 700, color: 'var(--rd)', marginBottom: 3 }}>{timingWarning?.title ?? 'Nguy cơ trễ hẹn'}</div>
             <div style={{ fontSize: '11.5px', color: '#9ca3af' }}>{timingWarning?.detail ?? `Dự kiến xong ${safeFormatTime(order?.estimatedAt)} · Hẹn ${p.deadline || 'chưa có'}`}</div>
@@ -1055,7 +1095,7 @@ export function OrderDetailModal() {
           ) : 'Đang tải thông tin chi tiết...')}
         </div>
 
-        {detail?.priorityReason && <div className="order-priority-reason"><Info className="icon icon-sm" aria-hidden="true" /><span><strong>Lý do ưu tiên</strong>{detail.priorityReason}</span></div>}
+        {(detail?.priorityReason || priorityDisplay.summary) && <div className="order-priority-reason"><Info className="icon icon-sm" aria-hidden="true" /><span><strong>Lý do ưu tiên</strong><b>{priorityDisplay.summary}</b>{priorityDisplay.detail && <small>{priorityDisplay.detail}</small>}</span></div>}
         <div className="order-next-action"><strong>Việc cần làm tiếp theo</strong><span>{nextActionInstruction}</span></div>
 
         {showExpedite && (
@@ -1068,7 +1108,9 @@ export function OrderDetailModal() {
               </div>
             )}
             
-            <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 12 }}>
+            <div className="expedite-time-controls">
+              <button className="bs" onClick={() => handleQuickExpedite(-60)} disabled={modalBusy}>-1 giờ</button>
+              <button className="bs" onClick={() => handleQuickExpedite(-30)} disabled={modalBusy}>-30 phút</button>
               <button className="bs" style={{ padding: '6px 10px', fontSize: 12 }} onClick={() => handleQuickExpedite(15)} disabled={modalBusy}>+15 phút</button>
               <button className="bs" style={{ padding: '6px 10px', fontSize: 12 }} onClick={() => handleQuickExpedite(30)} disabled={modalBusy}>+30 phút</button>
               <button className="bs" style={{ padding: '6px 10px', fontSize: 12 }} onClick={() => handleQuickExpedite(60)} disabled={modalBusy}>+1 giờ</button>
@@ -1107,9 +1149,9 @@ export function OrderDetailModal() {
             <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 10 }}>
               <input className="finput" type="text" value={expediteReason} onChange={e => setExpediteReason(e.target.value)} placeholder="Nhập lý do đổi giờ (vd: Điều chỉnh để tránh trễ)..." disabled={modalBusy} style={{ flex: 1 }} />
             </div>
-            <div style={{ display: 'flex', gap: 8 }}>
+            <div className="expedite-actions">
               <button className="bs" onClick={() => { setShowExpedite(false); setExpediteCheck(null); setExpediteTime(''); setExpediteReason(''); }}>Hủy</button>
-                 <button className="bp" style={{ background: '#7c3aed', color: '#fff', flex: 1 }} onClick={handleConfirmExpedite} disabled={modalBusy || !expediteReason || !expediteCheck || !expediteCheck.canConfirm}>
+                 <button className="bp" style={{ background: '#7c3aed', color: '#fff' }} onClick={handleConfirmExpedite} disabled={modalBusy || !expediteReason || !expediteCheck || !expediteCheck.canConfirm}>
                  {isGroupedOrder ? 'Xác nhận đôn cả nhóm' : 'Xác nhận đôn đơn'}
               </button>
             </div>
@@ -1180,6 +1222,7 @@ export function OrderDetailModal() {
               </button>
             </>
           )}
+        </div>
         </div>
       </div>
     </div>

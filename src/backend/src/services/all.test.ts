@@ -8,7 +8,7 @@ import {
   calculateCompletionTiming,
   nextOrderStatusAfterStage,
 } from "./machine-workflow.js";
-import { getWorkflowStages, requiredMachineType } from "./scheduling.service.js";
+import { generateSchedule, getWorkflowStages, isStageOverdue, requiredMachineType } from "./scheduling.service.js";
 import { collapseNotificationGroups } from "./notification.service.js";
 import {
   getExpediteOrderIds,
@@ -139,4 +139,44 @@ test("đơn mới chỉ trễ phân loại sau khi hết thời lượng phân l
   assert.equal(beforeEnd.taskDelayMinutes, 0);
   assert.equal(afterEnd.taskDelayMinutes, 2);
   assert.equal(afterEnd.taskDeadlineAt?.toISOString(), "2026-09-01T08:05:00.000Z");
+});
+
+test("lịch sự kiện giữ nguyên công đoạn PLANNED đã quá hạn", () => {
+  const now = new Date("2026-09-01T09:00:00.000Z");
+  const oldStart = new Date("2026-09-01T08:00:00.000Z");
+  const oldEnd = new Date("2026-09-01T08:30:00.000Z");
+  const stage = { stage: "WASH", status: "PLANNED", machineId: 1, plannedStartAt: oldStart, plannedEndAt: oldEnd };
+  const order = { orderId: 81, status: "WAITING", serviceType: "WASH", weightKg: 3, createdAt: oldStart, readyAt: oldStart, pickupAt: new Date("2026-09-01T12:00:00.000Z"), stages: [stage] };
+  const machine = { machineId: 1, type: "WASHER", status: "AVAILABLE", capacityKg: 10, processingMinutes: 30 };
+  assert.equal(isStageOverdue(stage, now), true);
+  const result = generateSchedule([order], [machine], now, { preserveOverdue: true })[0];
+  assert.equal(result.stages[0].plannedStartAt.getTime(), oldStart.getTime());
+  assert.equal(result.stages[0].plannedEndAt.getTime(), oldEnd.getTime());
+  const recovered = generateSchedule([order], [machine], now, { preserveOverdue: false })[0];
+  assert.ok(recovered.stages[0].plannedStartAt.getTime() >= now.getTime());
+});
+
+test("phân loại được tính ngược từ slot máy", () => {
+  const now = new Date("2026-09-01T15:00:00.000Z");
+  const order = {
+    orderId: 82,
+    status: "RECEIVED",
+    serviceType: "WASH",
+    weightKg: 3,
+    createdAt: now,
+    readyAt: now,
+    pickupAt: new Date("2026-09-01T20:00:00.000Z"),
+    stages: [
+      { stage: "SORTING", status: "PLANNED", machineId: null },
+      { stage: "WASH", status: "PLANNED", machineId: null },
+      { stage: "PACKING", status: "PLANNED", machineId: null },
+    ],
+  };
+  const machine = { machineId: 1, type: "WASHER", status: "AVAILABLE", capacityKg: 10, processingMinutes: 30 };
+  const result = generateSchedule([order], [machine], now)[0];
+  const sorting = result.stages.find((stage) => stage.stage === "SORTING")!;
+  const wash = result.stages.find((stage) => stage.stage === "WASH")!;
+  assert.equal(sorting.plannedStartAt.toISOString(), "2026-09-01T15:00:00.000Z");
+  assert.equal(sorting.plannedEndAt.toISOString(), "2026-09-01T15:05:00.000Z");
+  assert.equal(wash.plannedStartAt.toISOString(), "2026-09-01T15:05:00.000Z");
 });
