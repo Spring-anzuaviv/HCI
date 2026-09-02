@@ -538,11 +538,67 @@
 <!-- MODAL ADD ORDER -->
 <div class="mov" id="modal-add-order">
   <div class="modal">
-    <div class="mhd"><div class="mtitle">Thêm đơn mới</div><button class="mxbtn" onclick="closeModal('add-order')"><svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
-    <div class="frow" style="margin-bottom:11px"><div class="fg"><label class="flbl">Tên khách hàng</label><input class="finput" type="text" placeholder="Nhập tên khách hàng" /></div><div class="fg"><label class="flbl">Số điện thoại</label><input class="finput" type="tel" placeholder="0901 234 567" /></div></div>
-    <div class="frow" style="margin-bottom:11px"><div class="fg"><label class="flbl">Dịch vụ</label><select class="finput"><option>Giặt + Sấy</option><option>Chỉ Giặt</option><option>Chỉ Sấy</option></select></div><div class="fg"><label class="flbl">Cân nặng (kg)</label><input class="finput" type="number" placeholder="5" min="0.5" step="0.5" /></div></div>
-    <div class="frow" style="margin-bottom:16px"><div class="fg"><label class="flbl">Giờ hẹn lấy</label><input class="finput" type="time" value="17:00" /></div></div>
-    <div style="display:flex;gap:9px;justify-content:flex-end;margin-top:18px"><button class="bs" onclick="closeModal('add-order')">Hủy</button><button class="bp">Tạo đơn</button></div>
+    <div class="mhd"><div class="mtitle">Thêm đơn hàng mới</div><button class="mxbtn" onclick="closeModal('add-order')"><svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+    
+    <div class="frow" style="margin-bottom:11px">
+      <div class="fg"><label class="flbl">Khối lượng (KG)</label><input class="finput" type="number" id="add-kg" value="3" onchange="simulateCalc()" /></div>
+      <div class="fg"><label class="flbl">Ngày hẹn lấy</label><input class="finput" type="date" id="add-date" value="2026-09-02" onchange="simulateCalc()" /></div>
+    </div>
+    
+    <div class="frow" style="margin-bottom:11px">
+      <div class="fg"><label class="flbl">Giờ hẹn lấy</label><input class="finput" type="time" id="add-time" value="18:00" onchange="simulateCalc()" /></div>
+    </div>
+    
+    <div class="frow" style="margin-bottom:11px" id="add-svc-row">
+      <div class="fg"><label class="flbl">Dịch vụ</label><select class="finput" id="add-svc" onchange="simulateCalc()"><option>Giặt + Sấy</option><option>Chỉ Giặt</option><option>Chỉ Sấy</option></select></div>
+    </div>
+    
+    <div id="add-calc" style="background:#f8fafc; border-radius:9px; padding:11px 14px; margin-bottom:14px; font-size:11.5px; color:var(--ts); display:flex; align-items:flex-start; gap:8px">
+      <strong style="white-space:nowrap; color:var(--ts)">Dự tính:</strong> Vui lòng nhập thông tin để hệ thống kiểm tra giờ.
+    </div>
+
+    <label style="display:flex; align-items:center; gap:8px; font-size:12.5px; font-weight:700; color:var(--tx); margin-bottom:14px; cursor:pointer" id="add-split-label">
+      <input type="checkbox" id="add-split-chk" onchange="toggleSplit(this.checked)" style="width:16px; height:16px; cursor:pointer; accent-color: var(--pu)" />
+      Tách đơn thành nhiều mẻ
+    </label>
+
+    <div id="add-split-box" style="display:none; background:#f8fafc; border:1px solid #e2e8f0; border-radius:9px; padding:14px; margin-bottom:14px">
+      <div style="font-size:12px; font-weight:700; margin-bottom:10px; display:flex; justify-content:space-between">
+        Các mẻ <span style="color:var(--ts)" id="split-total-lbl">Tổng: 3.00 / 3kg</span>
+      </div>
+      <div id="split-parts-container">
+        <div class="frow" style="margin-bottom:8px; align-items:center">
+          <span style="font-size:11.5px; font-weight:600; width:45px">Mẻ 1</span>
+          <input type="number" class="finput" value="1.5" step="0.1" style="width:70px; height:32px; padding:6px" onchange="updateSplitTotal()" />
+          <select class="finput" style="flex:1; height:32px; padding:6px"><option>Giặt + Sấy</option><option>Chỉ giặt</option><option>Chỉ sấy</option></select>
+          <input type="text" class="finput" placeholder="Ghi chú mẻ" style="flex:1; height:32px; padding:6px" />
+        </div>
+        <div class="frow" style="margin-bottom:8px; align-items:center">
+          <span style="font-size:11.5px; font-weight:600; width:45px">Mẻ 2</span>
+          <input type="number" class="finput" value="1.5" step="0.1" style="width:70px; height:32px; padding:6px" onchange="updateSplitTotal()" />
+          <select class="finput" style="flex:1; height:32px; padding:6px"><option>Giặt + Sấy</option><option>Chỉ giặt</option><option>Chỉ sấy</option></select>
+          <input type="text" class="finput" placeholder="Ghi chú mẻ" style="flex:1; height:32px; padding:6px" />
+        </div>
+      </div>
+      <button type="button" class="bs" style="padding:4px 8px; font-size:10.5px; margin-top:5px" onclick="addSplitPart()">+ Thêm mẻ</button>
+    </div>
+
+    <div class="frow" style="margin-bottom:11px">
+      <div class="fg"><label class="flbl">Tên khách hàng</label><input class="finput" type="text" id="add-name" placeholder="Ví dụ: Nguyễn Văn A" /></div>
+      <div class="fg"><label class="flbl">Số điện thoại</label><input class="finput" type="tel" id="add-phone" placeholder="09xx xxx xxx" /></div>
+    </div>
+    
+    <div class="frow" style="margin-bottom:16px" id="add-note-row">
+      <div class="fg"><label class="flbl">Ghi chú</label><input class="finput" type="text" id="add-note" placeholder="Tùy chọn..." /></div>
+    </div>
+
+    <div style="display:flex;gap:9px;justify-content:flex-end;margin-top:18px">
+      <button class="bs" style="padding:8px 16px" onclick="closeModal('add-order')">Hủy</button>
+      <button class="bp" style="padding:8px 16px" onclick="submitAddOrder()">
+        <svg class="icon icon-sm" style="margin-right:4px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Tạo đơn
+      </button>
+    </div>
   </div>
 </div>
 
@@ -1151,6 +1207,126 @@ function render() {
 document.addEventListener("DOMContentLoaded", () => {
   render();
 });
+function simulateCalc() {
+  const calcBox = document.getElementById('add-calc');
+  if(!calcBox) return;
+  const kg = document.getElementById('add-kg').value;
+  const time = document.getElementById('add-time').value;
+  if(kg > 0 && time) {
+    const isRisk = time < "15:00"; 
+    
+    if (isRisk) {
+      calcBox.style.background = '#fef2f2';
+      calcBox.style.color = '#991b1b';
+      calcBox.innerHTML = `
+        <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0; margin-top:2px">
+          <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path>
+          <line x1="12" y1="9" x2="12" y2="13"></line>
+          <line x1="12" y1="17" x2="12.01" y2="17"></line>
+        </svg> 
+        <div style="line-height:1.5; font-size:11.5px">
+          <span style="font-weight:600">Cần kiểm tra lại lịch máy và giờ hẹn.</span><br/>
+          Dự kiến xong: 13:30<br/>
+          Đã cộng thêm 5 phút thời gian đệm<br/>
+          Để đảm bảo đúng hẹn, nên chọn giờ lấy từ 13:50 trở đi<br/>
+          Thời gian xử lý: khoảng 1h15p
+        </div>
+      `;
+    } else {
+      calcBox.style.background = '#f0fdf4';
+      calcBox.style.color = '#166534';
+      calcBox.innerHTML = `
+        <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0; margin-top:2px">
+          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+          <polyline points="22 4 12 14.01 9 11.01"></polyline>
+        </svg> 
+        <div style="line-height:1.5; font-size:11.5px">
+          <span style="font-weight:600">Đủ thời gian xử lý.</span><br/>
+          Dự kiến xong: 16:30<br/>
+          Đã cộng thêm 5 phút thời gian đệm<br/>
+          Để đảm bảo đúng hẹn, nên chọn giờ lấy từ 16:45 trở đi<br/>
+          Thời gian xử lý: khoảng 1h15p
+        </div>
+      `;
+    }
+  } else {
+    calcBox.style.background = '#f8fafc';
+    calcBox.style.color = 'var(--ts)';
+    calcBox.innerHTML = `<strong style="white-space:nowrap; color:var(--ts)">Dự tính:</strong> Vui lòng nhập thông tin để hệ thống kiểm tra giờ.`;
+  }
+}
+
+function toggleSplit(isSplit) {
+  const svcRow = document.getElementById('add-svc-row');
+  const calcBox = document.getElementById('add-calc');
+  const splitBox = document.getElementById('add-split-box');
+  const noteRow = document.getElementById('add-note-row');
+  
+  if(isSplit) {
+    if(svcRow) svcRow.style.display = 'none';
+    if(calcBox) calcBox.style.display = 'none';
+    if(noteRow) noteRow.style.display = 'none';
+    if(splitBox) splitBox.style.display = 'block';
+  } else {
+    if(svcRow) svcRow.style.display = 'flex';
+    if(calcBox) calcBox.style.display = 'flex';
+    if(noteRow) noteRow.style.display = 'flex';
+    if(splitBox) splitBox.style.display = 'none';
+  }
+}
+
+function updateSplitTotal() {
+  const inputs = document.querySelectorAll('#split-parts-container input[type="number"]');
+  let sum = 0;
+  inputs.forEach(inp => sum += Number(inp.value) || 0);
+  const totalKg = document.getElementById('add-kg').value;
+  const lbl = document.getElementById('split-total-lbl');
+  if(lbl) lbl.innerText = `Tổng: ${sum.toFixed(2)} / ${totalKg}kg`;
+}
+
+function addSplitPart() {
+  const container = document.getElementById('split-parts-container');
+  const idx = container.children.length + 1;
+  const div = document.createElement('div');
+  div.className = 'frow';
+  div.style.marginBottom = '8px';
+  div.style.alignItems = 'center';
+  div.innerHTML = `
+    <span style="font-size:11.5px; font-weight:600; width:45px">Mẻ ${idx}</span>
+    <input type="number" class="finput" value="1.5" step="0.1" style="width:70px; height:32px; padding:6px" onchange="updateSplitTotal()" />
+    <select class="finput" style="flex:1; height:32px; padding:6px"><option>Giặt + Sấy</option><option>Chỉ giặt</option><option>Chỉ sấy</option></select>
+    <input type="text" class="finput" placeholder="Ghi chú mẻ" style="flex:1; height:32px; padding:6px" />
+  `;
+  container.appendChild(div);
+  updateSplitTotal();
+}
+
+function submitAddOrder() {
+  const name = document.getElementById('add-name').value;
+  if(!name) {
+    if(typeof showToast === 'function') showToast('Vui lòng nhập tên khách hàng', 'red');
+    else alert('Vui lòng nhập tên khách hàng');
+    return;
+  }
+  const isSplit = document.getElementById('add-split-chk').checked;
+  if(isSplit) {
+    if(typeof showToast === 'function') showToast(`Đã tạo nhóm đơn cho ${name}`, 'grn');
+    else alert(`Đã tạo nhóm đơn cho ${name}`);
+  } else {
+    if(typeof showToast === 'function') showToast(`Đã tạo đơn cho ${name}`, 'grn');
+    else alert(`Đã tạo đơn cho ${name}`);
+  }
+  closeModal('add-order');
+  
+  // reset
+  document.getElementById('add-name').value = '';
+  document.getElementById('add-phone').value = '';
+  document.getElementById('add-note').value = '';
+  document.getElementById('add-kg').value = '3';
+  document.getElementById('add-split-chk').checked = false;
+  toggleSplit(false);
+  simulateCalc();
+}
 </script>
 </body>
 </html>
