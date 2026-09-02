@@ -228,6 +228,35 @@
     .filter-tabs { display: flex; gap: 6px; }
     .filter-tab { border-radius: 100px; padding: 7px 16px; font-size: 13px; font-weight: 600; cursor: pointer; border: 1.5px solid #e2e8f0; background: #fff; color: var(--ts); font-family: 'Inter', sans-serif; transition: all .15s; }
     .filter-tab.active { background: var(--pu); color: #fff; border-color: var(--pu); }
+    .machine-reminder-fab { position: fixed; right: 22px; bottom: 22px; z-index: 90; width: 56px; height: 56px; border: 0; border-radius: 50%; background: var(--pu); color: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 8px 20px rgba(92,33,182,.3); }
+    .machine-reminder-fab:hover { background: var(--pu3); transform: translateY(-2px); }
+    .machine-reminder-fab:focus-visible { outline: 3px solid var(--ye); outline-offset: 3px; }
+    .machine-reminder-fab.is-snoozed { background: #94a3b8; cursor: not-allowed; box-shadow: none; }
+    .machine-reminder-actions { display: flex; gap: 9px; justify-content: flex-end; flex-wrap: wrap; margin-top: 18px; }
+    .completion-overlay { position: fixed; inset: 0; z-index: 180; display: none; align-items: center; justify-content: center; padding: 20px; background: rgba(15,10,40,.66); backdrop-filter: blur(3px); }
+    .completion-overlay.open { display: flex; }
+    .completion-dialog { width: 660px; max-width: 94vw; max-height: 92vh; overflow-y: auto; background: #fff; border: 2px solid #fbbf24; border-radius: 20px; box-shadow: 0 24px 70px rgba(30,27,75,.32); }
+    .completion-panel { padding: 24px 26px 22px; outline: none; }
+    .completion-kicker { display: flex; align-items: center; gap: 8px; color: #92400e; font-size: 10.5px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; }
+    .completion-bell { width: 25px; height: 25px; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; background: #fbbf24; color: #1e1b4b; }
+    .completion-heading-row { display: flex; align-items: flex-start; gap: 18px; margin-top: 12px; }
+    .completion-heading-row h2 { color: var(--tx); font-size: 25px; line-height: 1.15; }
+    .completion-heading-row p { margin-top: 5px; color: var(--ts); font-size: 13px; }
+    .completion-state-badge { margin-left: auto; flex-shrink: 0; padding: 6px 9px; border-radius: 8px; background: #fef3c7; color: #92400e; font-size: 10.5px; font-weight: 800; border: 1px solid #fcd34d; }
+    .completion-order-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; margin: 20px 0; overflow: hidden; border: 1px solid #e5e7eb; border-radius: 12px; background: #e5e7eb; }
+    .completion-order-grid > div { display: flex; flex-direction: column; gap: 4px; min-height: 72px; padding: 12px 14px; background: #fff; }
+    .completion-order-grid span { color: var(--ts); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
+    .completion-order-grid strong { color: var(--tx); font-size: 12px; line-height: 1.45; }
+    .completion-takeout-step { display: flex; flex-direction: column; gap: 12px; align-items: stretch; }
+    .completion-takeout-copy { display: flex; align-items: flex-start; gap: 10px; }
+    .completion-step-number { width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; border-radius: 50%; background: var(--pu); color: #fff; font-size: 12px; font-weight: 800; }
+    .completion-takeout-copy strong { color: var(--tx); font-size: 13px; }
+    .completion-takeout-copy p { margin-top: 3px; color: var(--ts); font-size: 10.5px; line-height: 1.45; }
+    .completion-primary { min-height: 42px; padding: 0 18px; justify-content: center; width: 100%; }
+    .completion-reminder-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; width: 100%; }
+    .completion-reminder-actions .bs { width: 100%; min-height: 38px; justify-content: center; }
+    .completion-dialog button:focus-visible { outline: 3px solid rgba(59,130,246,.38); outline-offset: 2px; }
+    @media(max-width:600px){.completion-dialog{max-width:calc(100vw - 24px)}.completion-panel{padding:20px 16px 18px}.completion-heading-row{gap:10px}.completion-heading-row h2{font-size:21px}.completion-state-badge{font-size:9px}.completion-order-grid{grid-template-columns:1fr}.completion-reminder-actions{grid-template-columns:1fr}}
     @media (max-width: 1100px) { :root { --rw: 220px; --sw: 90px; } }
     @media (max-width: 760px) {
       body { height: auto; overflow: auto; } :root { --sw: 72px; }
@@ -239,9 +268,12 @@
       .pwrap { overflow: visible; padding: 0 10px 14px; }
       .oq-task-layout { display: flex; flex-direction: column; gap: 10px; }
       .oq-task-side { align-items: stretch; padding: 10px 0 0; border-top: 1px solid #e5e7eb; border-left: none; }
+      .machine-reminder-fab { right: 16px; bottom: 16px; }
+      .machine-reminder-actions { flex-direction: column-reverse; }
+      .machine-reminder-actions button { width: 100%; justify-content: center; }
     }
 
-  </style>
+ </style>
 </head>
 <body>
 <div class="shell" id="app-shell">
@@ -531,9 +563,23 @@
     </div>
   </div>
   </aside>
-</div>
+   <button class="machine-reminder-fab" id="machine-reminder-fab" type="button" title="Mở nhắc nhở máy giặt" aria-label="Mở nhắc nhở Máy giặt 1" onclick="openMachineReminder()">
+     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+   </button>
+ </div>
 
 <div class="tc" id="toast-container"></div>
+
+<div class="completion-overlay" id="modal-machine-reminder" onclick="closeModal('machine-reminder')" role="presentation">
+  <section class="completion-dialog" onclick="event.stopPropagation()" role="dialog" aria-modal="true" aria-labelledby="machine-completion-title">
+    <div class="completion-panel" tabindex="-1">
+      <div class="completion-kicker"><span class="completion-bell"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></span>Máy vừa hoàn tất · Cần lấy đồ ra</div>
+      <div class="completion-heading-row"><div><h2 id="machine-completion-title">Máy giặt 1 đã hoàn thành</h2><p>Hãy lấy quần áo ra khỏi máy.</p></div><span class="completion-state-badge">Cần xử lý</span></div>
+      <div class="completion-order-grid"><div><span>Đơn hàng</span><strong>#14 · Lê Thị Hoa</strong></div><div><span>Công đoạn</span><strong>Giặt</strong></div><div><span>Hoàn tất lúc</span><strong>15:30</strong></div><div><span>Việc tiếp theo</span><strong>Chuyển quần áo sang khu vực gấp và đóng gói</strong></div></div>
+      <div class="completion-takeout-step"><div class="completion-takeout-copy"><span class="completion-step-number">1</span><div><strong>Lấy quần áo ra khỏi máy</strong><p>Chỉ xác nhận sau khi đã lấy hết đồ.</p></div></div><button class="bp completion-primary" type="button" onclick="confirmMachinePickup()">Đã lấy đồ xong</button><div class="completion-reminder-actions"><button class="bs" type="button" onclick="snoozeMachineReminder(5)">Nhắc sau 5 phút</button><button class="bs" type="button" onclick="snoozeMachineReminder(10)">Nhắc sau 10 phút</button></div></div>
+    </div>
+  </section>
+</div>
 
 <!-- MODAL ADD ORDER -->
 <div class="mov" id="modal-add-order">
@@ -905,6 +951,36 @@ Cảm ơn bạn đã sử dụng dịch vụ của WashTrack!`;
 function closeModal(id) {
   var m = document.getElementById("modal-" + id);
   if (m) m.classList.remove("open");
+}
+let machineReminderTimer;
+function openMachineReminder() {
+  const fab = document.getElementById("machine-reminder-fab");
+  if (fab.classList.contains("is-snoozed")) return;
+  openModal("machine-reminder");
+}
+function snoozeMachineReminder(minutes) {
+  closeModal("machine-reminder");
+  const fab = document.getElementById("machine-reminder-fab");
+  fab.classList.add("is-snoozed");
+  fab.disabled = true;
+  fab.title = `Đã hẹn lại, nhắc lại sau ${minutes} phút`;
+  showToast(`Đã hẹn lại nhắc Máy giặt 1 sau ${minutes} phút`);
+  clearTimeout(machineReminderTimer);
+  machineReminderTimer = setTimeout(() => {
+    fab.classList.remove("is-snoozed");
+    fab.disabled = false;
+    fab.title = "Mở nhắc nhở máy giặt";
+    showToast("Máy giặt 1 đã xong, vui lòng lấy đồ ra");
+  }, minutes * 60 * 1000);
+}
+function confirmMachinePickup() {
+  closeModal("machine-reminder");
+  const fab = document.getElementById("machine-reminder-fab");
+  fab.classList.remove("is-snoozed");
+  fab.disabled = false;
+  fab.title = "Mở nhắc nhở máy giặt";
+  clearTimeout(machineReminderTimer);
+  showToast("Đã xác nhận lấy đồ ra khỏi Máy giặt 1");
 }
 window.addEventListener("click", e => {
   if (e.target.classList.contains("mov")) e.target.classList.remove("open");

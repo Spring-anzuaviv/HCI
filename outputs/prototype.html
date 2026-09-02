@@ -1801,6 +1801,11 @@
       color: #333;
       box-shadow: 4px 4px 0 #333;
     }
+    .machine-reminder-fab{border-radius:50% !important;background:#fff !important;color:#333 !important;border:2px solid #333 !important;position:fixed;right:22px;bottom:22px;z-index:90;width:56px;height:56px;display:flex;align-items:center;justify-content:center;cursor:pointer}
+    .machine-reminder-fab:hover,.machine-reminder-fab:focus-visible{background:#eee !important;outline:3px solid #333;outline-offset:3px}
+    .machine-reminder-fab.is-snoozed{background:#eee !important;cursor:not-allowed}
+    .machine-reminder-actions{display:flex;gap:9px;justify-content:flex-end;flex-wrap:wrap;margin-top:18px}
+    @media(max-width:600px){.machine-reminder-fab{right:16px;bottom:16px}.machine-reminder-actions{flex-direction:column-reverse}.machine-reminder-actions button{width:100%;justify-content:center}}
   </style>
 </head>
 
@@ -2868,9 +2873,18 @@
 
   </aside>
 
+  <button class="machine-reminder-fab" id="machine-reminder-fab" type="button" title="Mở nhắc nhở máy giặt" aria-label="Mở nhắc nhở Máy giặt 1" onclick="openMachineReminder()">
+    <svg class="icon icon-lg"><use href="#i-bell" /></svg>
+  </button>
 </div><!-- /shell -->
-
 <!-- ══════════════ MODALS ══════════════ -->
+<div class="mov" id="machine-reminder" onclick="closeM('machine-reminder')">
+  <div class="modal" onclick="event.stopPropagation()" style="width:390px">
+    <div class="mhd"><div class="mtitle" style="display:flex;align-items:center;gap:8px"><svg class="icon"><use href="#i-bell" /></svg>Nhắc lấy đồ</div><button class="mxbtn" type="button" aria-label="Đóng" onclick="closeM('machine-reminder')"><svg class="icon icon-sm"><use href="#i-x" /></svg></button></div>
+    <div class="impbox" style="margin-top:0"><div class="impt"><svg class="icon icon-sm"><use href="#i-alert" /></svg>Máy đã hoàn tất</div><div class="impi" style="margin-bottom:0"><svg class="icon icon-sm"><use href="#i-check-circle" /></svg><span><strong>Máy giặt 1 đã xong</strong><br />Vui lòng lấy đồ ra để chuyển sang công đoạn tiếp theo.</span></div></div>
+    <div class="machine-reminder-actions"><button class="bs" type="button" onclick="snoozeMachineReminder(10)">Hẹn lại sau 10 phút</button><button class="bs" type="button" onclick="snoozeMachineReminder(5)">Hẹn lại sau 5 phút</button><button class="bp" type="button" onclick="confirmMachinePickup()"><svg class="icon icon-sm"><use href="#i-check" /></svg>Xác nhận lấy đồ ra</button></div>
+  </div>
+</div>
 <div class="mov" id="om" onclick="closeM('om')">
   <div class="modal" onclick="event.stopPropagation()">
     <div class="mhd">
@@ -3464,6 +3478,28 @@
   }
   function openM(id) { document.getElementById(id).classList.add('open') }
   function closeM(id) { document.getElementById(id).classList.remove('open') }
+  let machineReminderTimer;
+  function openMachineReminder() {
+    const fab = document.getElementById('machine-reminder-fab');
+    if (fab.classList.contains('is-snoozed')) return;
+    openM('machine-reminder');
+  }
+  function snoozeMachineReminder(minutes) {
+    closeM('machine-reminder');
+    const fab = document.getElementById('machine-reminder-fab');
+    fab.classList.add('is-snoozed'); fab.disabled = true;
+    fab.title = `Đã hẹn lại, nhắc lại sau ${minutes} phút`;
+    showT(`Đã hẹn lại nhắc Máy giặt 1 sau ${minutes} phút`, 'grn');
+    clearTimeout(machineReminderTimer);
+    machineReminderTimer = setTimeout(() => { fab.classList.remove('is-snoozed'); fab.disabled = false; fab.title = 'Mở nhắc nhở máy giặt'; showT('Máy giặt 1 đã xong, vui lòng lấy đồ ra', 'red') }, minutes * 60 * 1000);
+  }
+  function confirmMachinePickup() {
+    closeM('machine-reminder');
+    const fab = document.getElementById('machine-reminder-fab');
+    fab.classList.remove('is-snoozed'); fab.disabled = false; fab.title = 'Mở nhắc nhở máy giặt';
+    clearTimeout(machineReminderTimer);
+    showT('Đã xác nhận lấy đồ ra khỏi Máy giặt 1', 'grn');
+  }
 
   function checkMachStatus() {
     const sel = document.getElementById('om-mach');
