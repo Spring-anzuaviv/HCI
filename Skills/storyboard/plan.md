@@ -60,7 +60,7 @@ Output phải nhất quán với Persona, Scenario và Value Proposition, đồn
 
 ## Workflow
 
-1. Đọc `Agents.md`, `plan.md` cấp project, `skills/storyboard/skill.md`, `rules/HCI.md`, `inputs/Rubric.md` và các input `outputs/Persona.md`, `outputs/scenario-1.md`, `outputs/scenario-2.md`, `outputs/value-proposition.md`
+1. Đọc `AGENTS.md`, `plan.md` cấp project, `skills/storyboard/skill.md`, `rules/domains/hci.md`, `inputs/Rubric.md` và các input `outputs/Persona.md`, `outputs/scenario-1.md`, `outputs/scenario-2.md`, `outputs/value-proposition.md`
 2. Đọc Persona trước để xác định người dùng chính, goals, tasks, behaviors, motivations, frustrations, môi trường vật lý, môi trường xã hội và bối cảnh cảm xúc.
 3. Đọc Value Proposition để xác định pain/gain, pain relievers, gain creators và giá trị phải nhìn thấy được qua sự thay đổi trong câu chuyện.
 4. Đọc Scenario 1 để hiểu tình huống hiện tại, chuỗi hành động và pain; đọc Scenario 2 để hiểu tương tác mới, phản hồi hệ thống, kết quả cải thiện và các quyết định thiết kế cần thể hiện.

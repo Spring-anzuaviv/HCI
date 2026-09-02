@@ -39,10 +39,13 @@ Không gọi skill này khi chỉ muốn tạo giao diện, storyboard, wirefram
 - Trích dẫn trực tiếp có nguồn.
 - Ý tưởng sản phẩm hoặc tính năng cần kiểm tra.
 - Template hoặc canvas của lecturer, nếu có.
+- Template canonical của dự án: `templates/value-proposition.md`.
 
 Mỗi input cần được ghi nguồn và trạng thái bằng chứng khi có thể. Nếu input là dữ liệu mô phỏng hoặc giả định, phải ghi rõ.
 
 ## Output
+
+Định dạng và thứ tự section phải theo `templates/value-proposition.md`; file này là template canonical của deliverable.
 
 Đầu ra mặc định là một tài liệu Markdown gồm:
 

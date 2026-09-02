@@ -22,7 +22,11 @@ Một hoặc nhiều trong số:
 - Kết quả phỏng vấn / quan sát người dùng thực tế.
 - Bối cảnh cụ thể: địa điểm, thời điểm, tình trạng ban đầu (số đơn, máy đang chạy, v.v.).
 
-## Output
+## Template và Output
+
+Template canonical: `templates/scenario-1.md`.
+
+Output hoàn chỉnh: `outputs/scenario-1.md`.
 
 Một Scenario 1 hoàn chỉnh, dạng Markdown, gồm:
 
@@ -44,4 +48,4 @@ Output phải nhất quán với Persona và Value Proposition Canvas, đồng t
 7. Viết phần phân tích pain points dạng callout bên ngoài tường thuật (không chen vào giữa đoạn văn chính). Mỗi mục ghi rõ tính năng sẽ giải quyết.
 8. Gắn nhãn bằng chứng [F] / [S] / [A] cho từng nội dung.
 9. Kiểm tra output theo Validation Checklist trong `skills/scenario-1/skill.md` và `docs/Rubric.md`.
-10. Lưu kết quả vào `docs/scenario-1.md` và `templates/assets/scenario-1.html`.
+10. Mở và điền `templates/scenario-1.md`, sau đó lưu kết quả hoàn chỉnh vào `outputs/scenario-1.md`.

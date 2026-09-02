@@ -90,6 +90,8 @@ Trước khi xuất output, kiểm tra:
 
 ## Scenario 2 Template
 
+Template canonical của dự án là `templates/scenario-2.md`. Dùng file này làm cấu trúc xuất output; khung dưới đây là quy định nội dung tương ứng.
+
 ```markdown
 # Scenario 2 — Hệ thống tương lai
 

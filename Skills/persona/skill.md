@@ -46,6 +46,8 @@ Trước khi xuất persona, kiểm tra các cặp quan hệ sau có nhất quá
 
 ## Persona template (dùng ở bước xuất output)
 
+Template canonical nằm tại `templates/persona.md`. Luôn đọc và dùng file này khi xuất persona; phần khung dưới đây mô tả các yêu cầu nội dung tương ứng để validation.
+
 Khung chuẩn theo mẫu môn học (HCI - FIT - HCMUS). Phải giữ đúng thứ tự và tên các mục sau, không tự đổi tên hoặc gộp mục:
 
 ```markdown

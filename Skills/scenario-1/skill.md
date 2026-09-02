@@ -139,6 +139,8 @@ Trước khi xuất output, kiểm tra:
 
 ## Scenario Template
 
+Template canonical của dự án là `templates/scenario-1.md`. Dùng file này làm cấu trúc xuất output; khung dưới đây là quy định nội dung tương ứng.
+
 Khung chuẩn cho deliverable Scenario 1:
 
 ```markdown
