@@ -1,5 +1,6 @@
 import { prisma } from "../lib/prisma.js";
 import { ApiError } from "../lib/http.js";
+import { formatDurationLabel } from "../utils/timeFormat.js";
 import {
   findOrderForStore,
   findStoreOrders,
@@ -381,7 +382,7 @@ export async function completeRun(orderStageId: number, storeId: number) {
       throw new ApiError(
         409,
         "MACHINE_NOT_FINISHED",
-        `Máy chưa hoàn tất, còn khoảng ${timing.timeLeft ?? 0} phút`,
+        `Máy chưa hoàn tất, còn khoảng ${formatDurationLabel(timing.timeLeft ?? 0)}`,
       );
   }
 

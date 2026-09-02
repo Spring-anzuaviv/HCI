@@ -136,7 +136,7 @@ export function AddOrderModal() {
             const hrs = Math.floor(result.requiredMinutes / 60);
             const mins = result.requiredMinutes % 60;
             durationText = hrs > 0
-              ? `Thời gian xử lý: khoảng ${hrs} giờ${mins > 0 ? ` ${mins} phút` : ''}`
+              ? `Thời gian xử lý: khoảng ${hrs}h${mins > 0 ? `${mins}p` : ''}`
               : `Thời gian xử lý: khoảng ${mins} phút`;
           }
           const timingText = recommendedPickup

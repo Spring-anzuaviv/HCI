@@ -3,6 +3,7 @@ import {
   getWorkflowStages,
   requiredMachineType,
 } from "./scheduling.service.js";
+import { formatDurationLabel } from "../utils/timeFormat.js";
 
 export const smartQueueRiskThresholdMinutes = 15;
 
@@ -90,10 +91,10 @@ export function evaluateQueueRisk(
     minutesToPickup: Math.floor((pickupAt.getTime() - now.getTime()) / 60_000),
     missingFields,
     riskMessage: riskLevel === "NOT_FEASIBLE"
-      ? `Dự kiến trễ ${Math.abs(slackMinutes ?? 0)} phút`
+      ? `Dự kiến trễ ${formatDurationLabel(Math.abs(slackMinutes ?? 0))}`
       : riskLevel === "AT_RISK"
-        ? `Chỉ còn ${slackMinutes ?? 0} phút dự phòng`
-        : `Còn ${slackMinutes ?? 0} phút dự phòng`,
+        ? `Chỉ còn ${formatDurationLabel(slackMinutes ?? 0)} dự phòng`
+        : `Còn ${formatDurationLabel(slackMinutes ?? 0)} dự phòng`,
   };
 }
 
@@ -211,8 +212,8 @@ export function buildRecommendationReasons(
   if (risk.minutesToPickup !== null) {
     reasons.push(
       risk.minutesToPickup < 0
-        ? `Đã quá giờ hẹn ${Math.abs(risk.minutesToPickup)} phút`
-        : `Còn ${risk.minutesToPickup} phút đến giờ hẹn`,
+        ? `Đã quá giờ hẹn ${formatDurationLabel(Math.abs(risk.minutesToPickup))}`
+        : `Còn ${formatDurationLabel(risk.minutesToPickup)} đến giờ hẹn`,
     );
   }
   reasons.push(`${machine.name ?? `Máy ${machine.machineId}`} phù hợp`);
