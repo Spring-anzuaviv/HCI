@@ -106,8 +106,14 @@ function stateMeta(item: QueueItem): { key: string; label: string; icon: LucideI
   return { key: 'default', label: 'ĐANG XỬ LÝ', icon: CircleCheck, automatic: false };
 }
 
-function riskClass(item: QueueItem) {
-  if (item.taskDelayMinutes > 0) return 'late';
+function taskDelayMinutes(item: QueueItem, now: number) {
+  if (!item.taskDeadlineAt) return 0;
+  const delay = now - new Date(item.taskDeadlineAt).getTime();
+  return Number.isFinite(delay) && delay > 0 ? Math.floor(delay / 60_000) : 0;
+}
+
+function riskClass(item: QueueItem, now: number) {
+  if (taskDelayMinutes(item, now) > 0) return 'late';
   return item.riskLevel === 'NOT_FEASIBLE' || item.riskLevel === 'AT_RISK' ? 'risk' : 'ok';
 }
 
@@ -121,7 +127,8 @@ function taskTone(item: QueueItem) {
 }
 
 export function QueueRow({ item, now, onOpen, onExpedite }: { item: QueueItem; now: number; onOpen: () => void; onExpedite: () => void }) {
-  const risk = riskClass(item);
+  const delayMinutes = taskDelayMinutes(item, now);
+  const risk = riskClass(item, now);
   const state = stateMeta(item);
   const StateIcon = state.icon;
   const instruction = physicalInstruction(item);
@@ -152,7 +159,7 @@ export function QueueRow({ item, now, onOpen, onExpedite }: { item: QueueItem; n
           <div className="oq-priority-reason"><Info size={13} aria-hidden="true" /> <span>Lý do ưu tiên: {item.priorityReason || 'Theo thứ tự hàng đợi hiện tại'}</span></div>
         </div>
         <div className="oq-task-side">
-          <div className={`oq-task-priority${risk !== 'ok' ? ` ${risk}` : ''}`}>{risk === 'late' ? `TRỄ TIẾN ĐỘ ${item.taskDelayMinutes} PHÚT` : risk === 'risk' ? 'NGUY CƠ TRỄ GIỜ HẸN' : `ƯU TIÊN ${item.rank}`}</div>
+           <div className={`oq-task-priority${risk !== 'ok' ? ` ${risk}` : ''}`}>{risk === 'late' ? `TRỄ TIẾN ĐỘ ${delayMinutes} PHÚT` : risk === 'risk' ? 'NGUY CƠ TRỄ GIỜ HẸN' : `ƯU TIÊN ${item.rank}`}</div>
           <div className="oq-task-pickup">Hẹn lấy <strong>{formatTime(item.pickupAt, 'chưa hẹn')}</strong></div>
           <div className="oq-task-actions" onClick={event => event.stopPropagation()}><button type="button" className="oq-expedite-button" onClick={onExpedite}>ĐÔN ĐƠN</button><PrimaryAction item={item} onOpen={onOpen} tone={tone} waitingForMachine={waitingForMachine && machineWait} machineDone={machineDone} /></div>
         </div>

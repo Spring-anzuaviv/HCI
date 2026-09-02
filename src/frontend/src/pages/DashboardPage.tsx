@@ -38,12 +38,12 @@ function currentVietnameseTime() {
 }
 
 export default function DashboardPage() {
-  const { setCurrentPage, openM, orders, setOrderModalParams, orderSearch, orderFilter, shiftSummary, queueSnapshot, operationsLoading } = useApp();
+  const { setCurrentPage, openM, orders, setOrderModalParams, orderSearch, orderFilter, shiftSummary, queueSnapshot, operationsLoading, workShifts } = useApp();
   const deferredOrderSearch = useDeferredValue(orderSearch);
   const [shiftInfo, setShiftInfo] = useState({ name: '', timeRange: '', timeLeft: `Hiện tại ${currentVietnameseTime()}`, day: '' });
   const [now, setNow] = useState(() => Date.now());
 
-  // Tính thông tin ca làm việc
+  // Tính thông tin ca làm việc từ cùng dữ liệu với sidebar.
   useEffect(() => {
     const update = () => {
       const vnTime = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Ho_Chi_Minh' }));
@@ -52,14 +52,19 @@ export default function DashboardPage() {
       const hour = vnTime.getHours();
       const minute = vnTime.getMinutes();
 
-      let name = '', timeRange = '', endHour = 0;
-      if (hour >= 6 && hour < 14) { name = 'Ca sáng'; timeRange = '06:00 - 14:00'; endHour = 14; }
-      else if (hour >= 14 && hour < 18) { name = 'Ca chiều'; timeRange = '14:00 - 18:00'; endHour = 18; }
-      else if (hour >= 18 && hour < 22) { name = 'Ca tối'; timeRange = '18:00 - 22:00'; endHour = 22; }
+       const currentMinutes = hour * 60 + minute;
+       const activeShift = workShifts.find(shift => {
+         const start = parseShiftMinutes(shift.start);
+         const end = parseShiftMinutes(shift.end) || 24 * 60;
+         return start !== null && currentMinutes >= start && currentMinutes < end;
+       });
+       const name = activeShift?.name ?? '';
+       const timeRange = activeShift ? `${activeShift.start} - ${activeShift.end}` : '';
+       const endMinutes = activeShift ? (parseShiftMinutes(activeShift.end) || 24 * 60) : 0;
 
        let timeLeft = `Hiện tại ${currentVietnameseTime()}`;
-      if (name) {
-        const minsLeft = endHour * 60 - (hour * 60 + minute);
+       if (name) {
+         const minsLeft = endMinutes - currentMinutes;
         const h = Math.floor(minsLeft / 60);
         const m = minsLeft % 60;
         timeLeft = `Còn ${h > 0 ? h + 'h ' : ''}${m}p trong ca`;
@@ -70,7 +75,7 @@ export default function DashboardPage() {
     update();
     const timer = setInterval(update, 60000);
     return () => clearInterval(timer);
-  }, []);
+  }, [workShifts]);
 
   useEffect(() => {
     const timer = window.setInterval(() => setNow(Date.now()), 1000);
@@ -203,4 +208,11 @@ export default function DashboardPage() {
       </div>
     </div>
   );
+}
+
+function parseShiftMinutes(value: string) {
+  const match = /^(\d{2}):(\d{2})$/.exec(value);
+  if (!match) return null;
+  const minutes = Number(match[1]) * 60 + Number(match[2]);
+  return minutes >= 0 && minutes <= 23 * 60 + 59 ? minutes : null;
 }

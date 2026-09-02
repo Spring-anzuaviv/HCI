@@ -226,11 +226,15 @@ Khi countdown của máy giặt/sấy đã hết, card hiển thị lại nút t
 
 Đã mở rộng thống kê theo giờ trong panel phải từ 4 khoảng `08–16h` thành 4 khoảng 6 giờ phủ đủ ngày `00–24h`; giữ chức năng chỉnh ca trong Cài đặt và không hiển thị trigger chỉnh ca trong sidebar.
 
+Đã sửa lệch giờ sau khi chỉnh ca: frontend đọc giờ ca theo thành phần UTC mà backend dùng để lưu giờ tường, đồng thời banner Tổng quan lấy tên và khoảng giờ từ `workShifts` thay vì các mốc hard-code. Sidebar, modal và banner hiện dùng cùng dữ liệu ca theo ngày đang xem.
+
 Đã bỏ thao tác `Hủy đơn` khỏi chi tiết đơn hàng và chuẩn hóa phần `Việc cần làm tiếp theo` theo trạng thái thực tế của workflow, đồng nhất với Hàng đợi: phân loại, đưa vào máy, lấy đồ ra, chuyển sang máy sấy hoặc xếp đồ.
 
 Đã cập nhật luồng `Đôn đơn`: nếu đơn thuộc nhóm tách mẻ, mô phỏng và cập nhật giờ hẹn cho toàn bộ mẻ đang hoạt động cùng `groupCode`; kết quả mô phỏng hiển thị từng đơn bị ảnh hưởng với mã đơn, tên khách và mức tác động.
 
 Đã bổ sung nút `Chỉnh giờ hẹn` trong chi tiết đơn: cho phép dời giờ lấy muộn hơn theo các mốc nhanh hoặc giờ nhập thủ công, mô phỏng lịch trước khi lưu và chỉ xác nhận khi kết quả mới là `Đúng giờ`.
+
+Đã mở rộng popup chi tiết đơn lên 640px trên desktop và tách vùng nội dung cuộn khỏi vỏ popup để giữ bo góc khi có thanh scroll; trên màn hình nhỏ popup tự co theo chiều rộng viewport.
 Đã đồng bộ cách gọi thời gian giữa chi tiết đơn và Hàng đợi: phân biệt `Trễ tiến độ`, `Nguy cơ trễ hẹn` và `Cảnh báo trễ hẹn`; không dùng cảnh báo trễ hẹn cho trường hợp mới quá ETA công đoạn nhưng chưa quá giờ khách hẹn.
 Đã tách đơn bị ảnh hưởng thực sự khi dời giờ khỏi đơn vốn đã trễ; nếu mô phỏng làm đơn khác (kể cả cùng `groupCode`) chuyển sang trễ hẹn, cả UI và backend đều không cho xác nhận.
 Nếu giờ hẹn mới sớm hơn ETA dự kiến của chính đơn mục tiêu, hệ thống hiển thị cảnh báo riêng và không đưa đơn mục tiêu vào danh sách đơn bị ảnh hưởng.
