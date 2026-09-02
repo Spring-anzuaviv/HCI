@@ -1,0 +1,1156 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>WashTrack – Quản lý giặt ủi</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --pu: #7c3aed; --pu2: #6d28d9; --pu3: #5b21b6;
+      --pl: #ede9fe; --pm: #c4b5fd;
+      --ye: #fbbf24; --ye2: #f59e0b;
+      --bg: #ffffff; --sf: #fff; --bd: #e0d9fa;
+      --tx: #1e1b4b; --ts: #6b7280; --tl: #9ca3af;
+      --bl: #3b82f6; --pk: #ec4899; --gn: #22c55e;
+      --rd: #ef4444; --am: #f59e0b;
+      --sw: 110px; --rw: 270px;
+    }
+    body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--tx); height: 100vh; overflow: hidden; }
+    .icon { width: 20px; height: 20px; display: inline-block; flex-shrink: 0; vertical-align: middle; }
+    .icon-sm { width: 16px; height: 16px; } .icon-lg { width: 24px; height: 24px; }
+    .shell { display: flex; height: 100vh; overflow: hidden; }
+    .sidebar { width: var(--sw); background: var(--pu); display: flex; flex-direction: column; align-items: center; padding: 18px 0 14px; flex-shrink: 0; }
+    .logo-box { width: 50px; height: 50px; background: var(--ye); border-radius: 13px; display: flex; align-items: center; justify-content: center; margin-bottom: 5px; box-shadow: 0 4px 14px rgba(251,191,36,.45); }
+    .logo-name { font-size: 11px; font-weight: 800; color: #fff; text-align: center; letter-spacing: .06em; text-transform: uppercase; margin-bottom: 22px; line-height: 1.3; }
+    .snav { display: flex; flex-direction: column; gap: 6px; width: 100%; padding: 0 0 0 16px; flex: 1; }
+    .ni { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 12px 16px 12px 0; border-radius: 24px 0 0 24px; cursor: pointer; border: none; background: none; width: 100%; transition: background .15s; color: rgba(255,255,255,.6); position: relative; font-family: 'Inter', sans-serif; }
+    .ni:hover { background: rgba(255,255,255,.13); color: rgba(255,255,255,.9); }
+    .ni .lbl { font-size: 10px; font-weight: 600; text-align: center; line-height: 1.2; color: inherit; }
+    .ni.on { background: var(--bg); color: var(--pu); }
+    .ni.on::before, .ni.on::after { content: ''; position: absolute; right: 0; width: 24px; height: 24px; background: transparent; pointer-events: none; }
+    .ni.on::before { top: -24px; border-bottom-right-radius: 24px; box-shadow: 12px 12px 0 12px var(--bg); }
+    .ni.on::after  { bottom: -24px; border-top-right-radius: 24px; box-shadow: 12px -12px 0 12px var(--bg); }
+    .ni.on .lbl { font-weight: 700; }
+    .su { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 10px; margin-top: auto; }
+    .su-av { width: 36px; height: 36px; border-radius: 50%; background: var(--ye); color: var(--pu3); font-size: 12px; font-weight: 800; display: flex; align-items: center; justify-content: center; border: 2px solid rgba(255,255,255,.45); }
+    .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-width: 0; }
+    .topbar { display: flex; align-items: center; gap: 10px; padding: 12px 18px; flex-shrink: 0; }
+    .searchbar { flex: 1; max-width: 450px; background: var(--sf); border-radius: 12px; display: flex; align-items: center; gap: 8px; padding: 9px 14px; border: 1.5px solid var(--bd); color: var(--tl); }
+    .searchbar input { border: none; outline: none; font-size: 13px; color: var(--ts); background: none; flex: 1; font-family: 'Inter', sans-serif; }
+    .tbr { display: flex; align-items: center; gap: 7px; margin-left: auto; }
+    .ibtn { width: 36px; height: 36px; border-radius: 10px; background: var(--sf); border: 1.5px solid var(--bd); display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--ts); position: relative; transition: all .15s; }
+    .ibtn:hover { background: var(--pu); color: #fff; border-color: var(--pu); }
+    .bdg { position: absolute; top: -4px; right: -4px; width: 15px; height: 15px; border-radius: 50%; background: var(--rd); color: #fff; font-size: 8px; font-weight: 700; display: flex; align-items: center; justify-content: center; border: 1.5px solid var(--bg); }
+    .tbuser { display: flex; align-items: center; gap: 7px; padding: 3px 11px 3px 4px; background: var(--sf); border-radius: 10px; border: 1.5px solid var(--bd); cursor: pointer; }
+    .tbav { width: 28px; height: 28px; border-radius: 7px; background: var(--pu); color: #fff; font-size: 10px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+    .tbname { font-size: 12px; font-weight: 600; color: var(--tx); }
+    .pwrap { flex: 1; overflow-y: auto; padding: 0 18px 20px; display: flex; flex-direction: column; gap: 14px; }
+    .page  { display: none; flex-direction: column; gap: 14px; }
+    .page.on { display: flex; animation: fadein .2s ease-out; }
+    @keyframes fadein { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
+    .hero { background: linear-gradient(135deg,#fbbf24 0%,#f59e0b 55%,#fde68a 100%); border-radius: 20px; padding: 16px 26px; display: flex; align-items: center; min-height: 155px; position: relative; overflow: hidden; flex-shrink: 0; }
+    .hero::before { content: ''; position: absolute; right: 155px; top: -25px; width: 190px; height: 190px; border-radius: 50%; background: rgba(255,255,255,.1); }
+    .hero::after  { content: ''; position: absolute; right: 68px; bottom: -45px; width: 155px; height: 155px; border-radius: 50%; background: rgba(255,255,255,.08); }
+    .hero-txt { flex: 1; z-index: 1; }
+    .hero-txt h2 { font-size: 23px; font-weight: 900; color: #1e1b4b; margin-bottom: 7px; }
+    .hero-txt p  { font-size: 12.5px; color: rgba(30,27,75,.72); line-height: 1.55; margin-bottom: 12px; max-width: 305px; }
+    .hero-meta { display: flex; gap: 13px; flex-wrap: wrap; }
+    .hm { font-size: 11px; font-weight: 700; color: #1e1b4b; text-transform: uppercase; letter-spacing: .05em; display: flex; align-items: center; gap: 5px; }
+    .hero-img { z-index: 1; flex-shrink: 0; width: 110px; height: 105px; display: flex; align-items: center; justify-content: center; }
+    .hero-sub { min-height: 108px; } .hero-sub h2 { font-size: 19px; }
+    .hero-handover { background: rgba(255,255,255,.38); border: 1px solid rgba(30,27,75,.12); border-radius: 9px; color: #312e81; font-size: 10.5px; line-height: 1.45; margin-top: 10px; max-width: 560px; padding: 7px 10px; }
+    .alert { background: #fef2f2; border-radius: 12px; padding: 11px 16px; display: flex; align-items: center; gap: 11px; color: var(--rd); animation: blink 2s infinite; }
+    @keyframes blink { 0%,100% { background-color: #fee2e2; } 50% { background-color: #fef2f2; } }
+    .alert-txt { flex: 1; font-size: 12.5px; font-weight: 500; color: var(--tx); }
+    .alert-txt strong { color: var(--rd); }
+    .alink { font-size: 11.5px; font-weight: 700; color: var(--rd); cursor: pointer; display: flex; align-items: center; gap: 3px; border: none; background: none; }
+    .srow { display: flex; gap: 12px; }
+    .scard { flex: 1; background: #fff; border-radius: 13px; padding: 14px 16px; border: 1.5px solid var(--bd); }
+    .snum  { font-size: 26px; font-weight: 900; line-height: 1; color: var(--tx); }
+    .slbl  { font-size: 10.5px; font-weight: 600; color: var(--tl); text-transform: uppercase; letter-spacing: .06em; margin-top: 3px; }
+    .scard.red .snum { color: var(--rd); } .scard.grn .snum { color: var(--gn); } .scard.pur .snum { color: var(--pu); }
+    .crow { display: flex; gap: 14px; }
+    .card { background: #fff; border-radius: 16px; padding: 18px 20px; border: 1.5px solid var(--bd); }
+    .ch   { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+    .ctitle { font-size: 13.5px; font-weight: 700; color: var(--tx); display: flex; align-items: center; gap: 8px; }
+    .cico   { width: 30px; height: 30px; border-radius: 8px; background: #f0ebff; display: flex; align-items: center; justify-content: center; color: var(--pu); flex-shrink: 0; }
+    .clink  { font-size: 11.5px; font-weight: 600; color: var(--pu); cursor: pointer; display: flex; align-items: center; gap: 3px; border: none; background: none; font-family: 'Inter', sans-serif; }
+    .sugg { background: linear-gradient(135deg,#f0ebff,#ede9fe); border-radius: 11px; padding: 13px 15px; border: 1.5px solid var(--pm); margin-bottom: 13px; }
+    .sugg-lbl  { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: var(--pu); margin-bottom: 7px; display: flex; align-items: center; gap: 5px; }
+    .sugg-row  { display: flex; align-items: center; gap: 10px; }
+    .sugg-n    { font-size: 22px; font-weight: 900; color: var(--pu); line-height: 1; min-width: 32px; }
+    .sugg-info { flex: 1; }
+    .sugg-name { font-size: 13.5px; font-weight: 700; color: var(--tx); }
+    .sugg-meta { font-size: 11.5px; color: var(--ts); margin-top: 2px; display: flex; flex-wrap: wrap; gap: 5px; }
+    .sugg-meta span { padding: 3px 7px; border-radius: 5px; background: #f1f5f9; }
+    .oq-suggestion-reason { display: flex; align-items: center; gap: 4px; margin-top: 6px; color: var(--pu); font-size: 11px; font-weight: 600; }
+    .bp { background: var(--pu); color: #fff; border: none; border-radius: 9px; padding: 8px 15px; font-size: 11.5px; font-weight: 700; cursor: pointer; font-family: 'Inter',sans-serif; transition: all .15s; white-space: nowrap; display: inline-flex; align-items: center; gap: 5px; }
+    .bp:hover { background: var(--pu3); transform: translateY(-1px); }
+    .bs { background: #f0ebff; color: var(--pu); border: 1.5px solid var(--pm); border-radius: 9px; padding: 7px 13px; font-size: 11.5px; font-weight: 700; cursor: pointer; font-family: 'Inter',sans-serif; transition: all .15s; display: inline-flex; align-items: center; justify-content: center; gap: 5px; }
+    .bs:hover { background: #e0d4fc; }
+    .by { background: var(--ye); color: #1e1b4b; border: none; border-radius: 9px; padding: 8px 15px; font-size: 11.5px; font-weight: 700; cursor: pointer; font-family: 'Inter',sans-serif; transition: all .15s; display: inline-flex; align-items: center; gap: 5px; }
+    .by:hover { background: var(--ye2); }
+    .olist { display: flex; flex-direction: column; gap: 7px; }
+    .sdiv { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: .1em; color: var(--tl); display: flex; align-items: center; gap: 7px; margin-bottom: 9px; }
+    .sdiv::after { content: ''; flex: 1; height: 1px; background: var(--bd); }
+    .frow { display: flex; gap: 11px; align-items: flex-end; flex-wrap: wrap; }
+    .fg   { flex: 1; min-width: 145px; }
+    .flbl { font-size: 10.5px; font-weight: 700; color: var(--ts); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 5px; display: block; }
+    .finput { width: 100%; height: 40px; border: 1.5px solid var(--bd); border-radius: 9px; padding: 9px 12px; font-size: 13.5px; font-family: 'Inter',sans-serif; color: var(--tx); outline: none; transition: all .15s; background: #fff; box-sizing: border-box; }
+    .finput:focus { border-color: var(--pu); box-shadow: 0 0 0 3px rgba(124,58,237,.1); }
+    .n-card:hover { border-color: var(--pm); }
+    .n-pending-card:hover { border-color: var(--pm); }
+    .n-divider { text-transform: uppercase; color: #94a3b8; font-weight: 700; font-size: 11px; letter-spacing: 1px; margin: 24px 0 12px 0; }
+    .n-card { background: #fff; border-radius: 12px; padding: 16px; border: 1.5px solid var(--bd); display: flex; flex-direction: column; gap: 12px; }
+    .n-hdr { display: flex; gap: 14px; align-items: flex-start; }
+    .n-av { width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 700; font-size: 16px; flex-shrink: 0; }
+    .n-info { flex: 1; }
+    .n-name { font-weight: 700; color: #1e293b; font-size: 15px; margin-bottom: 5px; }
+    .n-meta { color: #64748b; font-size: 13px; display: flex; align-items: center; gap: 6px; }
+    .n-quote { background: #f8fafc; padding: 12px; border-radius: 8px; border-left: 3px solid #e2e8f0; color: #64748b; font-size: 13.5px; margin-left: 58px; display: flex; gap: 10px; }
+    .n-btn-zalo { background: #eab308; color: #fff; border: none; padding: 9px 16px; border-radius: 8px; font-weight: 600; display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 13px; transition: opacity .2s; }
+    .n-btn-zalo:hover { opacity: .9; }
+    .n-btn-zalo:disabled { background: #cbd5e1; cursor: not-allowed; opacity: 1; }
+    .n-pending-tag { background: #f1f5f9; color: #94a3b8; padding: 7px 14px; border-radius: 8px; font-weight: 600; font-size: 13px; }
+    .n-pending-card { background: #fff; border-radius: 12px; padding: 16px; border: 1.5px solid var(--bd); display: flex; align-items: center; justify-content: space-between; }
+    .nca { width:32px;height:32px;border-radius:50%;background:#e2e8f0;display:flex;align-items:center;justify-content:center;color:#fff }
+.ni2 { flex: 1; } .nname { font-size: 12.5px; font-weight: 700; color: var(--tx); } .nmeta { font-size: 11px; color: var(--ts); margin-top: 2px; }
+    .rp  { position: relative; width: var(--rw); flex-shrink: 0; background: #f0ebff; padding: 14px 15px; display: flex; flex-direction: column; gap: 24px; overflow-y: auto; border-left: 1.5px solid #ddd6fe; transition: width 0.3s, padding 0.3s; }
+.rp.collapsed { width: 0; padding: 0; border: none; overflow: visible; }
+.rp.collapsed .rp-content { display: none; }
+.rp-content { display: flex; flex-direction: column; gap: 24px; }
+.rp-toggle {
+    position: absolute;
+    left: -20px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 20px;
+    height: 40px;
+    background: #e2e8f0;
+    border: 1.5px solid #ddd6fe;
+    border-right: none;
+    border-radius: 4px 0 0 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    color: #475569;
+    z-index: 100;
+}
+.rp-toggle:hover { background: #cbd5e1; }
+    .rpt { font-size: 12.5px; font-weight: 800; color: var(--tx); margin-bottom: 9px; }
+    .mgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
+    .mc { border-radius: 13px; padding: 11px 11px 9px; display: flex; flex-direction: column; gap: 5px; cursor: pointer; transition: all .2s; position: relative; }
+    .mc:hover { transform: translateY(-2px); box-shadow: 0 5px 14px rgba(0,0,0,.14); }
+    .mc.bl { background: var(--bl); color: #fff; } .mc.am { background: var(--am); color: #fff; } .mc.gy { background: #e2e8f0; color: #64748b; }
+    .mc-ico { color: rgba(255,255,255,.9); } .mc.gy .mc-ico { color: #64748b; }
+    .mc-name { font-size: 10.5px; font-weight: 700; line-height: 1.2; } .mc-st { font-size: 9.5px; opacity: .82; }
+    .strow { display: flex; gap: 7px; align-items: center; flex-wrap: wrap; }
+    .stav { width: 36px; height: 36px; border-radius: 50%; font-size: 11px; font-weight: 700; cursor: pointer; border: 2px solid #fff; box-shadow: 0 2px 6px rgba(0,0,0,.12); display: flex; align-items: center; justify-content: center; }
+    .bwrap { display: flex; gap: 3px; align-items: flex-end; height: 66px; padding: 0 1px; }
+    .bbar-g { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; }
+    .bnum { font-size: 8.5px; font-weight: 700; color: var(--ts); }
+    .bbar { width: 100%; border-radius: 5px 5px 0 0; }
+    .blbl { font-size: 7.5px; color: var(--tl); white-space: nowrap; letter-spacing: -.2px; }
+    .oq-summary-chip { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; border: 1.5px solid transparent; }
+    .oq-summary-chip.danger { background: #fee2e2; color: #991b1b; border-color: #fecaca; }
+    .oq-summary-chip.risk   { background: #fef3c7; color: #92400e; border-color: #fcd34d; }
+    .oq-summary-chip.ok     { background: #dcfce7; color: #15803d; border-color: #bbf7d0; }
+    .oq-reference-summary { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
+    .queue-updated { font-size: 10.5px; color: var(--tl); }
+    .oq-reference-action { display: flex; flex-direction: column; align-items: flex-start; gap: 5px; margin-top: 8px; padding: 11px 12px; border: 1px solid #ddd6fe; border-radius: 10px; background: #faf9ff; }
+    .oq-reference-action > span { color: #6d28d9; font-size: 10px; font-weight: 900; letter-spacing: .06em; }
+    .oq-reference-action strong { color: #312e81; font-size: 14px; line-height: 1.35; }
+    .oq-reference-action.late { border-color: #fcd34d; background: #fffbeb; }
+    .oq-reference-action.late > span, .oq-reference-action.late strong { color: #92400e; }
+    .oq-instruction-text { display: block; font-size: 14px; line-height: 1.35; }
+    .oq-instruction-text > span { color: #475569; }
+    .oq-instruction-text b { color: #1d4ed8; font-weight: 900; }
+    .oq-instruction-text i { color: #6d28d9; font-style: normal; font-weight: 900; white-space: nowrap; }
+    .oq-task-timing { display: inline-flex; align-items: center; gap: 5px; padding: 4px 7px; border-radius: 5px; font-size: 10px; font-weight: 800; }
+    .oq-task-timing b { font-size: 8px; font-weight: 900; }
+    .oq-task-timing-group { display: flex; flex-wrap: wrap; gap: 5px; }
+    .oq-task-timing.late    { background: #fef3c7; color: #92400e; }
+    .oq-task-timing.machine { background: #dbeafe; color: #1d4ed8; }
+    .oq-task-timing.action  { background: #ede9fe; color: #6d28d9; }
+    .oq-task-card { width: 100%; padding: 15px 16px 14px; border: 1.5px solid var(--bd); border-radius: 13px; background: #fff; cursor: pointer; transition: border-color .15s, box-shadow .15s, transform .15s; }
+    .oq-task-card:hover { border-color: var(--pm); box-shadow: 0 5px 15px rgba(79,70,229,.09); transform: translateY(-1px); }
+    .oq-task-layout { display: grid; grid-template-columns: minmax(190px,.8fr) minmax(300px,1.55fr) minmax(215px,.9fr); gap: 18px; align-items: stretch; }
+    .oq-task-identity { display: flex; align-items: center; gap: 9px; min-width: 0; }
+    .oq-state-icon { display: inline-flex; align-items: center; justify-content: center; width: 38px; height: 38px; border-radius: 11px; flex: 0 0 38px; background: #f8fafc; }
+    .oq-task-title-group { display: flex; flex-direction: column; min-width: 0; }
+    .oq-task-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--tx); font-size: 13.5px; font-weight: 800; }
+    .oq-state-label { display: flex; align-items: center; gap: 6px; margin-top: 4px; color: var(--ts); font-size: 10px; font-weight: 800; letter-spacing: .04em; }
+    .oq-task-meta { color: var(--ts); font-size: 11px; margin-top: 10px; display: flex; flex-wrap: wrap; gap: 5px; }
+    .oq-task-meta span { padding: 3px 7px; border-radius: 5px; background: #f1f5f9; }
+    .oq-task-work { display: flex; flex-direction: column; justify-content: center; }
+    .oq-priority-reason { display: flex; align-items: flex-start; gap: 5px; margin: 9px 0 0; color: var(--ts); font-size: 10.5px; line-height: 1.35; }
+    .oq-task-side { display: flex; flex-direction: column; align-items: flex-end; justify-content: center; gap: 6px; padding-left: 18px; border-left: 1px solid #e5e7eb; }
+    .oq-task-priority { color: var(--tl); font-size: 9.5px; font-weight: 800; letter-spacing: .05em; white-space: nowrap; align-self: flex-end; }
+    .oq-task-priority.late { color: #b45309; } .oq-task-priority.risk { color: #475569; }
+    .oq-task-pickup { color: var(--tl); font-size: 10.5px; align-self: flex-end; }
+    .oq-task-pickup strong { color: var(--ts); font-size: 11px; }
+    .oq-task-actions { display: flex; flex-direction: column; align-items: stretch; gap: 6px; width: 100%; margin-top: 4px; }
+    .oq-expedite-button { width: 100%; min-height: 32px; padding: 0 8px; border: 1px solid #c4b5fd; border-radius: 8px; background: #f5f3ff; color: #5b21b6; font: inherit; font-size: 9.5px; font-weight: 800; cursor: pointer; white-space: nowrap; }
+    .oq-row-action { flex-shrink: 0; min-height: 32px; padding: 0 10px; border: none; border-radius: 8px; background: var(--pu); color: #fff; font: inherit; font-size: 9.5px; font-weight: 800; cursor: pointer; white-space: nowrap; }
+    .oq-task-card.late { border-color: #fcd34d; } .oq-task-card.risk { border-color: #cbd5e1; }
+    .oq-task-card.oq-state-sorting { border-color: #7c3aed; }
+    .oq-task-card.oq-state-wash-ready, .oq-task-card.oq-state-washing { border-color: #3b82f6; }
+    .oq-task-card.oq-state-dry-ready, .oq-task-card.oq-state-drying  { border-color: #d97706; }
+    .oq-task-card.oq-state-packing  { border-color: #22c55e; }
+    .oq-task-card.oq-state-transfer { border-color: #ea580c; }
+    .oq-group-badge { display: inline-flex; align-items: center; padding: 2px 6px; border: 1px solid #c4b5fd; border-radius: 999px; background: #f5f3ff; color: #6d28d9; font-size: 8px; font-weight: 700; letter-spacing: .02em; }
+    .oq-reference-title { font-size: 13.5px; font-weight: 700; color: var(--tx); margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+    .oq-reference-title.danger { color: var(--rd); }
+    .oq-risk-card { border-left: 3px solid var(--rd); }
+    .oq-action-sorting { background: #6d28d9; color: #fff; }
+    .oq-action-wash { background: #2563eb; color: #fff; }
+    .oq-action-dry { background: #d97706; color: #fff; }
+    .oq-action-packing { background: #15803d; color: #fff; }
+    .oq-action-transfer { background: #ea580c; color: #fff; }
+    .oq-action-waiting { background: #e2e8f0 !important; color: #64748b !important; cursor: not-allowed !important; }
+    .oq-completed-reference { padding: 13px 16px; }
+    .oq-completed-toggle { color: var(--tx); font-size: 13px; font-weight: 700; background: none; border: none; cursor: pointer; display: flex; align-items: center; justify-content: space-between; width: 100%; }
+    .oq-completed-toggle span { font-size: 11.5px; color: var(--pu); }
+    .mov { position: fixed; inset: 0; background: rgba(15,10,40,.5); z-index: 100; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity .2s; }
+    .mov.open { opacity: 1; pointer-events: all; }
+    .modal { background: #fff; border-radius: 18px; padding: 26px 28px; width: 470px; max-width: 90vw; transform: translateY(18px); transition: transform .25s; max-height: 80vh; overflow-y: auto; }
+    .mov.open .modal { transform: translateY(0); }
+    .mhd { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
+    .mtitle { font-size: 16px; font-weight: 800; color: var(--tx); }
+    .mxbtn  { width: 30px; height: 30px; border-radius: 8px; background: #f1f5f9; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--ts); }
+    .tc { position: fixed; bottom: 22px; right: 22px; display: flex; flex-direction: column; gap: 7px; z-index: 200; }
+    .toast { background: #1e1b4b; color: #fff; padding: 11px 16px; border-radius: 11px; font-size: 12.5px; font-weight: 500; display: flex; align-items: center; gap: 9px; min-width: 250px; box-shadow: 0 8px 24px rgba(0,0,0,.2); }
+    .toast.grn { border-left: 3px solid var(--gn); }
+    .filter-tabs { display: flex; gap: 6px; }
+    .filter-tab { border-radius: 100px; padding: 7px 16px; font-size: 13px; font-weight: 600; cursor: pointer; border: 1.5px solid #e2e8f0; background: #fff; color: var(--ts); font-family: 'Inter', sans-serif; transition: all .15s; }
+    .filter-tab.active { background: var(--pu); color: #fff; border-color: var(--pu); }
+    @media (max-width: 1100px) { :root { --rw: 220px; --sw: 90px; } }
+    @media (max-width: 760px) {
+      body { height: auto; overflow: auto; } :root { --sw: 72px; }
+      .shell { height: auto; display: grid; grid-template-columns: var(--sw) minmax(0,1fr); }
+      .sidebar { grid-row: 1/3; min-height: 100vh; } .main { overflow: visible; }
+      .rp { grid-column: 2; width: 100%; }
+      .topbar { flex-wrap: wrap; padding: 10px; }
+      .topbar > .searchbar { order: 2; min-width: 100%; } .tbname { display: none; }
+      .pwrap { overflow: visible; padding: 0 10px 14px; }
+      .oq-task-layout { display: flex; flex-direction: column; gap: 10px; }
+      .oq-task-side { align-items: stretch; padding: 10px 0 0; border-top: 1px solid #e5e7eb; border-left: none; }
+    }
+
+  </style>
+</head>
+<body>
+<div class="shell" id="app-shell">
+  <aside class="sidebar">
+    <div class="logo-box">
+      <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#5b21b6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><rect x="3" y="2" width="18" height="20" rx="2"/><circle cx="12" cy="13" r="4"/><circle cx="7" cy="5" r=".5" fill="#5b21b6"/></svg>
+    </div>
+    <div class="logo-name">Wash<br>Track</div>
+    <nav class="snav">
+      <button class="ni on" id="nav-db" onclick="switchPage('db')" title="Tổng quan">
+        <svg class="icon icon-lg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        <span class="lbl">Tổng quan</span>
+      </button>
+      <button class="ni" id="nav-q" onclick="switchPage('q')" title="Hàng đợi">
+        <svg class="icon icon-lg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"/><path d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65"/><path d="m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65"/></svg>
+        <span class="lbl">Hàng đợi</span>
+      </button>
+      <button class="ni" id="nav-n" onclick="switchPage('n')" title="Thông báo">
+        <svg class="icon icon-lg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        <span class="lbl">Thông báo</span>
+      </button>
+      <button class="ni" id="nav-stats" onclick="switchPage('stats')" title="Thống kê">
+        <svg class="icon icon-lg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>
+        <span class="lbl">Thống kê</span>
+      </button>
+    </nav>
+    <div class="su">
+      <div class="su-av" style="margin-bottom:6px">WT</div>
+      <div style="font-size:11.5px;color:rgba(255,255,255,.9);text-align:center;line-height:1.25;font-weight:700">WashTrack<br>Laundry</div>
+    </div>
+  </aside>
+  <main class="main">
+    <header class="topbar">
+      <div class="searchbar">
+        <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" id="search-input" placeholder="Tìm kiếm đơn hàng, khách hàng..." />
+      </div>
+      <div id="filter-tabs-wrap" style="display:none" class="filter-tabs">
+        <button class="filter-tab active" onclick="setFilter(this,'all')">Tất cả</button>
+        <button class="filter-tab" onclick="setFilter(this,'pending')">Đang xử lý</button>
+        <button class="filter-tab" onclick="setFilter(this,'done')">Hoàn tất</button>
+      </div>
+      <div class="tbr">
+        <button class="bp" onclick="openModal('add-order')" style="margin-right:5px;padding:8px 12px">
+          <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Thêm đơn
+        </button>
+        <button class="ibtn" title="Cài đặt" onclick="openModal('settings')">
+          <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        </button>
+        <div class="ibtn" style="cursor:pointer" onclick="switchPage('n')">
+          <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          <span class="bdg" id="notify-badge">1</span>
+        </div>
+        <div class="tbuser">
+          <div class="tbav">WT</div>
+          <span class="tbname">WashTrack</span>
+        </div>
+      </div>
+    </header>
+    <div class="pwrap">
+
+      <!-- PAGE DASHBOARD -->
+      <div id="p-db" class="page on">
+        <div class="hero">
+          <div class="hero-txt">
+            <h2 id="hero-greeting">Chào bạn, bắt đầu ca làm việc thôi!</h2>
+            <p><span id="hero-shift">Ca chiều đang hoạt động &middot; 14:00 - 18:00 Thứ Ba</span></p>
+            <div class="hero-meta">
+              <span class="hm">
+                <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                <span id="hero-time-left">Còn 2h 47p trong ca</span>
+              </span>
+            </div>
+            <div class="hero-handover" id="db-summary-stats"><strong>Tóm tắt ca:</strong> 8 đang xử lý &middot; 3 hoàn tất &middot; 1 sẽ trễ &middot; 2 nguy cơ trễ</div>
+          </div>
+          <div class="hero-img">
+            <svg width="138" height="152" viewBox="0 0 138 152" fill="none">
+              <rect x="7" y="26" width="124" height="118" rx="18" fill="white" stroke="#ddd6fe" stroke-width="2"/>
+              <rect x="7" y="26" width="124" height="38" rx="18" fill="#5b21b6"/>
+              <rect x="7" y="46" width="124" height="18" fill="#5b21b6"/>
+              <circle cx="43" cy="45" r="13" fill="#fbbf24"/><circle cx="43" cy="45" r="8" fill="#f59e0b"/><circle cx="43" cy="45" r="3" fill="#d97706"/>
+              <rect x="70" y="36" width="12" height="12" rx="3.5" fill="#4ade80"/>
+              <rect x="87" y="36" width="12" height="12" rx="3.5" fill="#ef4444"/>
+              <rect x="70" y="52" width="12" height="8" rx="2.5" fill="#93c5fd"/>
+              <rect x="87" y="52" width="12" height="8" rx="2.5" fill="#a78bfa"/>
+              <circle cx="69" cy="106" r="40" fill="#ddd6fe"/>
+              <circle cx="69" cy="106" r="33" fill="#6d28d9"/>
+              <circle cx="69" cy="106" r="27" fill="#bfdbfe"/>
+              <circle cx="69" cy="106" r="22" fill="#93c5fd"/>
+              <ellipse cx="69" cy="116" rx="16" ry="7" fill="#3b82f6" opacity="0.45"/>
+              <circle cx="56" cy="99" r="7" fill="white" opacity="0.82"/>
+              <circle cx="78" cy="112" r="5" fill="white" opacity="0.72"/>
+              <circle cx="97" cy="106" r="4.5" fill="#4c1d95"/>
+              <rect x="20" y="141" width="20" height="11" rx="5.5" fill="#5b21b6"/>
+              <rect x="98" y="141" width="20" height="11" rx="5.5" fill="#5b21b6"/>
+            </svg>
+          </div>
+        </div>
+
+        <div class="alert" id="db-alert" style="display:none">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          <div class="alert-txt" id="db-alert-text"></div>
+          <button class="alink" onclick="switchPage('q')">Xem ngay <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></button>
+        </div>
+
+        <div class="card oq-risk-card" id="db-risk-card" style="display:none">
+          <div class="oq-reference-title danger"><div class="cico" style="background:#fef2f2;color:var(--rd)"><svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>Đơn có nguy cơ trễ hẹn</div>
+          <div class="olist" id="db-risk-list">
+          </div>
+        </div>
+
+        <div class="filter-tabs">
+          <button class="filter-tab active">Tất cả</button>
+          <button class="filter-tab">Đang xử lý</button>
+          <button class="filter-tab">Hoàn tất</button>
+        </div>
+
+        <div class="srow">
+          <div class="scard pur"><div class="snum">11</div><div class="slbl">Đơn hôm nay</div></div>
+          <div class="scard"><div class="snum" id="stat-pending">8</div><div class="slbl">Đang xử lý</div></div>
+          <div class="scard red"><div class="snum">1</div><div class="slbl">Sẽ trễ hẹn</div></div>
+          <div class="scard" style="border-left:4px solid #b45309;background:#fef3c7"><div class="snum" style="color:#b45309">2</div><div class="slbl" style="color:#92400e">Nguy cơ trễ</div></div>
+          <div class="scard grn"><div class="snum" id="stat-done">3</div><div class="slbl">Hoàn tất</div></div>
+        </div>
+
+        <div class="crow">
+          <div class="card" style="flex:1.45">
+            <div class="ch">
+              <div class="ctitle"><div class="cico"><svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"/><path d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65"/><path d="m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65"/></svg></div>Hàng đợi thông minh</div>
+              <button class="clink" onclick="switchPage('q')">Xem tất cả <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></button>
+            </div>
+            <div class="olist" id="db-queue-list">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PAGE QUEUE -->
+      <div id="p-q" class="page">
+        <div class="hero hero-sub">
+          <div class="hero-txt"><h2>Hàng đợi công việc thông minh</h2><p style="margin-bottom:0">Hệ thống đề xuất thứ tự xử lý và giúp nhân viên ca sau nắm toàn bộ ngữ cảnh. Bạn có thể điều chỉnh bất kỳ lúc nào.</p></div>
+          <div class="hero-img"><svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="#1e1b4b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"/><path d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65"/><path d="m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65"/></svg></div>
+        </div>
+        <div class="oq-reference-summary">
+          <span class="oq-summary-chip danger"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>1 trễ hẹn</span>
+          <span class="oq-summary-chip risk"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>2 rủi ro</span>
+          <span class="oq-summary-chip ok"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>2 máy trống</span>
+          <span class="queue-updated" id="q-updated-time">Cập nhật 15:09</span>
+        </div>
+        <div class="card" id="q-suggest-card" style="display:none; padding:0; border:none; background:transparent">
+          <div class="sugg" style="background: #f5f3ff; border: 1px solid #ddd6fe; border-radius: 12px; padding: 16px;">
+            <div class="sugg-lbl" style="color: #7c3aed; font-size: 11px; font-weight: 800; display: flex; align-items: center; gap: 6px; margin-bottom: 12px;">
+              <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2" ry="2"></rect><rect x="9" y="9" width="6" height="6"></rect><line x1="9" y1="1" x2="9" y2="4"></line><line x1="15" y1="1" x2="15" y2="4"></line><line x1="9" y1="20" x2="9" y2="23"></line><line x1="15" y1="20" x2="15" y2="23"></line><line x1="20" y1="9" x2="23" y2="9"></line><line x1="20" y1="14" x2="23" y2="14"></line><line x1="1" y1="9" x2="4" y2="9"></line><line x1="1" y1="14" x2="4" y2="14"></line></svg>
+              ĐỀ XUẤT XỬ LÝ TIẾP
+            </div>
+            <div class="sugg-row" id="q-suggest-content" style="align-items: flex-start;">
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="oq-reference-title"><div class="cico"><svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"/><path d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65"/><path d="m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65"/></svg></div>Toàn bộ hàng đợi &middot; <span id="q-total-count">0</span> đơn</div>
+          <div class="olist" id="q-queue-list">
+          </div>
+        </div>
+        <div class="card oq-completed-reference">
+          <button class="oq-completed-toggle" onclick="switchPage('n')">Đã hoàn tất &middot; <span id="q-completed-count">0</span> <span>Xem</span></button>
+        </div>
+      </div>
+
+      <!-- PAGE NOTIFY -->
+      <div id="p-n" class="page">
+        <div class="hero hero-sub">
+          <div class="hero-txt"><h2>Cập nhật tiến trình &amp; Thông báo khách</h2><p style="margin-bottom:0">Hệ thống tự động tải danh sách đơn hoàn tất. Bấm Gửi &mdash; hệ thống copy nội dung và mở Zalo cho bạn.</p></div>
+          <div class="hero-img"><svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="#1e1b4b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></div>
+        </div>
+        
+        <div class="searchbar" style="margin-bottom: 20px;">
+          <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" id="notify-search" placeholder="Tìm khách hàng trong thông báo..." />
+        </div>
+
+        <div id="n-unnotified-list" style="display:flex; flex-direction:column; gap:12px;">
+          <!-- Unnotified orders -->
+        </div>
+
+        <div class="n-divider">ĐÃ THÔNG BÁO</div>
+        <div id="n-notified-list" style="display:flex; flex-direction:column; gap:12px;">
+          <!-- Notified orders -->
+        </div>
+
+        <div class="n-divider">ĐANG XỬ LÝ - CHƯA CẦN THÔNG BÁO</div>
+        <div id="n-pending-list" style="display:flex; flex-direction:column; gap:12px;">
+          <!-- Pending orders -->
+        </div>
+      </div>
+
+      <!-- PAGE STATS -->
+      <div id="p-stats" class="page">
+        <div class="hero hero-sub" style="min-height:90px;padding:16px 20px;background:linear-gradient(135deg,#c4b5fd 0%,#8b5cf6 100%)">
+          <div class="hero-txt"><h2 style="color:#fff">Thống kê &amp; Báo cáo</h2><p style="color:rgba(255,255,255,0.8);margin-bottom:0">Tổng quan tình hình hoạt động của tiệm hôm nay và trong tuần.</p></div>
+          <div class="hero-img"><svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg></div>
+        </div>
+        <div class="srow">
+          <div class="scard pur"><div class="snum">11</div><div class="slbl">Đơn hoàn thành</div></div>
+          <div class="scard red"><div class="snum">1</div><div class="slbl">Đơn bị trễ hẹn</div></div>
+          <div class="scard grn"><div class="snum">87%</div><div class="slbl">Hiệu suất máy</div></div>
+        </div>
+        <div class="crow">
+          <div class="card" style="flex:2">
+            <div class="ch"><div class="ctitle">Khách hàng tuần này</div></div>
+            <div class="bwrap" style="height:80px;position:relative;align-items:flex-end">
+              <svg style="position:absolute;top:0;left:0;width:100%;height:60px;z-index:0;overflow:visible" viewBox="0 0 700 100" preserveAspectRatio="none">
+                <defs><linearGradient id="lineGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#7c3aed" stop-opacity="0.3"/><stop offset="100%" stop-color="#7c3aed" stop-opacity="0"/></linearGradient></defs>
+                <path d="M50,70 L150,56 L250,64 L350,40 L450,10 L550,48 L650,35" fill="none" stroke="#7c3aed" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>
+                <path d="M50,70 L150,56 L250,64 L350,40 L450,10 L550,48 L650,35 L650,100 L50,100 Z" fill="url(#lineGrad)"/>
+              </svg>
+              <div class="bbar-g" style="flex:1;position:relative;z-index:1;height:100%"><div class="bnum" style="position:absolute;bottom:38px">6</div><div style="position:absolute;bottom:26px;width:10px;height:10px;background:#fff;border:2.5px solid #7c3aed;border-radius:50%;left:50%;transform:translateX(-50%)"></div><div class="blbl" style="position:absolute;bottom:0">T2</div></div>
+              <div class="bbar-g" style="flex:1;position:relative;z-index:1;height:100%"><div class="bnum" style="position:absolute;bottom:50px">8</div><div style="position:absolute;bottom:38px;width:10px;height:10px;background:#fff;border:2.5px solid #7c3aed;border-radius:50%;left:50%;transform:translateX(-50%)"></div><div class="blbl" style="position:absolute;bottom:0">T3</div></div>
+              <div class="bbar-g" style="flex:1;position:relative;z-index:1;height:100%"><div class="bnum" style="position:absolute;bottom:45px">7</div><div style="position:absolute;bottom:33px;width:10px;height:10px;background:#fff;border:2.5px solid #7c3aed;border-radius:50%;left:50%;transform:translateX(-50%)"></div><div class="blbl" style="position:absolute;bottom:0">T4</div></div>
+              <div class="bbar-g" style="flex:1;position:relative;z-index:1;height:100%"><div class="bnum" style="position:absolute;bottom:62px">11</div><div style="position:absolute;bottom:50px;width:10px;height:10px;background:#fff;border:2.5px solid #7c3aed;border-radius:50%;left:50%;transform:translateX(-50%)"></div><div class="blbl" style="position:absolute;bottom:0">T5</div></div>
+              <div class="bbar-g" style="flex:1;position:relative;z-index:1;height:100%"><div class="bnum" style="position:absolute;bottom:76px;color:#7c3aed;font-size:11px">14</div><div style="position:absolute;bottom:64px;width:12px;height:12px;background:#7c3aed;border:2.5px solid #7c3aed;border-radius:50%;left:50%;transform:translateX(-50%);box-shadow:0 0 0 3px #ede9fe"></div><div class="blbl" style="position:absolute;bottom:0;font-weight:700;color:#7c3aed">T6</div></div>
+              <div class="bbar-g" style="flex:1;position:relative;z-index:1;height:100%"><div class="bnum" style="position:absolute;bottom:55px">9</div><div style="position:absolute;bottom:43px;width:10px;height:10px;background:#fff;border:2.5px solid #7c3aed;border-radius:50%;left:50%;transform:translateX(-50%)"></div><div class="blbl" style="position:absolute;bottom:0">T7</div></div>
+              <div class="bbar-g" style="flex:1;position:relative;z-index:1;height:100%"><div class="bnum" style="position:absolute;bottom:65px">12</div><div style="position:absolute;bottom:53px;width:10px;height:10px;background:#fff;border:2.5px solid #7c3aed;border-radius:50%;left:50%;transform:translateX(-50%)"></div><div class="blbl" style="position:absolute;bottom:0">CN</div></div>
+            </div>
+          </div>
+          <div class="card" style="flex:1">
+            <div class="ch"><div class="ctitle">Dịch vụ</div></div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:15px;margin-top:10px">
+              <div style="width:110px;height:110px;border-radius:50%;background:conic-gradient(#7c3aed 0% 55%, #3b82f6 55% 85%, #f59e0b 85% 100%)"></div>
+              <div style="width:100%;font-size:11.5px;color:var(--tx);display:flex;flex-direction:column;gap:6px">
+                <div style="display:flex;justify-content:space-between"><span><span style="display:inline-block;width:10px;height:10px;background:#7c3aed;border-radius:2px;margin-right:5px"></span>Giặt + Sấy</span><strong>55%</strong></div>
+                <div style="display:flex;justify-content:space-between"><span><span style="display:inline-block;width:10px;height:10px;background:#3b82f6;border-radius:2px;margin-right:5px"></span>Chỉ Giặt</span><strong>30%</strong></div>
+                <div style="display:flex;justify-content:space-between"><span><span style="display:inline-block;width:10px;height:10px;background:#f59e0b;border-radius:2px;margin-right:5px"></span>Sấy khô</span><strong>15%</strong></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- RIGHT PANEL -->
+    <aside class="rp" id="right-panel">
+    <button class="rp-toggle" onclick="document.getElementById('right-panel').classList.toggle('collapsed')">&gt;.&lt;</button>
+    <div class="rp-content">
+      <div>
+        <div class="frow" style="align-items:center;justify-content:space-between;margin-bottom:12px;gap:5px">
+          <div class="rpt" style="margin-bottom:0">Trạng thái máy</div>
+          <button class="bs" style="padding:4px 8px;font-size:10.5px"><svg class="icon icon-sm" style="color:var(--pu)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Thêm máy</button>
+        </div>
+        <div class="mgrid" id="rp-machines">
+        </div>
+        <div style="font-size:12px;color:var(--ts);margin-top:8px"><span id="rp-waiting-count">0</span> đơn đang chờ trong hàng đợi</div>
+      </div>
+      <div>
+        <div class="frow" style="align-items:center;margin-bottom:12px;justify-content:space-between;gap:5px">
+          <div class="rpt" style="margin-bottom:0">Nhân viên trong ca</div>
+          <input class="finput" type="date" value="2026-09-02" style="width:125px;height:30px;font-size:11px" />
+          <button class="bs" style="padding:4px 8px;font-size:10.5px"><svg class="icon icon-sm" style="color:var(--pu)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Thêm NV</button>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <div>
+            <div style="font-size:11px;font-weight:600;color:var(--ts);margin-bottom:6px;display:flex;align-items:center;justify-content:space-between"><span>Ca chiều (14:00 - 18:00)</span><button class="bs" style="padding:3px 6px;font-size:9px">Phân ca</button></div>
+            <div class="strow">
+              <div class="stav" title="Nguyễn Văn An" style="background:var(--pu);color:#fff;position:relative">NA<button style="position:absolute;right:-5px;top:-5px;width:16px;height:16px;border:0;border-radius:50%;background:var(--rd);color:#fff;padding:0;cursor:pointer;font-size:10px">&times;</button></div>
+              <div class="stav" title="Lê Thị Bình" style="background:var(--pu);color:#fff;position:relative">LB<button style="position:absolute;right:-5px;top:-5px;width:16px;height:16px;border:0;border-radius:50%;background:var(--rd);color:#fff;padding:0;cursor:pointer;font-size:10px">&times;</button></div>
+              <div class="stav" title="Trần Văn Cường" style="background:var(--pu);color:#fff;position:relative">TC<button style="position:absolute;right:-5px;top:-5px;width:16px;height:16px;border:0;border-radius:50%;background:var(--rd);color:#fff;padding:0;cursor:pointer;font-size:10px">&times;</button></div>
+            </div>
+          </div>
+          <div>
+            <div style="font-size:11px;font-weight:600;color:var(--ts);margin-bottom:6px;display:flex;align-items:center;justify-content:space-between"><span>Ca tối (18:00 - 22:00)</span><button class="bs" style="padding:3px 6px;font-size:9px">Phân ca</button></div>
+            <div style="font-size:11.5px;color:var(--ts);font-style:italic">Chưa có nhân viên</div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="rpt" style="margin-bottom:12px">Thống kê hôm nay</div>
+      <div class="bwrap">
+        <div class="bbar-g"><div class="bnum">3</div><div class="bbar" style="height:24px;background:var(--pu)"></div><div class="blbl">06-09h</div></div>
+        <div class="bbar-g"><div class="bnum">5</div><div class="bbar" style="height:40px;background:var(--pk)"></div><div class="blbl">09-12h</div></div>
+        <div class="bbar-g"><div class="bnum">7</div><div class="bbar" style="height:52px;background:var(--bl)"></div><div class="blbl">12-15h</div></div>
+        <div class="bbar-g"><div class="bnum">2</div><div class="bbar" style="height:16px;background:var(--ye)"></div><div class="blbl">15-18h</div></div>
+      </div>
+      <div style="font-size:10px;color:var(--tl);margin-top:5px">Số đơn tiếp nhận theo khoảng giờ</div>
+    </div>
+  </div>
+  </aside>
+</div>
+
+<div class="tc" id="toast-container"></div>
+
+<!-- MODAL ADD ORDER -->
+<div class="mov" id="modal-add-order">
+  <div class="modal">
+    <div class="mhd"><div class="mtitle">Thêm đơn mới</div><button class="mxbtn" onclick="closeModal('add-order')"><svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+    <div class="frow" style="margin-bottom:11px"><div class="fg"><label class="flbl">Tên khách hàng</label><input class="finput" type="text" placeholder="Nhập tên khách hàng" /></div><div class="fg"><label class="flbl">Số điện thoại</label><input class="finput" type="tel" placeholder="0901 234 567" /></div></div>
+    <div class="frow" style="margin-bottom:11px"><div class="fg"><label class="flbl">Dịch vụ</label><select class="finput"><option>Giặt + Sấy</option><option>Chỉ Giặt</option><option>Chỉ Sấy</option></select></div><div class="fg"><label class="flbl">Cân nặng (kg)</label><input class="finput" type="number" placeholder="5" min="0.5" step="0.5" /></div></div>
+    <div class="frow" style="margin-bottom:16px"><div class="fg"><label class="flbl">Giờ hẹn lấy</label><input class="finput" type="time" value="17:00" /></div></div>
+    <div style="display:flex;gap:9px;justify-content:flex-end;margin-top:18px"><button class="bs" onclick="closeModal('add-order')">Hủy</button><button class="bp">Tạo đơn</button></div>
+  </div>
+</div>
+
+<!-- MODAL ORDER DETAIL -->
+<div class="mov" id="modal-order-detail">
+  <div class="modal" id="modal-order-detail-content">
+  </div>
+</div>
+
+<!-- MODAL SETTINGS -->
+<div class="mov" id="modal-settings">
+  <div class="modal">
+    <div class="mhd"><div class="mtitle">Cài đặt</div><button class="mxbtn" onclick="closeModal('settings')"><svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+    <div style="color:var(--ts);font-size:13px;margin-bottom:12px">Quản lý ca làm việc, máy móc và nhân viên.</div>
+    <div style="display:flex;flex-direction:column;gap:9px">
+      <button class="bs" style="justify-content:flex-start;font-size:13px;padding:11px 14px">Ca làm việc</button>
+      <button class="bs" style="justify-content:flex-start;font-size:13px;padding:11px 14px">Máy móc</button>
+      <button class="bs" style="justify-content:flex-start;font-size:13px;padding:11px 14px">Nhân viên</button>
+    </div>
+    <div style="margin-top:18px;display:flex;justify-content:flex-end"><button class="bp" onclick="closeModal('settings')">Đóng</button></div>
+  </div>
+</div>
+
+<!-- MODAL EXPEDITE -->
+<div class="mov" id="modal-expedite">
+  <div class="modal">
+    <div class="mhd"><div class="mtitle">Đôn đơn hàng <span id="exp-id-text"></span></div><button class="mxbtn" onclick="closeModal('expedite')"><svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+    <div style="color:var(--ts);font-size:13px;margin-bottom:12px">Chọn lý do để ưu tiên xử lý đơn hàng này trước.</div>
+    <div class="frow" style="margin-bottom:16px">
+      <div class="fg">
+        <label class="flbl">Lý do đôn đơn</label>
+        <select class="finput" id="exp-reason">
+          <option>Khách VIP - Yêu cầu gấp</option>
+          <option>Khách hối / Trễ lịch hẹn</option>
+          <option>Sửa lỗi / Giặt lại</option>
+        </select>
+      </div>
+    </div>
+    <div style="display:flex;gap:9px;justify-content:flex-end;margin-top:18px">
+      <button class="bs" onclick="closeModal('expedite')">Hủy</button>
+      <button class="bp" style="background:var(--rd)" onclick="confirmExpedite()">Xác nhận đôn đơn</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL DEADLINE -->
+<div class="mov" id="modal-deadline">
+  <div class="modal">
+    <div class="mhd"><div class="mtitle">Chi tiết lịch hẹn <span id="dl-id-text"></span></div><button class="mxbtn" onclick="closeModal('deadline')"><svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+    <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:16px">
+      <div style="padding:12px;border-radius:8px;background:#f8fafc;border:1px solid #e2e8f0">
+        <div style="font-size:12px;color:var(--ts);margin-bottom:5px">Giờ hẹn hiện tại:</div>
+        <div style="font-size:16px;font-weight:700;color:var(--tx)" id="dl-current-time">18:00</div>
+      </div>
+      <div class="fg">
+        <label class="flbl">Dời lịch hẹn mới (nếu cần)</label>
+        <input class="finput" type="time" id="dl-new-time" />
+      </div>
+    </div>
+    <div style="display:flex;gap:9px;justify-content:flex-end;margin-top:18px">
+      <button class="bs" onclick="closeModal('deadline')">Đóng</button>
+      <button class="bp" onclick="confirmDeadline()">Cập nhật giờ hẹn</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL NOTIFY ZALO -->
+<div class="mov" id="modal-notify-zalo">
+  <div class="modal">
+    <div class="mhd"><div class="mtitle">Gửi thông báo Zalo</div><button class="mxbtn" onclick="closeModal('notify-zalo')"><svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+    <div style="padding:14px;background:#f0ebff;border:1.5px solid #c4b5fd;border-radius:12px;margin-bottom:16px;font-size:13px;line-height:1.5;color:#312e81">
+      <div style="font-weight:700;margin-bottom:6px">Nội dung mẫu:</div>
+      <div id="nz-msg-content" style="white-space:pre-wrap"></div>
+    </div>
+    <div style="font-size:12px;color:var(--ts);display:flex;align-items:center;gap:6px;margin-bottom:20px">
+      <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      Hệ thống sẽ mở Zalo và copy sẵn tin nhắn này.
+    </div>
+    <div style="display:flex;gap:9px;justify-content:flex-end">
+      <button class="bs" onclick="closeModal('notify-zalo')">Hủy</button>
+      <button class="bp" style="background:#0068ff" onclick="confirmZalo()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:5px"><path d="M22 2 11 13"/><path d="m22 2-7 20-4-9-9-4Z"/></svg>
+        Mở Zalo và Xác nhận
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+let state = {
+  orders: [
+    { id: 15, name: 'Trần Văn Minh', service: 'Giặt + Sấy', kg: 8, priority: 1, pickup: '17:00', phone: '0901 234 567', stage: 'sorting', statusText: 'CẦN PHÂN LOẠI', instruction: 'Vui lòng phân loại trước', waitTime: '25p', color: '#7c3aed' },
+    { id: 14, name: 'Lê Thị Hoa', service: 'Chỉ Giặt', kg: 6, priority: 2, pickup: '17:30', phone: '0901 234 568', stage: 'wash-ready', statusText: 'CHỜ ĐƯA VÀO MÁY GIẶT', instruction: 'Vui lòng đưa vào <b>Máy Giặt 2</b> trước 15:45', waitTime: '12p', color: '#3b82f6', target: 'Máy Giặt 2' },
+    { id: 11, name: 'Phạm Văn Đức', service: 'Giặt + Sấy', kg: 7, priority: 'NGUY CƠ TRỄ GIỜ HẸN', pickup: '15:45', phone: '0978 654 321', stage: 'drying', statusText: 'ĐANG SẤY', instruction: 'Đang sấy tại <b>Máy Sấy 1</b>', waitTime: '22p', color: '#d97706', risk: true, isMachine: true, target: 'Máy Sấy 1' },
+    { id: 13, name: 'Hoàng Văn Nam', service: 'Giặt + Sấy', kg: 4, priority: 3, pickup: '18:00', phone: '0901 234 567', stage: 'transfer', statusText: 'CẦN ĐƯA VÀO MÁY SẤY', instruction: 'Vui lòng chuyển sang <b>Máy Sấy 1</b> trước 16:15', waitTime: '30p', color: '#ea580c', target: 'Máy Sấy 1' },
+    { id: 10, name: 'Vũ Thị Mai', service: 'Chỉ Sấy', kg: 3, priority: 4, pickup: '15:30', phone: '0987 654 321', stage: 'packing', statusText: 'CẦN XẾP ĐỒ', instruction: 'Vui lòng xếp đồ trước 15:20', waitTime: '5p', color: '#22c55e' }
+  ],
+  completedOrders: [],
+  machines: [
+    { id: 'w1', name: 'Máy Giặt 1', type: 'Giặt', user: 'Nguyễn T. Lan', stateText: '8p · Giặt', active: true, colorClass: 'bl', typeClass: 'wash' },
+    { id: 'w2', name: 'Máy Giặt 2', type: 'Giặt', user: 'Trống', stateText: 'Trống', active: false, colorClass: 'gy', typeClass: 'wash' },
+    { id: 'd1', name: 'Máy Sấy 1', type: 'Sấy', user: 'Phạm V. Đức', stateText: '22p · Sấy', active: true, colorClass: 'am', typeClass: 'dry' },
+    { id: 'd2', name: 'Máy Sấy 2', type: 'Sấy', user: 'Cần kiểm tra', stateText: 'Còn đồ bên trong', active: true, warning: true, colorClass: 'gy', typeClass: 'dry' },
+    { id: 'd3', name: 'Máy Sấy 3', type: 'Sấy', user: 'Trống', stateText: 'Trống', active: false, colorClass: 'gy', typeClass: 'dry' }
+  ],
+  currentActionOrderId: null
+};
+
+const STAGE_CONFIG = {
+  'sorting': { icon: '<path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>', action: 'ĐÃ PHÂN LOẠI', btnCls: 'oq-action-sorting', next: 'wash-ready', cardCls: 'oq-state-sorting' },
+  'wash-ready': { icon: '<path d="M3 6h18"/><rect x="3" y="2" width="18" height="20" rx="2"/><circle cx="12" cy="13" r="4"/><circle cx="7" cy="5" r=".5" fill="currentColor"/>', action: 'CHỌN MÁY GIẶT', btnCls: 'oq-action-wash', next: 'washing', cardCls: 'oq-state-wash-ready', needsMachine: 'wash' },
+  'washing': { icon: '<path d="M3 6h18"/><rect x="3" y="2" width="18" height="20" rx="2"/><circle cx="12" cy="13" r="4"/><circle cx="7" cy="5" r=".5" fill="currentColor"/>', action: 'CHỜ MÁY GIẶT XONG', btnCls: 'oq-action-waiting', disabled: true, next: 'transfer', cardCls: 'oq-state-washing' },
+  'transfer': { icon: '<path d="M21 7.5V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h3.5"/><path d="m16 2-2 4 2 4"/><path d="m22 14-4 4 4 4"/>', action: 'CHỌN MÁY SẤY', btnCls: 'oq-action-transfer', next: 'drying', cardCls: 'oq-state-transfer', needsMachine: 'dry' },
+  'drying': { icon: '<path d="M17.7 7.7a2.5 2.5 0 0 1 1.8 4.3H13V18a6 6 0 1 1-6-6c.34 0 .67.03 1 .08V9a2.5 2.5 0 0 1 1.8-4.3Z"/>', action: 'CHỜ MÁY SẤY XONG', btnCls: 'oq-action-waiting', disabled: true, next: 'packing', cardCls: 'oq-state-drying' },
+  'packing': { icon: '<path d="M3 9h18v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9Z"/><path d="M3 9V7a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v2"/><path d="M9 22V12h6v10"/>', action: 'ĐÃ XẾP VÀ ĐÓNG GÓI', btnCls: 'oq-action-packing', next: 'done', cardCls: 'oq-state-packing' }
+};
+
+
+function updateExpediteUI(val) {
+  const el = document.getElementById('exp-new-time-text');
+  if(el) el.innerText = val;
+}
+function confirmDetailedExpedite() {
+  const reason = document.getElementById('exp-reason-inp').value;
+  if(state.currentActionOrderId) {
+    let order = state.orders.find(o => o.id === state.currentActionOrderId);
+    if(order) {
+      order.priority = 1;
+      order.risk = true;
+      const t = document.getElementById('dl-new-time-inp');
+      if(t && t.value) order.pickup = t.value;
+      state.orders = state.orders.filter(o => o.id !== order.id);
+      state.orders.unshift(order);
+      showToast(`Đã đôn đơn #${order.id} và cập nhật lịch hẹn!`);
+    }
+  }
+  closeModal('order-detail');
+  render();
+}
+function switchPage(pageId) {
+  document.querySelectorAll(".ni").forEach(b => b.classList.remove("on"));
+  document.querySelectorAll(".page").forEach(p => p.classList.remove("on"));
+  var nb = document.getElementById("nav-" + pageId);
+  if (nb) nb.classList.add("on");
+  var pg = document.getElementById("p-" + pageId);
+  if (pg) pg.classList.add("on");
+  var fw = document.getElementById("filter-tabs-wrap");
+  if (fw) fw.style.display = pageId === "q" ? "flex" : "none";
+  render();
+}
+
+function openModal(id, ctx) {
+  state.currentActionOrderId = null;
+
+  if(id === "order-detail" && ctx) {
+    state.currentActionOrderId = ctx.id;
+    let stagesHtml = '';
+    let stages = [];
+    if(ctx.service === 'Giặt + Sấy') stages = ['Phân loại', 'Giặt', 'Sấy', 'Đóng gói'];
+    else if(ctx.service === 'Chỉ Giặt') stages = ['Phân loại', 'Giặt', 'Đóng gói'];
+    else stages = ['Phân loại', 'Sấy', 'Đóng gói'];
+    
+    let curIdx = 0;
+    if(ctx.stage === 'wash-ready' || ctx.stage === 'washing') curIdx = 1;
+    if(ctx.stage === 'transfer' || ctx.stage === 'drying') curIdx = stages.indexOf('Sấy');
+    if(ctx.stage === 'packing') curIdx = stages.length - 1;
+    if(ctx.stage === 'done') curIdx = stages.length;
+
+    stagesHtml = `<div style="display: flex; margin: 14px 0">` + stages.map((s, i) => {
+      let done = i < curIdx;
+      let act = i === curIdx;
+      return `
+        <div style="flex: 1; text-align: center; position: relative">
+          <div style="width: 26px; height: 26px; border-radius: 50%; margin: 0 auto; z-index: 1; position: relative; background: ${done || act ? '#7c3aed' : '#e2e8f0'}; color: ${done || act ? '#fff' : '#9ca3af'}; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700">
+            ${done ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>' : (i + 1)}
+          </div>
+          <div style="font-size: 8.5px; color: ${act ? '#7c3aed' : '#9ca3af'}; margin-top: 3px; font-weight: ${act ? 700 : 400}">${s}</div>
+          <div style="font-size:8.5px;color:var(--tl)">--:--</div>
+          ${i < stages.length - 1 ? `<div style="position: absolute; top: 13px; left: 50%; width: 100%; height: 2px; background: ${done ? '#7c3aed' : '#e2e8f0'}"></div>` : ''}
+        </div>
+      `;
+    }).join('') + `</div>`;
+
+    const showExpedite = ctx.showExpedite;
+    const isRisk = ctx.risk;
+    
+    document.getElementById("modal-order-detail-content").innerHTML = `
+      <div class="mhd">
+        <div class="mtitle">${ctx.name} – Chi tiết đơn</div>
+        <button class="mxbtn" onclick="closeModal('order-detail')"><svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+      </div>
+
+      <div style="display: flex; align-items: flex-start; gap: 13px; padding: 11px 0; border-bottom: 1.5px solid #f1f5f9; margin-bottom: 11px">
+        <div>
+          <div style="font-size: 17px; font-weight: 800; color: var(--tx)">${ctx.name}</div>
+          <div style="font-size: 11.5px; color: var(--ts); margin-top: 3px">${ctx.phone}</div>
+        </div>
+        <div style="margin-left: auto; text-align: right">
+          <div style="font-size: 20px; font-weight: 900; color: ${isRisk ? '#ef4444' : '#1e1b4b'}">${ctx.pickup}</div>
+          <div style="font-size: 10.5px; color: var(--tl)">Giờ hẹn lấy</div>
+        </div>
+      </div>
+
+      ${stagesHtml}
+
+      <div style="display:flex; gap:10px; margin-bottom:12px; font-size:12px">
+        <div style="background:#f8fafc; padding:8px 12px; border-radius:6px; flex:1">
+          <div style="color:var(--ts); font-size:10px; font-weight:700; margin-bottom:2px">DỊCH VỤ</div>
+          <div style="color:var(--tx)">${ctx.service}</div>
+        </div>
+        <div style="background:#f8fafc; padding:8px 12px; border-radius:6px; flex:1">
+          <div style="color:var(--ts); font-size:10px; font-weight:700; margin-bottom:2px">KHỐI LƯỢNG</div>
+          <div style="color:var(--tx)">${ctx.kg} kg</div>
+        </div>
+        <div style="background:#f8fafc; padding:8px 12px; border-radius:6px; flex:1">
+          <div style="color:var(--ts); font-size:10px; font-weight:700; margin-bottom:2px">TRẠNG THÁI</div>
+          <div style="color:var(--tx)">${ctx.statusText}</div>
+        </div>
+      </div>
+
+      <div style="border:1px solid #e2e8f0; border-radius:8px; padding:10px; margin-bottom:12px; display:flex; gap:8px; align-items:center; font-size:12px">
+        <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+        <div>
+          <div style="color:var(--ts); font-size:10px; font-weight:700">LÝ DO ƯU TIÊN</div>
+          <div>Theo schedule hiện tại</div>
+        </div>
+      </div>
+
+      ${showExpedite ? `
+      <div style="margin-top:20px; border-top:1px solid #e2e8f0; padding-top:16px">
+        <div style="background:#f8fafc; border-radius:9px; padding:14px; border:1px solid #e2e8f0; margin-bottom:12px">
+          <div style="font-weight:700; font-size:14px; margin-bottom:8px">Chỉnh giờ hẹn lấy</div>
+          <div style="font-size:12px; color:var(--ts); margin-bottom:12px">Giờ hẹn hiện tại: <strong style="color:var(--tx)">${ctx.pickup}</strong></div>
+          <div style="display:flex; gap:8px; margin-bottom:12px; align-items:center; flex-wrap:wrap">
+            <button class="bs" style="padding: 6px 10px; font-size: 12px" onclick="document.getElementById('dl-new-time-inp').value = '18:15'">+15 phút</button>
+            <button class="bs" style="padding: 6px 10px; font-size: 12px" onclick="document.getElementById('dl-new-time-inp').value = '18:30'">+30 phút</button>
+            <button class="bs" style="padding: 6px 10px; font-size: 12px" onclick="document.getElementById('dl-new-time-inp').value = '19:00'">+1 giờ</button>
+            <div style="border:1.5px solid #c4b5fd; border-radius:9px; display:flex; align-items:center; background:#fff; padding:0 8px; height:31px; color:#7c3aed; width:100px">
+              <input type="time" id="dl-new-time-inp" value="${ctx.pickup}" onchange="updateExpediteUI(this.value)" style="border:none; outline:none; font-family:inherit; font-size:12px; color:#7c3aed; width:100%" />
+            </div>
+          </div>
+
+          <div id="exp-impact-box" style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 6px; padding: 10px 12px; margin-bottom: 12px">
+            <div style="font-size: 12px; color: #475569; margin-bottom: 4px">→ Giờ hẹn mới: <strong style="color: #15803d" id="exp-new-time-text">${ctx.pickup}</strong></div>
+            <div style="font-size: 11px; color: #15803d; margin-bottom: 4px">Giờ hẹn mới giúp đơn không còn trễ.</div>
+            <div style="font-size: 11px; color: #475569"><strong>Tác động:</strong> 3 đơn bị ảnh hưởng (Trễ: 1, Cảnh báo: 0)</div>
+            <div style="font-size: 11px; color: #b45309; font-weight: 700; margin-top: 6px">Không thể đôn: lần dời này sẽ làm 1 đơn khác trễ hẹn.</div>
+            
+            <div style="margin-top: 9px; border-top: 1px solid #e2e8f0; padding-top: 7px">
+              <div style="font-size: 11px; font-weight: 700; color: #334155; margin-bottom: 6px">Các đơn bị ảnh hưởng</div>
+              
+              <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: 11px; line-height: 1.5; padding: 6px 8px; color: #475569; background: #f5f3ff; border-left: 3px solid #7c3aed; border-radius: 4px; margin-bottom:4px">
+                <span><strong>#${ctx.id}</strong> &middot; ${ctx.name} <small style="color: #6d28d9; font-weight: 700">&middot; Đơn được đôn</small></span>
+                <span style="white-space: nowrap; font-weight: 700; color: #15803d">Đúng giờ</span>
+              </div>
+              
+              <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: 11px; line-height: 1.5; padding: 6px 8px; color: #475569; background: #f8fafc; border-left: 3px solid #94a3b8; border-radius: 4px; margin-bottom:4px">
+                <span><strong>#65</strong> &middot; Tách đơn <small style="color: #64748b; font-weight: 700">&middot; Đơn ảnh hưởng khác</small></span>
+                <span style="white-space: nowrap; font-weight: 700; color: #15803d">Đúng giờ</span>
+              </div>
+              
+              <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: 11px; line-height: 1.5; padding: 6px 8px; color: #475569; background: #f8fafc; border-left: 3px solid #94a3b8; border-radius: 4px">
+                <span><strong>#67</strong> &middot; Test nữa <small style="color: #64748b; font-weight: 700">&middot; Đơn ảnh hưởng khác</small></span>
+                <span style="white-space: nowrap; font-weight: 700; color: #b45309">Sẽ trễ hẹn</span>
+              </div>
+            </div>
+          </div>
+
+          <input type="text" class="finput" placeholder="Nhập lý do đổi giờ (vd: Điều chỉnh để tránh trễ)..." style="width:100%; margin-bottom:12px" id="exp-reason-inp" />
+          
+          <div style="display: flex; gap: 8px">
+            <button class="bs" style="flex:1" onclick="closeModal('order-detail')">Hủy</button>
+            <button class="bp" style="background: #a78bfa; color: #fff; flex: 2; border:none" onclick="confirmDetailedExpedite()">Xác nhận đôn đơn</button>
+          </div>
+        </div>
+      </div>
+      ` : ''}
+
+      <div style="display:flex; gap:9px; justify-content:flex-end; flex-wrap:wrap; margin-top: 18px">
+        <button class="bs" onclick="closeModal('order-detail')" style="padding: 7px 18px">Đóng</button>
+        ${!showExpedite ? `<button class="bs" onclick="openModal('order-detail', Object.assign({}, state.orders.find(o => o.id === ${ctx.id}), {showExpedite: true}))"><svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> Chỉnh giờ hẹn</button>` : ''}
+        <button class="bp" onclick="processAction(${ctx.id})"><svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> ${ctx.target ? 'Đưa vào ' + ctx.target : (ctx.statusText.includes('CHỜ') ? 'Hoàn tất công đoạn' : 'Hoàn tất ngay')}</button>
+      </div>
+    `;
+  }
+
+  if(id === "expedite" && ctx) {
+    state.currentActionOrderId = ctx.id;
+    document.getElementById("exp-id-text").innerText = "#" + ctx.id;
+  }
+  if(id === "deadline" && ctx) {
+    state.currentActionOrderId = ctx.id;
+    document.getElementById("dl-id-text").innerText = "#" + ctx.id;
+    document.getElementById("dl-current-time").innerText = ctx.pickup;
+  }
+  if(id === "notify-zalo" && ctx) {
+    state.currentActionOrderId = ctx.id;
+    document.getElementById("nz-msg-content").innerText = `Chào ${ctx.name}, đồ giặt ủi của bạn đã hoàn tất và sẵn sàng để lấy. 
+Cảm ơn bạn đã sử dụng dịch vụ của WashTrack!`;
+  }
+  var m = document.getElementById("modal-" + id);
+  if (m) m.classList.add("open");
+}
+function closeModal(id) {
+  var m = document.getElementById("modal-" + id);
+  if (m) m.classList.remove("open");
+}
+window.addEventListener("click", e => {
+  if (e.target.classList.contains("mov")) e.target.classList.remove("open");
+});
+
+function showToast(msg) {
+  const c = document.getElementById("toast-container");
+  const t = document.createElement("div");
+  t.className = "toast grn";
+  t.innerHTML = `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>` + msg;
+  c.appendChild(t);
+  setTimeout(() => t.remove(), 3000);
+}
+
+function confirmExpedite() {
+  if(state.currentActionOrderId) {
+    let order = state.orders.find(o => o.id === state.currentActionOrderId);
+    if(order) {
+      order.priority = 1;
+      order.risk = true;
+      state.orders = state.orders.filter(o => o.id !== order.id);
+      state.orders.unshift(order); // Move to top
+      showToast(`Đã ưu tiên đơn #${order.id}!`);
+    }
+  }
+  closeModal('expedite');
+  render();
+}
+
+function confirmDeadline() {
+  if(state.currentActionOrderId) {
+    let order = state.orders.find(o => o.id === state.currentActionOrderId);
+    let newVal = document.getElementById("dl-new-time").value;
+    if(order && newVal) {
+      order.pickup = newVal;
+      showToast(`Đã dời hẹn lấy đơn #${order.id} sang ${newVal}`);
+    }
+  }
+  closeModal('deadline');
+  render();
+}
+
+function confirmZalo() {
+  if(state.currentActionOrderId) {
+    let order = state.completedOrders.find(o => o.id === state.currentActionOrderId);
+    if(order) {
+      order.notified = true;
+      showToast(`Đã gửi thông báo Zalo cho #${order.id}`);
+    }
+  }
+  closeModal('notify-zalo');
+  render();
+}
+
+function processAction(id, event) {
+  if(event) event.stopPropagation();
+  let order = state.orders.find(o => o.id === id);
+  if (!order) return;
+  const cfg = STAGE_CONFIG[order.stage];
+  if (!cfg || !cfg.next) return;
+  
+  order.stage = cfg.next;
+  const ncfg = STAGE_CONFIG[order.stage];
+  
+  if (order.target && ncfg) {
+    let machine = state.machines.find(m => m.name === order.target);
+    if (machine) {
+      machine.active = true;
+      machine.user = order.name;
+      machine.stateText = `Đang ${machine.type} (#${order.id})`;
+      machine.colorClass = machine.type === 'Giặt' ? 'bl' : 'am';
+      
+      order.instruction = `Đang ${machine.type} tại <b>${machine.name}</b>`;
+      order.isMachine = true;
+      order.statusText = ncfg.action;
+      
+      closeModal('order-detail');
+      
+      showToast(`Đã phân bổ #${order.id} vào ${machine.name}`);
+      render();
+      return;
+    }
+  }
+
+  if(ncfg) {
+    order.statusText = ncfg.action; 
+    order.instruction = 'Tiếp tục xử lý công đoạn mới...';
+    order.isMachine = false;
+  } else if (order.stage === 'done') {
+    state.completedOrders.push({...order, time: 'Vừa xong', notified: false});
+    state.orders = state.orders.filter(o => o.id !== id);
+  }
+  
+  closeModal('order-detail');
+
+  showToast(`Cập nhật đơn #${order.id} thành công!`);
+  render();
+}
+
+function renderOrderRow(order) {
+  const cfg = STAGE_CONFIG[order.stage] || STAGE_CONFIG['sorting'];
+  let riskCls = order.risk ? ' risk' : '';
+  let riskBdr = order.risk ? ' oq-risk-card' : '';
+  
+  let actionText = cfg.action;
+  if (order.target && (order.stage === 'wash-ready' || order.stage === 'transfer')) {
+    actionText = `ĐÃ ĐƯA ĐỒ VÀO ${order.target.toUpperCase()}`;
+  }
+
+  return `
+    <div class="oq-task-card ${cfg.cardCls}${riskCls}${riskBdr}" onclick='openModal("order-detail", ${JSON.stringify(order)})'>
+      <div class="oq-task-layout">
+        <div>
+          <div class="oq-task-identity">
+            <span class="oq-state-icon" style="color:${order.color}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">${cfg.icon}</svg></span>
+            <span class="oq-task-title-group"><span class="oq-task-name">#${order.id} &middot; ${order.name}</span><span class="oq-state-label">${order.statusText}</span></span>
+          </div>
+          <div class="oq-task-meta"><span>${order.service}</span><span>${order.kg} kg</span></div>
+        </div>
+        <div class="oq-task-work">
+          <div class="oq-reference-action${order.risk ? ' late' : ''}">
+            <span>VIỆC CẦN LÀM</span>
+            <strong class="oq-instruction-text">${order.instruction}</strong>
+            <div class="oq-task-timing-group">
+              <span class="oq-task-timing ${order.isMachine ? 'machine' : 'action'}"><b>${order.isMachine ? 'MÁY CÒN' : 'THỜI GIAN'}</b><span>${order.waitTime}</span></span>
+            </div>
+          </div>
+        </div>
+        <div class="oq-task-side">
+          <div class="oq-task-priority${order.risk ? ' risk' : ''}">${order.priority}</div>
+          <div class="oq-task-pickup">Hẹn lấy <strong>${order.pickup}</strong></div>
+          <div class="oq-task-actions">
+            <button class="oq-expedite-button" onclick="openModal('order-detail', { ...order, showExpedite: true }); event.stopPropagation();">ĐÔN ĐƠN</button>
+            <button class="oq-row-action ${cfg.btnCls}" ${cfg.disabled ? 'disabled' : ''} onclick="processAction(${order.id}, event)">${actionText}</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderMachine(m) {
+  let badge = m.warning ? `<span style="position:absolute;top:-4px;right:-4px;width:12px;height:12px;background:var(--rd);border-radius:50%;border:2px solid #fff"></span>` : ``;
+  return `
+    <div class="mc ${m.colorClass}">
+      <div class="strow">
+        <svg class="icon icon-sm mc-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="2" width="18" height="20" rx="2"/><circle cx="12" cy="13" r="4"/><circle cx="7" cy="5" r=".5" fill="currentColor"/></svg>
+        <div style="position:relative">${badge}<span class="mc-name">${m.name}</span></div>
+      </div>
+      <div class="mc-st">${m.stateText}</div>
+    </div>
+  `;
+}
+
+function render() {
+  const pending = state.orders;
+  document.getElementById("stat-pending").innerText = pending.length;
+  document.getElementById("stat-done").innerText = 3 + state.completedOrders.length;
+  
+  const riskOrders = pending.filter(o => o.risk);
+  const dbRiskList = document.getElementById("db-risk-list");
+  if(dbRiskList) {
+    if (riskOrders.length > 0) {
+      document.getElementById("db-risk-card").style.display = "block";
+      document.getElementById("db-alert").style.display = "flex";
+      document.getElementById("db-alert-text").innerHTML = `<strong>Cảnh báo:</strong> Có ${riskOrders.length} đơn nguy cơ trễ hẹn`;
+      dbRiskList.innerHTML = riskOrders.map(renderOrderRow).join("");
+    } else {
+      document.getElementById("db-risk-card").style.display = "none";
+      document.getElementById("db-alert").style.display = "none";
+    }
+  }
+
+  const dbQueueList = document.getElementById("db-queue-list");
+  if(dbQueueList) dbQueueList.innerHTML = pending.map(renderOrderRow).join("");
+
+  const qQueueList = document.getElementById("q-queue-list");
+  if(qQueueList) qQueueList.innerHTML = pending.map(renderOrderRow).join("");
+  
+  const qTotal = document.getElementById("q-total-count");
+  if(qTotal) qTotal.innerText = pending.length;
+
+  const suggest = pending[0];
+  const qSuggestCard = document.getElementById("q-suggest-card");
+  if(qSuggestCard) {
+    if(suggest) {
+      qSuggestCard.style.display = "block";
+      document.getElementById("q-suggest-content").innerHTML = `
+          <div class="sugg-n" style="font-size: 24px; color: #7c3aed; font-weight: 800; margin-right: 12px; min-width: 45px">#${suggest.id}</div>
+          <div class="sugg-info" style="margin-top: 0px; flex: 1">
+            <div class="sugg-name" style="font-size: 15px; margin-bottom: 6px; font-weight: 700; color: #1e293b">${suggest.name}</div>
+            <div class="sugg-meta" style="display: flex; gap: 6px; margin-bottom: 8px;">
+              <span style="background: #f8fafc; border: 1px solid #e2e8f0; color: #64748b; font-weight: 600; padding: 2px 8px; border-radius: 4px; font-size: 11px">${suggest.statusText}</span>
+              <span style="background: #f8fafc; border: 1px solid #e2e8f0; color: #64748b; font-weight: 600; padding: 2px 8px; border-radius: 4px; font-size: 11px">${suggest.service}</span>
+              <span style="background: #f8fafc; border: 1px solid #e2e8f0; color: #64748b; font-weight: 600; padding: 2px 8px; border-radius: 4px; font-size: 11px">${suggest.kg} kg</span>
+              <span style="background: #f8fafc; border: 1px solid #e2e8f0; color: #64748b; font-weight: 600; padding: 2px 8px; border-radius: 4px; font-size: 11px">Hẹn lấy ${suggest.pickup}</span>
+            </div>
+            <div style="color: #7c3aed; font-size: 11.5px; font-weight: 600; display: flex; align-items: center; gap: 5px;">
+              <svg class="icon" style="width:14px; height:14px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+              Việc cần làm: <strong style="font-weight:800; color:#6d28d9">${suggest.instruction.replace(/<[^>]*>?/gm, '')}</strong> &middot; Bắt đầu sau 1 phút
+            </div>
+          </div>
+          <button class="bp" onclick="processAction(${suggest.id}, event)" style="background: #8b5cf6; align-self: center; padding: 10px 16px; font-size: 12px; border-radius: 8px; border:none; box-shadow: 0 2px 4px rgba(139, 92, 246, 0.2)">Xử lý đơn này <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></button>
+      `;
+    } else {
+      qSuggestCard.style.display = "none";
+    }
+  }
+
+  const rpMachines = document.getElementById("rp-machines");
+  if(rpMachines) rpMachines.innerHTML = state.machines.map(renderMachine).join("");
+
+  
+  const unnotified = state.completedOrders.filter(o => !o.notified);
+  const notified = state.completedOrders.filter(o => o.notified);
+  const pendingForNotify = state.orders; // Đang xử lý
+  
+  const getAvatarInitials = (name) => {
+    const parts = name.split(' ');
+    if (parts.length > 1) return (parts[0][0] + parts[parts.length-1][0]).toUpperCase();
+    return name.substring(0, 2).toUpperCase();
+  };
+  const getAvatarColor = (name) => {
+    const colors = ['#8b5cf6', '#3b82f6', '#f59e0b', '#10b981', '#ec4899'];
+    let hash = 0;
+    for(let i=0; i<name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
+    return colors[Math.abs(hash) % colors.length];
+  };
+
+  const elUnnotified = document.getElementById("n-unnotified-list");
+  if(elUnnotified) {
+    elUnnotified.innerHTML = unnotified.map(o => `
+      <div class="n-card">
+        <div class="n-hdr">
+          <div class="n-av" style="background:${getAvatarColor(o.name)}">${getAvatarInitials(o.name)}</div>
+          <div class="n-info">
+            <div class="n-name">${o.name}</div>
+            <div class="n-meta">
+              <svg class="icon" style="width:14px;height:14px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+              ${o.phone || '0901234567'} &middot; Hoàn tất lúc ${o.time} &middot; Chưa thông báo
+            </div>
+          </div>
+          <button class="n-btn-zalo" onclick="openModal('notify-zalo', {id: ${o.id}, name: '${o.name}'})">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"/><path d="m22 2-7 20-4-9-9-4Z"/></svg>
+            Gửi Zalo
+          </button>
+        </div>
+        <div class="n-quote">
+          "Chào ${o.name}, đồ của bạn đã sạch và sẵn sàng. Cảm ơn đã tin dùng WashTrack!"
+        </div>
+      </div>
+    `).join("") + (unnotified.length === 0 ? "<div style='padding:20px;text-align:center;color:var(--ts);font-size:13px'>Chưa có đơn nào chờ thông báo</div>" : "");
+  }
+
+  const elNotified = document.getElementById("n-notified-list");
+  if(elNotified) {
+    elNotified.innerHTML = notified.map(o => `
+      <div class="n-card">
+        <div class="n-hdr">
+          <div class="n-av" style="background:${getAvatarColor(o.name)}">${getAvatarInitials(o.name)}</div>
+          <div class="n-info">
+            <div class="n-name">${o.name}</div>
+            <div class="n-meta">
+              <svg class="icon" style="width:14px;height:14px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+              ${o.phone || '0901234567'} &middot; Hoàn tất lúc ${o.time} &middot; Đã gửi thông báo
+            </div>
+          </div>
+          <button class="n-btn-zalo" disabled>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            Đã gửi
+          </button>
+        </div>
+        <div class="n-quote">
+          "Chào ${o.name}, đồ của bạn đã sạch và sẵn sàng. Cảm ơn đã tin dùng WashTrack!"
+        </div>
+      </div>
+    `).join("") + (notified.length === 0 ? "<div style='padding:10px;text-align:center;color:var(--ts);font-size:13px'>Chưa có thông báo nào gửi trong ca này</div>" : "");
+  }
+
+  const elPending = document.getElementById("n-pending-list");
+  if(elPending) {
+    elPending.innerHTML = pendingForNotify.map(o => `
+      <div class="n-pending-card">
+        <div class="n-hdr" style="align-items:center; flex:1">
+          <div class="n-av" style="background:${getAvatarColor(o.name)}">${getAvatarInitials(o.name)}</div>
+          <div class="n-info">
+            <div class="n-name" style="margin-bottom:0;">${o.name}</div>
+            <div class="n-meta">${o.service}</div>
+          </div>
+        </div>
+        <div class="n-pending-tag">Đang xử lý</div>
+      </div>
+    `).join("");
+  }
+
+  const notifyBadge = document.getElementById("notify-badge");
+  if(notifyBadge) notifyBadge.innerText = unnotified.length || '';
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  render();
+});
+</script>
+</body>
+</html>
