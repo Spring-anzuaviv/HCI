@@ -224,6 +224,10 @@ Khi countdown của máy giặt/sấy đã hết, card hiển thị lại nút t
 
 ### Trạng thái 2026-09-02
 
+Đã sửa reschedule ngoài ý muốn khi tạo đơn hoặc thao tác vận hành: các luồng refresh schedule mặc định bảo toàn công đoạn `PLANNED` đã quá hạn nên không làm mất dấu `TRỄ TIẾN ĐỘ`. Thêm job backend chạy mỗi phút để thử lập lại slot cho từng đơn trễ; job giữ nguyên `pickupAt`, bỏ qua stage đang chạy/đã hoàn tất, chỉ ghi lịch của đơn đang xét khi ETA mới vẫn đúng giờ hẹn. Đơn không khả thi giữ nguyên lịch cũ; một đơn không khả thi không chặn đơn khác. Job có chống chạy chồng và dọn timer khi shutdown. Backend test và build đã đạt.
+
+Đã sửa cách lập lịch công đoạn chuẩn bị: với đơn mới hoặc stage chưa bắt đầu, hệ thống tìm slot máy trước rồi tính ngược `SORTING` từ thời điểm bắt đầu máy (5 phút chuẩn bị). Ví dụ máy bắt đầu lúc `15:05` thì phân loại được lập từ `15:00`, thay vì bắt đầu ngay lúc tạo đơn rồi mới đẩy máy. Đã bổ sung test cho quy tắc này.
+
 Đã mở rộng thống kê theo giờ trong panel phải từ 4 khoảng `08–16h` thành 4 khoảng 6 giờ phủ đủ ngày `00–24h`; giữ chức năng chỉnh ca trong Cài đặt và không hiển thị trigger chỉnh ca trong sidebar.
 
 Đã sửa lệch giờ sau khi chỉnh ca: frontend đọc giờ ca theo thành phần UTC mà backend dùng để lưu giờ tường, đồng thời banner Tổng quan lấy tên và khoảng giờ từ `workShifts` thay vì các mốc hard-code. Sidebar, modal và banner hiện dùng cùng dữ liệu ca theo ngày đang xem.
