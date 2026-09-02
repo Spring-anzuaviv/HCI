@@ -123,15 +123,36 @@ export async function stats(storeId: number) {
     return { type, count };
   });
   const total = services.reduce((sum, item) => sum + item.count, 0);
-  const completedToday = todayOrders.filter(order => order.status === "COMPLETED").length;
-  const lateOrders = orders.filter(order => order.pickupAt && order.estimatedAt && order.estimatedAt > order.pickupAt).length;
+  const completedToday = orders.filter(order =>
+    order.status === "COMPLETED"
+    && order.completedAt
+    && order.completedAt >= today
+    && order.completedAt < tomorrow
+  ).length;
+  const lateOrders = todayOrders.filter(order => order.pickupAt && order.estimatedAt && order.estimatedAt > order.pickupAt).length;
+  const weekLabels = ["T2", "T3", "T4", "T5", "T6", "T7", "CN"];
+  const weekStart = new Date(today);
+  const dayOfWeek = today.getDay();
+  weekStart.setDate(today.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1));
+  const weekChart = weekLabels.map((label, index) => {
+    const dayStart = new Date(weekStart);
+    dayStart.setDate(weekStart.getDate() + index);
+    const nextDay = new Date(dayStart);
+    nextDay.setDate(dayStart.getDate() + 1);
+    return {
+      label,
+      val: orders.filter(order => order.createdAt >= dayStart && order.createdAt < nextDay).length,
+      bottom: 28,
+      highlight: dayStart.getTime() === today.getTime(),
+    };
+  });
   const machineStages = machines.flatMap(machine => machine.stages.filter(stage => stage.status === "RUNNING" || stage.status === "COMPLETED"));
   return {
     completedToday,
     lateOrders,
     machineEfficiency: machines.length ? Math.round((machineStages.length / Math.max(1, machines.length * 8)) * 100) : 0,
     hourlyBreakdown,
-    weekChart: ["T2", "T3", "T4", "T5", "T6", "T7", "CN"].map((label, index) => ({ label, val: index === 0 ? todayOrders.length : 0, bottom: 28, highlight: index === 0 })),
+    weekChart,
     services: services.map(item => ({ color: item.type === "WASH_DRY" ? "var(--pu)" : item.type === "WASH" ? "var(--bl)" : "var(--am)", label: item.type === "WASH_DRY" ? "Giặt + Sấy" : item.type === "WASH" ? "Chỉ Giặt" : "Sấy khô", pct: `${total ? Math.round(item.count / total * 100) : 0}%` })),
   };
 }

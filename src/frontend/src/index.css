@@ -165,7 +165,7 @@ body {
 
 /* ── STATS ROW ── */
 .srow { display: flex; gap: 12px; }
-.scard { flex: 1; background: #fff; border-radius: 13px; padding: 14px 16px; border: 1.5px solid var(--bd); }
+.scard { flex: 1; background: #fff; border-radius: 13px; padding: 14px 16px; border: 1.5px solid var(--bd); font: inherit; text-align: left; cursor: pointer; }
 .snum  { font-size: 26px; font-weight: 900; line-height: 1; color: var(--tx); }
 .slbl  { font-size: 10.5px; font-weight: 600; color: var(--tl); text-transform: uppercase; letter-spacing: .06em; margin-top: 3px; }
 .scard.red .snum { color: var(--rd); }

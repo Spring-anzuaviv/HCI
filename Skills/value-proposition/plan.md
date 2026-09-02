@@ -26,7 +26,11 @@ Một hoặc nhiều trong số:
 
 Input cần có bối cảnh sử dụng và nhóm người dùng mục tiêu. Nếu thông tin là giả định hoặc dữ liệu mô phỏng, phải ghi rõ trong output.
 
-## Output
+## Template và Output
+
+Template canonical: `templates/value-proposition.md`.
+
+Output hoàn chỉnh: `outputs/value-proposition.md`.
 
 Một Value Proposition Canvas hoàn chỉnh, dạng Markdown, gồm:
 
@@ -44,7 +48,7 @@ Output phải bắt đầu từ Persona, nhất quán với Persona và Scenario
 
 ## Workflow
 
-1. Đọc `Agents.md`, `plan.md` cấp project, `skills/value-proposition/skill.md`, `rules/domain.md`, `docs/Rubric.md`, Persona và user research.
+1. Đọc `AGENTS.md`, `plan.md` cấp project, `skills/value-proposition/skill.md`, `rules/domains/hci.md`, `inputs/Rubric.md`, Persona và user research.
 2. Đọc Persona trước, xác định bối cảnh sử dụng, goals, tasks, behaviors, pain points, motivations, wishes và kết quả mong muốn.
 3. Xác định Customer Jobs từ các công việc Persona đang cố hoàn thành, vấn đề đang cố giải quyết hoặc nhu cầu đang cố đáp ứng; dùng các câu hỏi về công việc cốt lõi, task chiếm nhiều thời gian, kết quả cuối cùng và tiêu chí thành công.
 4. Xác định Customer Pains từ các khó khăn, chi phí, rủi ro, trở ngại, sai sót và cảm xúc tiêu cực của Persona.
@@ -54,5 +58,6 @@ Output phải bắt đầu từ Persona, nhất quán với Persona và Scenario
 8. Kiểm tra mỗi Pain có ít nhất 2 Pain Relievers khác nhau và mỗi Gain có ít nhất 2 Gain Creators khác nhau; mỗi giải pháp design phải có cơ chế riêng.
 9. Đánh giá FIT bằng cách đối chiếu Customer Profile với Value Map.
 10. Ghi rõ assumptions, open questions và giới hạn nếu Persona hoặc dữ liệu user research chưa đủ.
-11. Điền kết quả theo các phần trong canvas vào file Markdown `value-proposition.md` và lưu vào   `/templates`
-12. Kiểm tra output theo `skills/value-proposition/skill.md`, `rules/domain.md` và `docs/Rubric.md`.
+11. Mở và điền `templates/value-proposition.md`, giữ các bảng liên kết và nhãn bằng chứng.
+12. Xuất kết quả hoàn chỉnh vào `outputs/value-proposition.md`.
+13. Kiểm tra output theo `skills/value-proposition/skill.md`, `rules/domains/hci.md` và `inputs/Rubric.md`.

@@ -18,7 +18,11 @@ Generate Scenario 2 (hệ thống tương lai) cho đồ án HCI: mô tả tư�
 - `outputs/value-proposition.md`: các giải pháp (Pain Relievers, Gain Creators) tương ứng với 3 tính năng: (1) Hàng đợi công việc thông minh, (2) Kiểm tra tính khả thi giờ hẹn, (3) Thông báo khách khi đơn sẵn sàng.
 - Cấu trúc và bối cảnh (phải giữ nguyên như Scenario 1): nhân vật, địa điểm, thời điểm, tình trạng ban đầu.
 
-## Output
+## Template và Output
+
+Template canonical: `templates/scenario-2.md`.
+
+Output hoàn chỉnh: `outputs/scenario-2.md`.
 
 Một Scenario 2 hoàn chỉnh, dạng Markdown, gồm:
 
@@ -36,4 +40,4 @@ Một Scenario 2 hoàn chỉnh, dạng Markdown, gồm:
 5. Ở mỗi điểm tương ứng với pain point của Scenario 1, mô tả hành động tương tác với hệ thống mới (tác nhân -> hành động -> phản hồi hệ thống -> quyết định của nhân viên). Không để hệ thống tự động quyết định thay người dùng.
 6. Lập bảng so sánh (Traceability) giữa Scenario 1 và Scenario 2.
 7. Kiểm tra output theo Validation Checklist trong `skills/scenario-2/skill.md` và `docs/Rubric.md`.
-8. Lưu kết quả vào `outputs/scenario-2.md`.
+8. Mở và điền `templates/scenario-2.md`, sau đó lưu kết quả hoàn chỉnh vào `outputs/scenario-2.md`.

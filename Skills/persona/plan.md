@@ -28,9 +28,12 @@ Một hoặc nhiều trong số:
 
 Ràng buộc bắt buộc: input phải được gắn nhãn theo **nhóm người dùng** (ví dụ: "nhân viên tiệm giặt ủi quy mô lớn" vs. "chủ tiệm nhỏ tự vận hành") để skill lọc đúng phạm vi trước khi tổng hợp — xem quy tắc lọc trong `skills/persona/skill.md`.
 
-## Output
+## Template và Output
 
-Một persona hoàn chỉnh, dạng Markdown, lưu tại `outputs/Persona.md`, gồm: tên nhân vật đại diện, quote tiêu biểu, demographic & bối cảnh, goals, pains, behaviors, mức độ sẵn sàng với công nghệ, nhu cầu cốt lõi, và danh sách nguồn dữ liệu đã dùng — theo đúng template quy định trong `skills/persona/skill.md`.
+- Template canonical: `templates/persona.md`.
+- Output hoàn chỉnh: `outputs/Persona.md`.
+
+Một persona hoàn chỉnh, dạng Markdown, gồm: tên nhân vật đại diện, quote tiêu biểu, demographic & bối cảnh, goals, pains, behaviors, mức độ sẵn sàng với công nghệ, nhu cầu cốt lõi, và danh sách nguồn dữ liệu đã dùng. Khi template thay đổi, dùng file trong `templates/` làm cấu trúc chuẩn thay vì tự tạo cấu trúc khác.
 
 ## Workflow
 
@@ -38,5 +41,5 @@ Một persona hoàn chỉnh, dạng Markdown, lưu tại `outputs/Persona.md`, g
 2. Lọc dữ liệu theo đúng nhóm người dùng mục tiêu đang cần dựng persona; loại các nguồn thuộc nhóm khác ra khỏi bước tổng hợp (giữ lại chỉ để đối chiếu nếu cần).
 3. Áp dụng các quy tắc suy luận (Reasoning) và kiểm tra tính nhất quán (Validation) được định nghĩa trong `skills/persona/skill.md` để tổng hợp thành một nhân vật đại diện duy nhất.
 4. Nếu dữ liệu không đủ hoặc phát sinh mâu thuẫn, áp dụng Failure handling trong `skills/persona/skill.md` thay vì tự suy diễn không có căn cứ.
-5. Điền kết quả vào template persona chuẩn.
-6. Xuất file `Persona.md` ở định dạng Markdown vào thư mục `outputs`
+5. Mở và điền `templates/persona.md`, giữ nguyên thứ tự section và bảng nguồn dữ liệu.
+6. Xuất file `Persona.md` ở định dạng Markdown vào thư mục `outputs`.
