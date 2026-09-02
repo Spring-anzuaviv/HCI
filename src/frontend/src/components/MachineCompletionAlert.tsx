@@ -5,6 +5,7 @@ import { completeRun, startRun } from '../api/orders';
 import { useApp } from '../context/useApp';
 import { BellRing, CircleAlert } from 'lucide-react';
 import type { Machine, MachineCompletionResult, QueueItem } from '../types';
+import { formatDurationLabel } from '../utils/timeFormat';
 
 const FORGOTTEN_AFTER_MS = 5 * 60 * 1000;
 const ALERT_CHECK_INTERVAL_MS = 30 * 1000;
@@ -112,7 +113,7 @@ export default function MachineCompletionAlert() {
     }, minutes * 60 * 1000);
     reminderTimersRef.current.set(key, timer);
     setSnoozedUntil(previous => ({ ...previous, [key]: reminderAt }));
-    showToast(`Đã đặt nhắc lại sau ${minutes} phút`, 'pu');
+    showToast(`Đã đặt nhắc lại sau ${formatDurationLabel(minutes)}`, 'pu');
   };
   const acknowledge = (key: string) => setAcknowledged(previous => new Set(previous).add(key));
 
