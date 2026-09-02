@@ -72,6 +72,8 @@ export default function StatsPage() {
   }, [store]);
 
   const data = stats ?? FALLBACK;
+  const linePath = buildLinePath(data.weekChart);
+  const serviceGradient = buildServiceGradient(data.services);
 
   return (
     <div id="p-stats" className="page">
@@ -130,8 +132,8 @@ export default function StatsPage() {
                       <stop offset="100%" stopColor="var(--pu)" stopOpacity="0" />
                     </linearGradient>
                   </defs>
-                  <path d="M50,70 L150,56 L250,64 L350,40 L450,10 L550,100 L650,100" fill="none" stroke="var(--pu)" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
-                  <path d="M50,70 L150,56 L250,64 L350,40 L450,10 L550,100 L650,100 L650,100 L50,100 Z" fill="url(#lineGrad)" />
+                   <path d={linePath} fill="none" stroke="var(--pu)" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
+                   <path d={`${linePath} L650,100 L50,100 Z`} fill="url(#lineGrad)" />
                 </svg>
 
                 {data.weekChart.map((d) => (
@@ -148,7 +150,7 @@ export default function StatsPage() {
             <div className="card" style={{ flex: 1 }}>
               <div className="ch"><div className="ctitle">Dịch vụ</div></div>
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 15, marginTop: 10 }}>
-                <div style={{ width: 110, height: 110, borderRadius: '50%', background: 'conic-gradient(var(--pu) 0% 55%, var(--bl) 55% 85%, var(--am) 85% 100%)' }} />
+                 <div style={{ width: 110, height: 110, borderRadius: '50%', background: serviceGradient }} />
                 <div style={{ width: '100%', fontSize: '11.5px', color: 'var(--tx)', display: 'flex', flexDirection: 'column', gap: 6 }}>
                   {data.services.map(item => (
                     <div key={item.label} style={{ display: 'flex', justifyContent: 'space-between' }}>
@@ -167,4 +169,27 @@ export default function StatsPage() {
       )}
     </div>
   );
+}
+
+function buildLinePath(points: StatsData['weekChart']) {
+  const max = Math.max(...points.map(point => point.val), 1);
+  return points.map((point, index) => {
+    const x = points.length === 1 ? 350 : 50 + (index * 600) / (points.length - 1);
+    const y = 90 - (point.val / max) * 80;
+    return `${index === 0 ? 'M' : 'L'}${x},${y}`;
+  }).join(' ');
+}
+
+function buildServiceGradient(services: StatsData['services']) {
+  const total = services.reduce((sum, service) => sum + (Number.parseInt(service.pct, 10) || 0), 0);
+  if (!total) return '#e2e8f0';
+  const segments: string[] = [];
+  let start = 0;
+  services.forEach((service, index) => {
+    const percentage = Number.parseInt(service.pct, 10) || 0;
+    const end = index === services.length - 1 ? 100 : Math.min(100, start + percentage);
+    if (end > start) segments.push(`${service.color} ${start}% ${end}%`);
+    start = end;
+  });
+  return segments.length ? `conic-gradient(${segments.join(', ')})` : '#e2e8f0';
 }

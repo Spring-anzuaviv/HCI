@@ -224,6 +224,14 @@ Khi countdown của máy giặt/sấy đã hết, card hiển thị lại nút t
 
 ### Trạng thái 2026-09-02
 
+Đã thêm tương tác cho các thẻ thống kê trên Dashboard: thẻ `Đang xử lý` và `Hoàn tất` dùng bộ lọc đơn dùng chung, còn `Sẽ trễ hẹn` và `Nguy cơ trễ` lọc trực tiếp hàng đợi theo mức rủi ro. Giao diện, API và dữ liệu không thay đổi; các thẻ có `aria-pressed` để hỗ trợ thao tác bàn phím/trình đọc màn hình.
+
+Đã sửa phạm vi số liệu Dashboard: `Đơn hôm nay` và `Hoàn tất` lọc theo ngày tạo cục bộ, `Đang xử lý` lấy từ queue active, còn cảnh báo lấy toàn bộ queue active thay vì bị ảnh hưởng bởi bộ lọc tìm kiếm. Nhãn tóm tắt đổi thành `Tóm tắt vận hành` vì API hiện trả số liệu toàn cửa hàng, chưa có dữ liệu gán đơn theo ca.
+
+Đã sửa trang Thống kê: backend tính số đơn thực tế cho từng ngày trong tuần hiện tại và chỉ tính đơn trễ của hôm nay; frontend tạo đường biểu đồ và donut từ các giá trị API, không còn dùng path hoặc tỷ lệ cố định.
+
+Đã sửa `Đơn hoàn thành` trên trang Thống kê: chỉ đếm đơn có trạng thái `COMPLETED` và `completedAt` nằm trong ngày hiện tại, thay vì dùng ngày tạo đơn `createdAt`.
+
 Đã sửa reschedule ngoài ý muốn khi tạo đơn hoặc thao tác vận hành: các luồng refresh schedule mặc định bảo toàn công đoạn `PLANNED` đã quá hạn nên không làm mất dấu `TRỄ TIẾN ĐỘ`. Thêm job backend chạy mỗi phút để thử lập lại slot cho từng đơn trễ; job giữ nguyên `pickupAt`, bỏ qua stage đang chạy/đã hoàn tất, chỉ ghi lịch của đơn đang xét khi ETA mới vẫn đúng giờ hẹn. Đơn không khả thi giữ nguyên lịch cũ; một đơn không khả thi không chặn đơn khác. Job có chống chạy chồng và dọn timer khi shutdown. Backend test và build đã đạt.
 
 Đã sửa cách lập lịch công đoạn chuẩn bị: với đơn mới hoặc stage chưa bắt đầu, hệ thống tìm slot máy trước rồi tính ngược `SORTING` từ thời điểm bắt đầu máy (5 phút chuẩn bị). Ví dụ máy bắt đầu lúc `15:05` thì phân loại được lập từ `15:00`, thay vì bắt đầu ngay lúc tạo đơn rồi mới đẩy máy. Đã bổ sung test cho quy tắc này.
@@ -245,6 +253,8 @@ Nếu giờ hẹn mới sớm hơn ETA dự kiến của chính đơn mục tiê
 Danh sách tác động trong modal giữ một thứ tự duy nhất và phân biệt `Đơn được đôn`, `Đơn cùng nhóm` và `Đơn ảnh hưởng khác` ngay trên từng dòng bằng nhãn, nền và viền riêng.
 Thanh tiến trình chi tiết đơn ưu tiên `actualStartedAt` để hiển thị giờ bắt đầu thực tế; nếu công đoạn chưa bắt đầu thì dùng `plannedStartAt`, kèm tooltip phân biệt hai loại giờ.
 Banner Tổng quan ngoài giờ làm hiển thị giờ hiện tại thay cho giá trị `--`; Tổng quan cũng hiển thị danh sách đơn `AT_RISK` và `NOT_FEASIBLE` bằng cùng `QueueRow` như Hàng đợi.
+
+Đã chuẩn hóa nhãn thời gian trong hàng đợi: quá hạn công đoạn hiển thị `TRỄ TIẾN ĐỘ`, còn quá hạn giờ khách hẹn hiển thị `TRỄ GIỜ HẸN`; bỏ nhãn `MÁY QUÁ GIỜ` gây nhầm giữa hai mốc.
 
 ## 6. Dependency giữa các artifact
 

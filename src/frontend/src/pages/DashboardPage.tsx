@@ -6,6 +6,8 @@ import OrderFilterBar from '../components/OrderFilterBar';
 import { QueueRow } from './OperationsQueuePage';
 import { AlertTriangle, ArrowRight, ChevronRight, Clock3, Layers3 } from 'lucide-react';
 
+type DashboardStat = 'today' | 'processing' | 'late' | 'risk' | 'done';
+
 // ─── Hero SVG (washing machine illustration) ───
 const HeroSVG = () => (
   <svg width="138" height="152" viewBox="0 0 138 152" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -38,10 +40,11 @@ function currentVietnameseTime() {
 }
 
 export default function DashboardPage() {
-  const { setCurrentPage, openM, orders, setOrderModalParams, orderSearch, orderFilter, shiftSummary, queueSnapshot, operationsLoading, workShifts } = useApp();
+  const { setCurrentPage, openM, orders, setOrderModalParams, orderSearch, orderFilter, setOrderFilter, shiftSummary, queueSnapshot, operationsLoading, workShifts } = useApp();
   const deferredOrderSearch = useDeferredValue(orderSearch);
   const [shiftInfo, setShiftInfo] = useState({ name: '', timeRange: '', timeLeft: `Hiện tại ${currentVietnameseTime()}`, day: '' });
   const [now, setNow] = useState(() => Date.now());
+  const [selectedStat, setSelectedStat] = useState<DashboardStat>('today');
 
   // Tính thông tin ca làm việc từ cùng dữ liệu với sidebar.
   useEffect(() => {
@@ -104,20 +107,30 @@ export default function DashboardPage() {
 
   const visibleOrders = filterOrders(orders, deferredOrderSearch, orderFilter);
   const visibleIds = new Set(visibleOrders.map(order => order.orderId));
-  const topQueueItems = (queueSnapshot?.items ?? [])
-    .filter(item => visibleIds.has(item.orderId))
-    .slice(0, 5);
-  const lateOrders = (queueSnapshot?.items ?? [])
-    .filter(item => visibleIds.has(item.orderId) && item.riskLevel === 'NOT_FEASIBLE');
-  const riskOrders = (queueSnapshot?.items ?? [])
-    .filter(item => visibleIds.has(item.orderId) && item.riskLevel === 'AT_RISK');
+  const queueItems = queueSnapshot?.items ?? [];
+  const lateOrders = queueItems.filter(item => item.riskLevel === 'NOT_FEASIBLE');
+  const riskOrders = queueItems.filter(item => item.riskLevel === 'AT_RISK');
   const attentionOrders = [...lateOrders, ...riskOrders];
+  const selectStat = (stat: DashboardStat) => {
+    setSelectedStat(stat);
+    if (stat === 'processing') setOrderFilter('pending');
+    if (stat === 'done') setOrderFilter('done');
+    if (stat === 'today' || stat === 'late' || stat === 'risk') setOrderFilter('all');
+  };
+  const dashboardQueueItems = (queueSnapshot?.items ?? [])
+    .filter(item => visibleIds.has(item.orderId))
+    .filter(item => {
+      if (selectedStat === 'late') return item.riskLevel === 'NOT_FEASIBLE';
+      if (selectedStat === 'risk') return item.riskLevel === 'AT_RISK';
+      if (selectedStat === 'processing') return orders.some(order => order.orderId === item.orderId && order.status === 'pending');
+      return true;
+    });
   const stats = {
-    today: orders.filter(o => o.status === 'pending').length + orders.filter(o => o.status === 'done').length,
-    processing: orders.filter(o => o.status === 'pending').length,
+    today: orders.filter(isTodayOrder).length,
+    processing: queueItems.length,
     late: lateOrders.length,
     risk: riskOrders.length,
-    done: orders.filter(o => o.status === 'done').length,
+    done: orders.filter(order => order.status === 'done' && isTodayOrder(order)).length,
   };
 
   return (
@@ -142,7 +155,7 @@ export default function DashboardPage() {
             </span>
           </div>
           {shiftSummary && <div className="hero-handover">
-            <strong>Tóm tắt ca:</strong> {shiftSummary.totals.active} đang xử lý · {shiftSummary.totals.completed} hoàn tất · {queueSnapshot?.summary.lateOrders ?? 0} sẽ trễ · {queueSnapshot?.summary.atRiskOrders ?? 0} nguy cơ trễ
+            <strong>Tóm tắt vận hành:</strong> {shiftSummary.totals.active} đang xử lý · {shiftSummary.totals.completed} hoàn tất · {queueSnapshot?.summary.lateOrders ?? 0} sẽ trễ · {queueSnapshot?.summary.atRiskOrders ?? 0} nguy cơ trễ
           </div>}
         </div>
         <div className="hero-img"><HeroSVG /></div>
@@ -179,13 +192,13 @@ export default function DashboardPage() {
 
       {/* Stats */}
       <div className="srow" style={{ gridTemplateColumns: 'repeat(5, 1fr)' }}>
-        <div className="scard pur"><div className="snum">{stats.today}</div><div className="slbl">Đơn hôm nay</div></div>
-        <div className="scard"><div className="snum">{stats.processing}</div><div className="slbl">Đang xử lý</div></div>
-        <div className="scard red"><div className="snum">{stats.late}</div><div className="slbl">Sẽ trễ hẹn</div></div>
-        <div className="scard warning" style={{ borderLeft: '4px solid #b45309', background: '#fef3c7' }}>
-          <div className="snum" style={{ color: '#b45309' }}>{stats.risk}</div><div className="slbl" style={{ color: '#92400e' }}>Nguy cơ trễ</div>
-        </div>
-        <div className="scard grn"><div className="snum">{stats.done}</div><div className="slbl">Hoàn tất</div></div>
+        <button type="button" className="scard pur" aria-pressed={selectedStat === 'today'} onClick={() => selectStat('today')}><div className="snum">{stats.today}</div><div className="slbl">Đơn hôm nay</div></button>
+        <button type="button" className="scard" aria-pressed={selectedStat === 'processing'} onClick={() => selectStat('processing')}><div className="snum">{stats.processing}</div><div className="slbl">Đang xử lý</div></button>
+        <button type="button" className="scard red" aria-pressed={selectedStat === 'late'} onClick={() => selectStat('late')}><div className="snum">{stats.late}</div><div className="slbl">Sẽ trễ hẹn</div></button>
+        <button type="button" className="scard warning" aria-pressed={selectedStat === 'risk'} onClick={() => selectStat('risk')} style={{ borderLeft: '4px solid #b45309', background: '#fef3c7' }}>
+           <div className="snum" style={{ color: '#b45309' }}>{stats.risk}</div><div className="slbl" style={{ color: '#92400e' }}>Nguy cơ trễ</div>
+        </button>
+        <button type="button" className="scard grn" aria-pressed={selectedStat === 'done'} onClick={() => selectStat('done')}><div className="snum">{stats.done}</div><div className="slbl">Hoàn tất</div></button>
       </div>
 
       {/* Queue card */}
@@ -201,9 +214,9 @@ export default function DashboardPage() {
             </button>
           </div>
 
-           {operationsLoading ? <div style={{ color: 'var(--ts)', fontSize: 12, padding: 10 }}>Đang tải hàng đợi...</div> : topQueueItems.length === 0 ? <div style={{ color: 'var(--ts)', fontSize: 12, padding: 10 }}>Không có đơn phù hợp với bộ lọc hiện tại</div> : <div className="olist">
-              {topQueueItems.map(item => <QueueRow key={item.orderId} item={item} now={now} onOpen={() => openOrderModal(queueModalParams(item))} onExpedite={() => openOrderModal(queueModalParams(item, true))} />)}
-           </div>}
+            {operationsLoading ? <div style={{ color: 'var(--ts)', fontSize: 12, padding: 10 }}>Đang tải hàng đợi...</div> : dashboardQueueItems.length === 0 ? <div style={{ color: 'var(--ts)', fontSize: 12, padding: 10 }}>Không có đơn phù hợp với bộ lọc hiện tại</div> : <div className="olist">
+              {dashboardQueueItems.slice(0, 5).map(item => <QueueRow key={item.orderId} item={item} now={now} onOpen={() => openOrderModal(queueModalParams(item))} onExpedite={() => openOrderModal(queueModalParams(item, true))} />)}
+            </div>}
         </div>
       </div>
     </div>
@@ -215,4 +228,13 @@ function parseShiftMinutes(value: string) {
   if (!match) return null;
   const minutes = Number(match[1]) * 60 + Number(match[2]);
   return minutes >= 0 && minutes <= 23 * 60 + 59 ? minutes : null;
+}
+
+function isTodayOrder(order: { receivedAt: string }) {
+  const match = /^(\d{1,2})\/(\d{1,2})\/(\d{4})/.exec(order.receivedAt);
+  if (!match) return false;
+  const now = new Date();
+  return Number(match[1]) === now.getDate()
+    && Number(match[2]) === now.getMonth() + 1
+    && Number(match[3]) === now.getFullYear();
 }

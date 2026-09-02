@@ -4,6 +4,20 @@ import { isStageOverdue } from "./scheduling.service.js";
 
 const INTERVAL_MS = 60_000;
 
+function formatVietnamTime(value: Date | null | undefined) {
+  if (!value) return "--";
+  return new Intl.DateTimeFormat("vi-VN", {
+    timeZone: "Asia/Ho_Chi_Minh",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+  }).format(value);
+}
+
 function overdueMinutes(order: { stages: Array<{ stage: string; plannedStartAt: Date | null; plannedEndAt: Date | null }> }, now: Date) {
   return Math.max(
     0,
@@ -26,7 +40,7 @@ export function startScheduleJob() {
     running = true;
     try {
       const stores = await prisma.store.findMany({ select: { storeId: true } });
-      console.info(`[schedule-job] Bắt đầu quét ${stores.length} cửa hàng`);
+      console.info(`[schedule-job] Bắt đầu quét ${stores.length} cửa hàng lúc ${formatVietnamTime(new Date())}`);
       for (const store of stores) {
         const scanNow = new Date();
         const orders = await prisma.laundryOrder.findMany({
@@ -53,11 +67,11 @@ export function startScheduleJob() {
             const changedStage = result.stages.find((stage) => stage.stage === result.previousStage);
             console.info(
               `[schedule-job] Đơn #${orderId}: đã dời ${result.previousStage} `
-              + `${result.previousStartAt?.toISOString() ?? "--"} -> ${changedStage?.plannedStartAt?.toISOString() ?? "--"}; `
-              + `ETA ${result.estimatedAt.toISOString()} (hẹn ${result.pickupAt?.toISOString() ?? "--"})`,
+              + `${formatVietnamTime(result.previousStartAt)} -> ${formatVietnamTime(changedStage?.plannedStartAt)}; `
+              + `ETA ${formatVietnamTime(result.estimatedAt)} (hẹn ${formatVietnamTime(result.pickupAt)})`,
             );
           } else if (result.status === "NOT_FEASIBLE") {
-            console.info(`[schedule-job] Đơn #${orderId}: không dời lịch, ETA mới không đáp ứng giờ hẹn ${result.pickupAt?.toISOString() ?? "--"}`);
+            console.info(`[schedule-job] Đơn #${orderId}: không dời lịch, ETA mới không đáp ứng giờ hẹn ${formatVietnamTime(result.pickupAt)}`);
           } else {
             console.info(`[schedule-job] Đơn #${orderId}: không còn stage PLANNED quá hạn`);
           }

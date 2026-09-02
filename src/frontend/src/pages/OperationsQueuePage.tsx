@@ -35,13 +35,13 @@ function timingTags(item: QueueItem, now: number): TimingTag[] {
   const machine = formatCountdown(actionTarget(item), now);
   const tags: TimingTag[] = [];
 
-  if (isRunning && pickup?.late) tags.push({ tone: 'late', label: 'TRỄ HẸN', value: pickup.text });
-  if (isRunning && machine) tags.push({ tone: machine.late ? 'late' : 'machine', label: machine.late ? 'MÁY QUÁ GIỜ' : 'MÁY CÒN', value: machine.text });
+  if (isRunning && pickup?.late) tags.push({ tone: 'late', label: 'TRỄ GIỜ HẸN', value: pickup.text });
+  if (isRunning && machine) tags.push({ tone: machine.late ? 'late' : 'machine', label: machine.late ? 'TRỄ TIẾN ĐỘ' : 'MÁY CÒN', value: machine.late ? formatDurationLabel(taskDelayMinutes(item, now)) : machine.text });
   if (waitingForMachine && machine && !machine.late) tags.push({ tone: 'wait', label: 'CHỜ MÁY', value: machine.text });
-  if (waitingForMachine && machine?.late) tags.push({ tone: 'action', label: 'THAO TÁC CÒN', value: machine.text });
+  if (waitingForMachine && machine?.late) tags.push({ tone: 'late', label: 'TRỄ TIẾN ĐỘ', value: formatDurationLabel(taskDelayMinutes(item, now)) });
   if (!isRunning && !waitingForMachine) {
     const action = formatCountdown(actionTarget(item), now);
-    if (action) tags.push({ tone: action.late ? 'late' : 'action', label: action.late ? 'THAO TÁC TRỄ' : 'THAO TÁC CÒN', value: action.text });
+    if (action) tags.push({ tone: action.late ? 'late' : 'action', label: action.late ? 'TRỄ TIẾN ĐỘ' : 'THAO TÁC CÒN', value: action.late ? formatDurationLabel(taskDelayMinutes(item, now)) : action.text });
   }
   return tags;
 }
@@ -161,7 +161,7 @@ export function QueueRow({ item, now, onOpen, onExpedite }: { item: QueueItem; n
           <div className="oq-priority-reason"><Info size={13} aria-hidden="true" /> <span>Lý do ưu tiên: {item.priorityReason || 'Theo thứ tự hàng đợi hiện tại'}</span></div>
         </div>
         <div className="oq-task-side">
-          <div className={`oq-task-priority${risk !== 'ok' ? ` ${risk}` : ''}`}>{risk === 'late' ? `TRỄ TIẾN ĐỘ ${formatDurationLabel(item.taskDelayMinutes).toUpperCase()}` : risk === 'risk' ? 'NGUY CƠ TRỄ GIỜ HẸN' : `ƯU TIÊN ${item.rank}`}</div>
+          <div className={`oq-task-priority${risk !== 'ok' ? ` ${risk}` : ''}`}>{risk === 'late' ? `TRỄ TIẾN ĐỘ ${formatDurationLabel(delayMinutes).toUpperCase()}` : risk === 'risk' ? 'NGUY CƠ TRỄ GIỜ HẸN' : `ƯU TIÊN ${item.rank}`}</div>
           <div className="oq-task-pickup">Hẹn lấy <strong>{formatTime(item.pickupAt, 'chưa hẹn')}</strong></div>
           <div className="oq-task-actions" onClick={event => event.stopPropagation()}><button type="button" className="oq-expedite-button" onClick={onExpedite}>ĐÔN ĐƠN</button><PrimaryAction item={item} onOpen={onOpen} tone={tone} waitingForMachine={waitingForMachine && machineWait} machineDone={machineDone} /></div>
         </div>
