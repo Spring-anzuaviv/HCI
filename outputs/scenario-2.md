@@ -1,130 +1,68 @@
 # Scenario 2 — Hệ thống tương lai
 
-> **Một ca làm việc có hỗ trợ, nhân viên vẫn là người quyết định**
+> **Ra quyết định có thông tin, vẫn giữ quyền chủ động trong suốt ca làm việc**
 
-Mô tả cùng tình huống tại cửa hàng giặt ủi Cosmo qua ba cải tiến chính: **hàng đợi công việc thông minh có hỗ trợ bàn giao giữa các ca**, **kiểm tra tính khả thi của giờ hẹn**, và **thông báo khách khi đơn sẵn sàng**.
+Scenario này mô tả cách Mai Anh sử dụng hệ thống hỗ trợ để kiểm tra giờ hẹn, chọn việc tiếp theo, đánh giá việc đôn đơn, thông báo khách và bàn giao ca mà không phải tự ghi nhớ hoặc tự ước tính mọi thông tin.
 
 ---
 
 ## Bối cảnh
 
-|                        |                                      |
-| ---------------------- | ------------------------------------ |
-| **Persona**            | Nguyễn Mai Anh, 20 tuổi              |
-| **Địa điểm**           | Cửa hàng giặt ủi Cosmo               |
-| **Thời điểm**          | Chiều thứ Sáu — cuối tuần đông khách |
-| **Tình trạng ban đầu** | 6 đơn chờ xử lý, 3 máy đang chạy     |
+| | |
+|---|---|
+| **Persona** | Mai Anh Nguyễn, 20 tuổi |
+| **Địa điểm** | Cửa hàng giặt ủi, gần khu trọ / ký túc xá |
+| **Thời điểm** | Thứ Sáu, ngày 28/08/2026 |
+| **Tình trạng ban đầu** | 6 đơn chờ xử lý, 3 máy đang chạy |
 
 ---
 
-## Mô tả quy trình mới
+## Diễn biến ca làm việc với hệ thống mới
 
-Trong ca chiều thứ Sáu đông khách, Mai Anh vẫn là người trực tiếp tiếp nhận và quyết định cách xử lý từng đơn, nhưng cô không còn phải tự ghép mọi thông tin trong đầu. Trước khi bắt đầu xử lý, cô mở **hàng đợi công việc thông minh** để xem các đơn trong ca và phần bàn giao từ ca trước. Mỗi đơn cho biết trạng thái, công đoạn/vị trí, người phụ trách, ngoại lệ và việc cần làm tiếp theo. Khi có máy trống, hàng đợi đề xuất đơn phù hợp dựa trên **thời điểm nhận đơn, giờ khách hẹn lấy, mức độ khẩn cấp, trạng thái đơn và loại máy phù hợp**; Mai Anh xem lý do rồi xác nhận hoặc tự đổi thứ tự nếu thực tế phát sinh khác với đề xuất.
+### Bước 1 — Kiểm tra khả năng đáp ứng giờ hẹn `14:00`
 
-Khi khách hỏi giờ lấy đồ, Mai Anh dùng chức năng **kiểm tra tính khả thi của giờ hẹn**. Khoảng hoàn thành được ước tính từ các máy đang hoạt động và thời gian còn lại, số đơn đang chờ, thời gian giặt–sấy–đóng gói, loại đồ hoặc dịch vụ và thời gian dự phòng. Kết quả được trình bày bằng ba mức **“Khả thi”**, **“Có rủi ro”** hoặc **“Không khả thi”**, kèm giờ gần nhất có thể đáp ứng. Giao diện cũng **cảnh báo rõ nguy cơ trễ hẹn** của các đơn đang làm, giúp nhân viên thấy ngay đơn nào sắp trễ và cần bao nhiêu thời gian để chuẩn bị, từ đó ưu tiên xử lý ngay. Nhờ vậy, Mai Anh có cơ sở trao đổi và chỉ xác nhận giờ nhận phù hợp với khả năng của cửa hàng.
+Thứ Sáu, ngày 28/08/2026, lúc 14:00, một khách mang đồ đến cửa hàng và hỏi Mai Anh: “Khoảng mấy giờ lấy được?”. Khách muốn lấy đồ lúc 14:30. Thay vì nhìn tình trạng máy rồi tự ước tính như trước, Mai Anh nhập thông tin đơn và giờ khách mong muốn vào hệ thống. Hệ thống dựa trên tình trạng máy, hàng chờ, khối lượng, loại dịch vụ, thời lượng các công đoạn và thời gian dự phòng để kiểm tra khả năng đáp ứng.
 
-Khi một khách bất ngờ muốn lấy đồ sớm hơn, hàng đợi cho Mai Anh xem việc đôn đơn sẽ ảnh hưởng như thế nào đến những đơn đang chờ. Thứ tự chỉ thay đổi sau khi cô kiểm tra tình trạng máy và xác nhận. Tiến trình từng đơn được cập nhật trên cùng hàng đợi; khi một đơn chuyển sang trạng thái **“Sẵn sàng để nhận”**, chức năng **thông báo khách** soạn sẵn nội dung để Mai Anh kiểm tra và gửi. Lịch sử và trạng thái **“Đã gửi/Chưa gửi”** giúp cô biết khách nào đã được báo hay chưa. Cuối ca, ngay trong hàng đợi, Mai Anh chuyển sang chế độ **“Bàn giao ca sau”** để rà các đơn chưa hoàn tất và xác nhận người tiếp nhận. Quy trình kết thúc khi khách đã được báo và đồng nghiệp ca sau có thể tiếp tục từ chính hàng đợi, không phải ghép lại thông tin bằng giấy hoặc truyền miệng.
+Kết quả cho thấy 14:30 không khả thi, đơn dự kiến hoàn thành khoảng 15:00–15:10 và đề xuất giờ nhận gần nhất là 15:15. Mai Anh trao đổi lại với khách và xác nhận giờ hẹn. Cô cảm thấy tự tin hơn khi đưa ra giờ nhận vì có thông tin cụ thể để giải thích với khách thay vì phải tự ước lượng.
 
----
+### Bước 2 — Chọn việc tiếp theo với lý do rõ ràng `14:15`
 
-## Diễn biến tình huống trong ca
+Đến 14:15, máy giặt số 2 vừa hoàn tất và đang có 5 đơn chờ. Mai Anh mở hàng đợi công việc. Hệ thống sắp xếp các đơn dựa trên giờ hẹn, trạng thái, công đoạn, tình trạng máy và các đơn đang chờ. Đơn được đề xuất ở đầu hàng đợi kèm việc cần làm tiếp theo và lý do ưu tiên, chẳng hạn “Còn 45 phút đến giờ hẹn – còn 2 công đoạn – phù hợp với máy giặt số 2”.
 
-### Bước 1 — Kiểm tra giờ hẹn trước khi xác nhận `Đầu ca · 14:00`
+Mai Anh xem đề xuất rồi xác nhận xử lý; nếu cần, cô vẫn có thể chọn một đơn khác và hệ thống sẽ cập nhật lại kế hoạch. Thay vì phải nhớ thông tin của nhiều đơn và tự cân nhắc cùng lúc, Mai Anh cảm thấy nhẹ đầu và chủ động hơn vì biết rõ mình nên làm gì tiếp theo nhưng vẫn có quyền quyết định.
 
-Khách mang đồ đến và hỏi: **“Khoảng mấy giờ lấy được?”** Mai Anh ghi loại dịch vụ, yêu cầu của đơn và kiểm tra khả năng đáp ứng giờ **14:30** trước khi trả lời.
+### Bước 3 — Kiểm tra tác động trước khi đôn đơn gấp `14:40`
 
-Thông tin hỗ trợ ước tính từ tải máy, hàng đợi, thời lượng giặt–sấy–hoàn tất và thời gian dự phòng. Giờ 14:30 được ghi rõ là **“Không khả thi”**; đơn dự kiến hoàn thành từ **15:00–15:10** và giờ gần nhất có dự phòng là **15:15**. Một timeline ngắn cho thấy các công đoạn còn lại và thời gian dự kiến của từng mốc, giúp Mai Anh kiểm tra tính hợp lý trước khi giải thích cho khách và xác nhận giờ mới.
+Lúc 14:40, một khách gọi điện và yêu cầu lấy đồ sớm hơn 1 tiếng vì có việc đột xuất. Mai Anh mở đơn và kiểm tra khả năng đôn. Hệ thống hiển thị công đoạn hiện tại, tình trạng máy và ảnh hưởng của việc thay đổi thứ tự đến các đơn khác. Những đơn có nguy cơ bị trễ được cảnh báo trước khi Mai Anh xác nhận.
 
-> **Phản hồi hiển thị:** Không khả thi · Giặt → Sấy → Hoàn tất · Dự kiến 15:00–15:10 · Đề xuất hẹn 15:15
+Sau khi xem tác động, cô quyết định có đôn đơn hay giữ nguyên thứ tự. Mai Anh cảm thấy yên tâm hơn vì không còn phải tự phán đoán liệu việc ưu tiên một khách có làm ảnh hưởng đến những khách khác hay không.
 
-- **Tương tác mới:** Kiểm tra tính khả thi và đề xuất giờ gần nhất trước khi cam kết.
-- **Kết quả:** Giờ nhận được thống nhất trên cơ sở tải hiện tại, không chỉ dựa vào cảm tính.
+### Bước 4 — Theo dõi tiến trình và thông báo khách `14:40–17:00`
 
----
+Trong quá trình làm việc, Mai Anh có thể theo dõi trạng thái, công đoạn, thời gian dự kiến và việc cần làm tiếp theo của từng đơn tại cùng một nơi. Khi máy đã hoàn tất nhưng đồ chưa được lấy ra, một công việc bị bỏ quên hoặc đơn xuất hiện nguy cơ trễ, hệ thống đưa ra nhắc việc và hạn chế nhắc lại không cần thiết. Mai Anh cảm thấy bớt áp lực phải ghi nhớ nhiều việc cùng lúc và tự tin hơn rằng những công việc quan trọng sẽ không dễ bị bỏ sót.
 
-### Bước 2 — Chọn đơn tiếp theo với lý do rõ ràng `14:15`
+Đến 17:00, một số đơn chuyển sang trạng thái “Sẵn sàng để nhận”. Hệ thống chuẩn bị sẵn nội dung thông báo cho từng khách. Mai Anh kiểm tra nội dung và xác nhận gửi; sau đó trạng thái được cập nhật thành “Đã gửi”. Cô có thể nhìn ngay khách nào đã được thông báo và khách nào chưa. Mai Anh cảm thấy việc thông báo khách nhanh và dễ kiểm soát hơn, đồng thời bớt lo mình quên báo hoặc gửi trùng cho khách.
 
-Máy giặt số 2 vừa trống; còn **5 đơn chờ**. Mai Anh mở hàng đợi công việc, nơi cô có thể chuyển giữa **“Ca trước bàn giao”** và **“Công việc trong ca”**. Hàng đợi đề xuất đơn tiếp theo dựa trên **thời điểm nhận đơn, giờ khách hẹn lấy, mức độ khẩn cấp, trạng thái đơn và loại máy phù hợp**.
+### Bước 5 — Bàn giao ca sau `17:50`
 
-Ngay cạnh đề xuất có lý do **“còn 45 phút đến giờ hẹn, còn 2 công đoạn”** và một dòng tóm tắt **“Chờ giặt · Khu tiếp nhận · Mai Anh · Tiếp theo: đưa vào máy số 2”**. Đặc biệt, các đơn có **nguy cơ trễ hẹn** được làm nổi bật kèm thời gian còn lại để cô thấy và xử lý ngay. Trạng thái luôn có nhãn chữ, không chỉ có màu. Mai Anh vẫn thấy lựa chọn **“Chọn đơn khác”** và có thể kéo đổi thứ tự nếu tình hình thực tế không phù hợp. Sau khi đối chiếu yêu cầu và đúng túi đồ, cô xác nhận đơn được đề xuất rồi đưa vào máy số 2.
+Đến 17:50, gần kết thúc ca vẫn còn 3 đơn chưa hoàn tất, trong đó có 2 đơn có nguy cơ trễ. Mai Anh chuyển sang chế độ “Bàn giao ca sau”. Hệ thống tổng hợp trạng thái, công đoạn hoặc vị trí hiện tại, giờ hẹn, yêu cầu đặc biệt, tình trạng thông báo và việc cần làm tiếp theo của từng đơn.
 
-> **Phản hồi hiển thị:** Nên xử lý tiếp · Còn 45 phút đến giờ hẹn · Còn 2 công đoạn · Có nguy cơ trễ · Chọn đơn khác
-
-- **Tương tác mới:** Đề xuất việc tiếp theo có giải thích, nhân viên được xác nhận hoặc chọn khác.
-- **Kết quả:** Hàng đợi cập nhật; đơn vừa chọn có trạng thái và người xử lý rõ ràng, còn phần việc từ ca trước vẫn được theo dõi trên cùng danh sách.
+Mai Anh rà soát và xác nhận bàn giao. Nhân viên ca sau có thể dựa vào thông tin này để tiếp tục công việc mà không phải hỏi lại nhiều. Khi kết thúc ca, Mai Anh cảm thấy yên tâm hơn vì biết rằng những đơn đang dở đã được bàn giao đầy đủ và ca sau có thể tiếp tục xử lý mà không phụ thuộc vào việc cô phải nhớ và giải thích từng đơn.
 
 ---
 
-### Bước 3 — Xem tác động trước khi đôn đơn gấp `14:40`
+## Traceability: Scenario 1 → Scenario 2
 
-Một khách gọi xin lấy đồ sớm hơn **1 giờ** vì có việc đột xuất. Mai Anh mở đơn gấp và xem phương án đưa đơn này lên trước.
+| Vấn đề trong Scenario 1 | Tương tác mới / giải pháp | Kết quả đạt được | Goal |
+|---|---|---|---|
+| **P1 — Hàng đợi thủ công** | Hàng đợi đề xuất đơn tiếp theo, kèm việc cần làm và lý do ưu tiên; Mai Anh có thể xác nhận hoặc chọn đơn khác. | Biết nên làm gì tiếp theo mà vẫn giữ quyền quyết định. | G1 — Điều phối |
+| **P2, P3 — Hẹn giờ theo cảm tính và thông tin phân tán** | Nhập thông tin đơn để hệ thống kiểm tra tình trạng máy, hàng chờ, khối lượng, dịch vụ, thời lượng công đoạn và thời gian dự phòng. | Có cơ sở cụ thể để từ chối 14:30, đề xuất khoảng 15:00–15:10 và giờ nhận 15:15. | G2 — Đúng hẹn |
+| **P4 — Thông báo thủ công** | Hệ thống chuẩn bị nội dung, cho Mai Anh kiểm tra và lưu trạng thái “Đã gửi” hoặc chưa gửi theo từng đơn. | Giảm nguy cơ quên báo hoặc gửi trùng, dễ kiểm soát khách đã được thông báo. | G4 — Giao tiếp khách hàng |
+| **P5 — Bàn giao ca thiếu ngữ cảnh** | Chế độ “Bàn giao ca sau” tổng hợp trạng thái, vị trí, giờ hẹn, yêu cầu đặc biệt, thông báo và việc tiếp theo. | Ca sau có thể tiếp tục mà không phải hỏi lại hoặc phụ thuộc vào trí nhớ của Mai Anh. | G3 — Bàn giao |
 
-Thông tin hỗ trợ cho biết giờ hoàn thành dự kiến của đơn gấp và những đơn nào có thể chuyển sang **“Có rủi ro”** nếu thay đổi thứ tự. Mỗi đơn bị ảnh hưởng vẫn có dòng tóm tắt trạng thái, người phụ trách và việc tiếp theo. Mai Anh kiểm tra tình hình máy thực tế rồi chọn đôn đơn, kéo đổi vị trí, dùng máy vừa trống hoặc giữ thứ tự cũ. Thay đổi chỉ được áp dụng sau khi cô xác nhận và ghi lý do.
+## Chú thích bằng chứng và giới hạn
 
-> **Phản hồi hiển thị:** Nếu đôn đơn này · 1 đơn có nguy cơ trễ · Xem tác động trước khi đổi
-
-- **Tương tác mới:** So sánh tác động trước khi đổi ưu tiên; Mai Anh vẫn là người quyết định.
-- **Kết quả:** Thứ tự mới và các đơn bị ảnh hưởng đều nhìn thấy được.
-
----
-
-### Bước 4 — Gửi thông báo khi đơn sẵn sàng `16:00–17:00`
-
-Các đơn trong ca lần lượt hoàn tất và chuyển sang trạng thái **"Sẵn sàng để nhận"**. Với mỗi đơn, hệ thống soạn sẵn nội dung thông báo kèm tên khách và giờ có thể đến lấy. Mai Anh kiểm tra nội dung, chỉnh nếu cần, rồi nhấn gửi — hoặc nếu kênh đã được bật tự động thì cập nhật được gửi theo trạng thái đơn mà không cần thao tác thêm.
-
-Mỗi đơn hiển thị lịch sử thông báo, trạng thái **"Đã gửi"** hoặc **"Chưa gửi"**, thời điểm và nội dung gần nhất. Mai Anh biết khách nào đã được báo và là người duyệt lần cuối, nên vẫn có thể sửa hoặc giữ lại nếu thông tin chưa đúng.
-
-> **Phản hồi hiển thị:** Sẵn sàng để nhận · Đã gửi 16:05 · Chưa gửi · Nội dung thông báo gần nhất
-
-- **Tương tác mới:** Soạn sẵn nội dung thông báo khi đơn hoàn tất; nhân viên duyệt hoặc gửi tự động theo cài đặt, kèm trạng thái gửi theo từng đơn.
-- **Kết quả:** Khách biết đồ đã sẵn sàng đúng lúc; Mai Anh biết rõ ai đã được báo.
-
----
-
-### Bước 5 — Bàn giao ca ngay trong hàng đợi công việc `17:50 · Cuối ca`
-
-Trước khi kết thúc ca, Mai Anh vẫn ở màn hình hàng đợi và chuyển sang chế độ **“Bàn giao ca sau”**. Hàng đợi tự gom các đơn chưa hoàn tất; mỗi đơn cho biết **trạng thái hiện tại, công đoạn/vị trí, người phụ trách, giờ hẹn, ngoại lệ và việc cần làm tiếp theo**.
-
-Mai Anh rà lại thông tin thực tế, bổ sung lưu ý nếu cần. Khi vào ca, đồng nghiệp mở mục **“Ca trước bàn giao”** trên chính hàng đợi và đọc ngay dòng tóm tắt **“đang ở đâu, ai phụ trách, làm gì tiếp theo”**.
-
-> **Phản hồi hiển thị:** Hàng đợi › Bàn giao ca sau · 3 đơn chưa hoàn tất · Xác nhận bàn giao
-
-- **Tương tác mới:** Xem bàn giao ca trước và tạo bàn giao ca sau ngay trong hàng đợi công việc thông minh.
-- **Kết quả:** Ca sau biết rõ phần việc cần tiếp tục; G3 — Bàn giao được hoàn thành trong câu chuyện.
-
----
-
-## Ba cải tiến chính của quy trình mới
-
-| Cải tiến chính                                  | Các tương tác được lồng từ Value Proposition                            | Giá trị đối với Mai Anh                                                                                                                                                                             |
-| ----------------------------------------------- | ----------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **1 · Hàng đợi công việc thông minh**           | `//PR1`, `//PR3`, `//PR5`, `//PR11`, `//GC1`, `//GC3`, `//GC4`, `//GC5` | Đề xuất đơn có lý do, cảnh báo nguy cơ trễ hẹn; cho phép đổi thứ tự; hiển thị trạng thái, vị trí, người phụ trách và việc tiếp theo; cho xem bàn giao ca trước và tạo bàn giao ca sau trên cùng hàng đợi |
-| **2 · Kiểm tra tính khả thi của giờ khách hẹn** | `//PR9`, `//GC9`, `//GC10`                                              | Ước tính từ tải máy, hàng chờ, thời lượng công đoạn, loại dịch vụ và thời gian dự phòng; hiển thị ba mức khả thi, khoảng hoàn thành, giờ gần nhất và timeline công đoạn                             |
-| **3 · Thông báo khách khi đơn sẵn sàng**        | `//PR7`, `//GC8`                                                        | Soạn sẵn thông báo khi đơn hoàn tất; gửi tự động hoặc để nhân viên duyệt; lưu lịch sử và trạng thái gửi theo từng đơn                                                                               |
-
----
-
-## Liên kết với Scenario 1 và Goal
-
-| Nguồn vấn đề                                                 | Cải tiến chính trong Scenario 2                                                           | Goal được hỗ trợ                |
-| ------------------------------------------------------------ | ----------------------------------------------------------------------------------------- | ------------------------------- |
-| **S1-P1 — Hàng đợi thủ công / VP-P1**                        | **1 — Hàng đợi thông minh:** đề xuất có lý do, quyền đổi thứ tự và thông tin đơn hợp nhất | G1 — Điều phối; G5 — Chất lượng |
-| **VP-P2/P3 — Thông tin phân tán và bàn giao thiếu ngữ cảnh** | **1 — Hàng đợi thông minh:** xem ca trước bàn giao và tạo bàn giao cho ca sau             | G3 — Bàn giao; G5 — Chất lượng  |
-| **S1-P2 — Hẹn giờ theo cảm tính / VP-P2b**                   | **2 — Kiểm tra giờ hẹn:** ba mức khả thi, khoảng hoàn thành, giờ gần nhất và timeline     | G2 — Đúng hẹn                   |
-| **S1-P4 — Thông báo thủ công / VP-P4**                       | **3 — Thông báo khi đơn sẵn sàng:** soạn sẵn nội dung, gửi hoặc tự động, lưu lịch sử     | G4 — Giao tiếp khách hàng       |
-
----
-
-## Chú thích bằng chứng
-
-- **Finding:** quy tắc ưu tiên đơn đến trước/đơn gấp, không gộp đồ và nhắn Zalo thủ công để báo nhận đồ được lấy từ tài liệu phỏng vấn trong `inputs/`.
-- **Giả định thiết kế cần kiểm thử:** mức hữu ích của ba cải tiến chính; cách xem bàn giao ca trước/ca sau trong hàng đợi; độ chính xác của ba mức khả thi; và lựa chọn gửi tự động hay yêu cầu nhân viên duyệt.
-- **Dữ liệu mô phỏng:** giờ 15:15, 16:05 và 17:50; khoảng hoàn thành 15:00–15:10; số đơn bị ảnh hưởng, số đơn bàn giao và trạng thái gửi.
-
-## Gợi ý gen ảnh PNG
-
-- Dùng bố cục dọc; có thể tăng chiều cao lên khoảng **3916 × 10000 px** để sáu bước vẫn dễ đọc.
-- Giữ bốn thẻ bối cảnh; năm bước đầu so sánh 1–1 với Scenario 1, bước 6 thể hiện bàn giao như một phần của hàng đợi công việc thông minh.
-- Màu trạng thái: xanh lá — **Khả thi/Đã gửi**; vàng — **Có rủi ro**; đỏ — **Không khả thi**. Luôn kèm nhãn chữ.
-- Dùng card trắng, bo góc, bóng nhẹ, nền xám nhạt và điểm nhấn cam giống ảnh tham chiếu.
-- Nếu cần rút gọn để vừa ảnh, ưu tiên giữ: thời gian, tên bước, hành động của Mai Anh, phản hồi chính, tương tác mới và kết quả.
+- **Finding:** Các vấn đề về hàng đợi, hẹn giờ, thông báo và bàn giao được kế thừa từ Scenario 1; các claim nghiên cứu gốc được ghi trong `outputs/scenario-1.md`.
+- **Giả định thiết kế cần kiểm thử:** Mai Anh thấy lý do ưu tiên, cảnh báo nguy cơ trễ và thông tin bàn giao đủ rõ để đưa ra quyết định trong lúc cửa hàng bận.
+- **Dữ liệu mô phỏng:** Ngày 28/08/2026, các mốc 14:00, 14:15, 14:40, 17:00 và 17:50; 6 đơn ban đầu, 5 đơn chờ tại 14:15 và 3 đơn chưa hoàn tất cuối ca.
+- **Giới hạn:** Hệ thống trong Scenario 2 là prototype minh họa; các dự kiến thời gian và cảnh báo chưa chứng minh độ chính xác trong vận hành thực tế và không điều khiển trực tiếp máy giặt.
