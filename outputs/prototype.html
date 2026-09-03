@@ -2267,10 +2267,31 @@
 
               <div style="margin-bottom: 18px;">
                 <label style="display:block; font-size:12px; font-weight:600; color:#374151; margin-bottom:5px;">Giờ hẹn lấy</label>
-                <input type="time" class="inp" value="19:30" style="width:100%; padding:8px 10px; border:1px solid #d1d5db; border-radius:6px; font-size:13px; outline:none; background:#fff; font-family:inherit;" />
+                <input type="time" class="inp" id="chk-time" value="17:00" style="width:100%; padding:8px 10px; border:1px solid #d1d5db; border-radius:6px; font-size:13px; outline:none; background:#fff; font-family:inherit;" />
               </div>
 
-              <button class="bp" onclick="alert('Thời gian này KHẢ THI!\n\nHệ thống dự kiến sắp xếp vào:\n- Máy giặt 2 (Trống lúc 18:15)\n- Máy sấy 1 (Trống lúc 18:50)\n\nBạn có thể tự tin nhận đơn của khách.')" style="width:100%; justify-content:center; padding:10px; font-size:13.5px; border-radius:6px; box-shadow: 0 2px 4px rgba(139, 92, 246, 0.2)">Kiểm tra khả thi</button>
+              <div id="chk-result" style="display:none; padding:10px; border-radius:6px; margin-bottom:15px; font-size:12px; line-height:1.4;"></div>
+
+              <button class="bp" onclick="checkAvailability()" style="width:100%; justify-content:center; padding:10px; font-size:13.5px; border-radius:6px; box-shadow: 0 2px 4px rgba(139, 92, 246, 0.2)">Kiểm tra khả thi</button>
+
+              <script>
+                function checkAvailability() {
+                  const time = document.getElementById('chk-time').value;
+                  const res = document.getElementById('chk-result');
+                  res.style.display = 'block';
+                  if (time < "18:30") {
+                    res.style.background = "#fee2e2";
+                    res.style.color = "#991b1b";
+                    res.style.border = "1px solid #f87171";
+                    res.innerHTML = "<strong>KHÔNG KHẢ THI!</strong><br>Các máy đều kẹt đến 18:35. Vui lòng hẹn khách sau 19:30 để đảm bảo an toàn.";
+                  } else {
+                    res.style.background = "#dcfce3";
+                    res.style.color = "#166534";
+                    res.style.border = "1px solid #86efac";
+                    res.innerHTML = "<strong>KHẢ THI!</strong><br>Hệ thống dự kiến sắp xếp vào:<br>- Máy giặt 2 (Trống lúc 18:15)<br>- Máy sấy 1 (Trống lúc 18:50)";
+                  }
+                }
+              </script>
             </div>
           </div>
 
