@@ -2243,6 +2243,37 @@
               </div>
             </div>
           </div>
+
+          <!-- KHUNG KIỂM TRA GIỜ TRỐNG -->
+          <div class="card" style="flex:1">
+            <div class="ch">
+              <div class="ctitle">
+                <div class="cico"><svg class="icon icon-sm">
+                    <use href="#i-clock" />
+                  </svg></div>Kiểm tra giờ trống
+              </div>
+            </div>
+            <div style="padding: 16px;">
+              <p style="font-size:12.5px;color:#6b7280;margin-top:0;margin-bottom:16px;line-height:1.4">Nhập giờ khách muốn lấy đồ để kiểm tra xem hệ thống có khả năng đáp ứng hay không dựa trên lịch máy hiện tại.</p>
+              
+              <div style="margin-bottom: 12px;">
+                <label style="display:block; font-size:12px; font-weight:600; color:#374151; margin-bottom:5px;">Loại dịch vụ</label>
+                <select class="inp" style="width:100%; padding:8px 10px; border:1px solid #d1d5db; border-radius:6px; font-size:13px; outline:none; background:#fff;">
+                  <option>Giặt sấy tiêu chuẩn (Combo)</option>
+                  <option>Chỉ giặt</option>
+                  <option>Chỉ sấy</option>
+                </select>
+              </div>
+
+              <div style="margin-bottom: 18px;">
+                <label style="display:block; font-size:12px; font-weight:600; color:#374151; margin-bottom:5px;">Giờ hẹn lấy</label>
+                <input type="time" class="inp" value="19:30" style="width:100%; padding:8px 10px; border:1px solid #d1d5db; border-radius:6px; font-size:13px; outline:none; background:#fff; font-family:inherit;" />
+              </div>
+
+              <button class="bp" onclick="alert('Thời gian này KHẢ THI!\n\nHệ thống dự kiến sắp xếp vào:\n- Máy giặt 2 (Trống lúc 18:15)\n- Máy sấy 1 (Trống lúc 18:50)\n\nBạn có thể tự tin nhận đơn của khách.')" style="width:100%; justify-content:center; padding:10px; font-size:13.5px; border-radius:6px; box-shadow: 0 2px 4px rgba(139, 92, 246, 0.2)">Kiểm tra khả thi</button>
+            </div>
+          </div>
+
         </div>
       </div>
 
@@ -3077,10 +3108,7 @@
         </select>
       </div>
     </div>
-    <div id="add-calc"
-      style="background:#f1f5f9;border-radius:9px;padding:11px 14px;margin-bottom:14px;font-size:11.5px;color:var(--ts)">
-      <strong>Dự tính:</strong> Vui lòng nhập thông tin để hệ thống kiểm tra giờ.
-    </div>
+
     <div class="frow" style="margin-bottom:11px">
       <div class="fg"><label class="flbl">Tên khách hàng</label><input class="finput" type="text" id="add-name"
           placeholder="Ví dụ: Nguyễn Văn A" /></div>
